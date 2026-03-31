@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cours C++ complet ING2</title>
+  <meta
+    name="description"
+    content="Support interactif et autonome de C++ pour ING2 : navigation claire, progression, quiz, glossaire et parcours de révision."
+  >
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="stylesheet" href="styles/main.css">
+  <script defer src="scripts/lib/strings.js"></script>
+  <script defer src="scripts/lib/highlight.js"></script>
+  <script defer src="scripts/state/storage.js"></script>
+  <script defer src="scripts/data/glossary-study.js"></script>
+  <script defer src="scripts/ui/course-view.js"></script>
+  <script defer src="scripts/ui/glossary-view.js"></script>
+  <script defer src="scripts/course-data.js"></script>
+  <script defer src="scripts/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#chapterPanel">Aller au chapitre en cours</a>
+
+  <div class="backdrop" aria-hidden="true">
+    <div class="backdrop__orb backdrop__orb--a"></div>
+    <div class="backdrop__orb backdrop__orb--b"></div>
+    <div class="backdrop__grid"></div>
+  </div>
+
+  <div class="app-shell" id="appRoot">
+    <aside class="sidebar">
+      <div class="sidebar-shell">
+        <section class="brand-block brand-block--compact" aria-label="Identité du cours">
+          <p class="eyebrow">C++ ING2</p>
+        </section>
+
+        <section class="sidebar-card">
+          <div class="sidebar-card__row">
+            <span>Progression</span>
+            <strong id="progressLabel" aria-live="polite">0%</strong>
+          </div>
+          <div
+            class="progress-track"
+            role="progressbar"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow="0"
+            aria-labelledby="progressLabel"
+          >
+            <span class="progress-track__fill" id="progressFill"></span>
+          </div>
+          <p class="sidebar-note">Astuce : appuie sur <kbd>/</kbd> pour placer le curseur dans la recherche.</p>
+        </section>
+
+        <section class="sidebar-card">
+          <div class="sidebar-card__head">
+            <label class="field-label" for="searchInput">Recherche rapide</label>
+            <button class="ghost-button ghost-button--compact" id="resetFiltersButton" type="button">Effacer</button>
+          </div>
+          <input
+            id="searchInput"
+            class="search-input"
+            type="search"
+            placeholder="Ex. héritage, vector, exception"
+            autocomplete="off"
+          >
+          <div class="filter-row" id="levelFilters" aria-label="Filtres de niveau"></div>
+        </section>
+
+        <section class="sidebar-card sidebar-card--nav">
+          <div class="sidebar-card__row">
+            <span>Chapitres visibles</span>
+            <strong id="visibleCount" aria-live="polite">0</strong>
+          </div>
+          <nav class="chapter-nav" id="chapterNav" aria-label="Chapitres"></nav>
+        </section>
+      </div>
+    </aside>
+
+    <main class="workspace">
+      <section class="assistant-panel is-hidden" id="assistantPanel" hidden aria-live="polite"></section>
+      <header class="hero" id="hero"></header>
+      <section class="chapter-panel" id="chapterPanel"></section>
+      <section class="overview-panel" id="overview"></section>
+      <section class="glossary-panel" id="glossaryPanel"></section>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <p>Support autonome en HTML, CSS et JavaScript. Aucun build n'est requis.</p>
+    <a href="#appRoot">Revenir au début</a>
+  </footer>
+
+  <noscript>
+    <div class="noscript">
+      Active JavaScript pour afficher la navigation, les quiz et les fiches dynamiques du cours.
+    </div>
+  </noscript>
+</body>
+</html>
