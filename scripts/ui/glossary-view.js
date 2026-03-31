@@ -1,6 +1,67 @@
 (function initialiseCourseAppGlossaryView(globalScope) {
 const { escapeAttribute, escapeHtml, normalise } = globalScope.CourseAppStrings || {};
 
+const QUIZ_CATEGORIES = [
+  { id: "build", label: "Compilation & linkage" },
+  { id: "poo", label: "POO & polymorphisme" },
+  { id: "memory", label: "Mémoire & ressources" },
+  { id: "io", label: "Flux & fichiers" },
+  { id: "stl", label: "STL & conteneurs" },
+  { id: "template", label: "Templates & généricité" },
+  { id: "syntax", label: "Syntaxe & opérateurs" },
+  { id: "modern", label: "C++ moderne" },
+  { id: "design", label: "Design & architecture" },
+  { id: "debug", label: "Sécurité & debug" },
+  { id: "general", label: "Concepts C++" }
+];
+
+const CATEGORY_BY_TAG = {
+  algorithmes: "stl",
+  api: "design",
+  build: "build",
+  classe: "poo",
+  compilation: "build",
+  const: "syntax",
+  conteneurs: "stl",
+  copie: "modern",
+  "cycle de vie": "memory",
+  cycle_de_vie: "memory",
+  design: "design",
+  "edition de liens": "build",
+  erreurs: "debug",
+  exceptions: "debug",
+  fichiers: "io",
+  flux: "io",
+  genericite: "template",
+  heap: "memory",
+  heritage: "poo",
+  io: "io",
+  iterateurs: "stl",
+  lifetime: "memory",
+  memoire: "memory",
+  "modern cpp": "modern",
+  objet: "poo",
+  operateurs: "syntax",
+  organization: "design",
+  organisation: "design",
+  ownership: "memory",
+  parametres: "syntax",
+  performance: "modern",
+  polymorphisme: "poo",
+  poo: "poo",
+  raii: "memory",
+  resource: "memory",
+  ressources: "memory",
+  safety: "debug",
+  stack: "memory",
+  "standard library": "stl",
+  std: "modern",
+  syntaxe: "syntax",
+  template: "template"
+};
+
+const categoryById = Object.fromEntries(QUIZ_CATEGORIES.map((category) => [category.id, category]));
+
 function renderCodeBlock(codeExample) {
   if (!codeExample || !codeExample.source) {
     return "";
@@ -42,6 +103,205 @@ function renderStudyButtons(entryId, isKnown) {
   `;
 }
 
+function hashString(value) {
+  let hash = 2166136261;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return hash >>> 0;
+}
+
+function sortBySeed(items, seed, keyBuilder) {
+  return items.slice().sort((left, right) => {
+    const leftKey = keyBuilder(left);
+    const rightKey = keyBuilder(right);
+    const delta = hashString(`${seed}:${leftKey}`) - hashString(`${seed}:${rightKey}`);
+
+    if (delta !== 0) {
+      return delta;
+    }
+
+    return String(leftKey).localeCompare(String(rightKey), "fr", { sensitivity: "base" });
+  });
+}
+
+function getCategory(entry) {
+  const categoryId = (entry.tags || []).map((tag) => CATEGORY_BY_TAG[tag]).find(Boolean) || "general";
+  return categoryById[categoryId] || categoryById.general;
+}
+
+function buildOrderedEntries(entries, seed) {
+  return sortBySeed(entries, seed, (entry) => entry.id);
+}
+
+function buildOptionOrder(options, seed, salt) {
+  return sortBySeed(options, seed, (option) => `${salt}:${option.id}:${option.label}`);
+}
+
+function pickDistractors(entries, correctEntry, count, seed, salt) {
+  const pool = entries.filter((entry) => entry.id !== correctEntry.id);
+  const related = pool.filter((entry) => entry.tags.some((tag) => correctEntry.tags.includes(tag)));
+  const unrelated = pool.filter((entry) => !related.some((candidate) => candidate.id === entry.id));
+
+  const chosen = sortBySeed(related, seed, (entry) => `${salt}:related:${entry.id}`).slice(0, count);
+
+  if (chosen.length >= count) {
+    return chosen;
+  }
+
+  return chosen.concat(
+    sortBySeed(unrelated, seed, (entry) => `${salt}:fallback:${entry.id}`).slice(0, count - chosen.length)
+  );
+}
+
+function buildTermChoiceQuestion(correctEntry, entries, seed, promptHtml, title, eyebrow) {
+  const distractors = pickDistractors(entries, correctEntry, 3, seed, `term:${correctEntry.id}`);
+  const options = buildOptionOrder(
+    [
+      { id: `term:${correctEntry.id}`, label: correctEntry.term },
+      ...distractors.map((entry) => ({ id: `term:${entry.id}`, label: entry.term }))
+    ],
+    seed,
+    `term-options:${correctEntry.id}`
+  );
+
+  return {
+    eyebrow,
+    title,
+    promptHtml,
+    correctEntry,
+    correctOptionId: `term:${correctEntry.id}`,
+    optionClassName: "",
+    options,
+    typeLabel: "Reconnaissance de concept"
+  };
+}
+
+function buildDefinitionChoiceQuestion(correctEntry, entries, seed) {
+  const distractors = pickDistractors(entries, correctEntry, 3, seed, `definition:${correctEntry.id}`);
+  const options = buildOptionOrder(
+    [
+      { id: `definition:${correctEntry.id}`, label: correctEntry.text },
+      ...distractors.map((entry) => ({ id: `definition:${entry.id}`, label: entry.text }))
+    ],
+    seed,
+    `definition-options:${correctEntry.id}`
+  );
+
+  return {
+    eyebrow: "Définition ciblée",
+    title: `Quelle définition décrit le mieux "${correctEntry.term}" ?`,
+    promptHtml: `
+      <p class="glossary-quiz__lead">
+        Choisis la formulation la plus précise, pas juste celle qui "ressemble" au terme.
+      </p>
+      <p class="glossary-quiz__term">${correctEntry.term}</p>
+    `,
+    correctEntry,
+    correctOptionId: `definition:${correctEntry.id}`,
+    optionClassName: " quiz-option--long",
+    options,
+    typeLabel: "Précision de définition"
+  };
+}
+
+function buildCategoryQuestion(correctEntry, entries, seed) {
+  const correctCategory = getCategory(correctEntry);
+  const visibleCategories = Array.from(
+    new Map(entries.map((entry) => {
+      const category = getCategory(entry);
+      return [category.id, category];
+    })).values()
+  );
+
+  const categoryPool = visibleCategories.length >= 4
+    ? visibleCategories
+    : QUIZ_CATEGORIES.filter((category) => category.id !== "general");
+
+  const distractors = sortBySeed(
+    categoryPool.filter((category) => category.id !== correctCategory.id),
+    seed,
+    (category) => `category:${category.id}`
+  ).slice(0, 3);
+
+  const options = buildOptionOrder(
+    [
+      { id: `family:${correctCategory.id}`, label: correctCategory.label },
+      ...distractors.map((category) => ({ id: `family:${category.id}`, label: category.label }))
+    ],
+    seed,
+    `family-options:${correctEntry.id}`
+  );
+
+  return {
+    eyebrow: "Classement",
+    title: `Dans quelle famille rangerais-tu "${correctEntry.term}" ?`,
+    promptHtml: `
+      <p class="glossary-quiz__lead">${correctEntry.example}</p>
+      <p class="glossary-quiz__hint">Ici, on teste ta capacité à relier le terme à sa grande famille conceptuelle.</p>
+    `,
+    correctEntry,
+    correctOptionId: `family:${correctCategory.id}`,
+    optionClassName: "",
+    options,
+    typeLabel: "Famille conceptuelle"
+  };
+}
+
+function buildQuizQuestion(entries, state) {
+  if (!entries.length) {
+    return null;
+  }
+
+  const orderedEntries = buildOrderedEntries(entries, state.glossaryQuizSeed);
+  const safeIndex = Math.min(state.glossaryQuizIndex, orderedEntries.length - 1);
+  const correctEntry = orderedEntries[safeIndex];
+  const variantSeed = hashString(`${state.glossaryQuizSeed}:${state.glossaryQuizIndex}:${correctEntry.id}`);
+  const variant = variantSeed % 5;
+
+  if (variant === 0) {
+    return buildTermChoiceQuestion(
+      correctEntry,
+      entries,
+      variantSeed,
+      `<p>${correctEntry.text}</p>`,
+      "Quel terme correspond à cette définition ?",
+      "Définition"
+    );
+  }
+
+  if (variant === 1) {
+    return buildDefinitionChoiceQuestion(correctEntry, entries, variantSeed);
+  }
+
+  if (variant === 2) {
+    return buildTermChoiceQuestion(
+      correctEntry,
+      entries,
+      variantSeed,
+      `${renderCodeBlock(correctEntry.codeExample)}<p class="glossary-quiz__hint">Repère l'idée centrale illustrée par le code, pas juste un mot-clé visible.</p>`,
+      "Quel concept est illustré par ce code ?",
+      "Lecture de code"
+    );
+  }
+
+  if (variant === 3) {
+    return buildCategoryQuestion(correctEntry, entries, variantSeed);
+  }
+
+  return buildTermChoiceQuestion(
+    correctEntry,
+    entries,
+    variantSeed,
+    `<p>${correctEntry.example}</p>`,
+    "Quel terme est le mieux illustré par cette situation ?",
+    "Mise en situation"
+  );
+}
+
 function renderListMode(entries, knownSet) {
   return `
     <div class="glossary-grid glossary-grid--study">
@@ -70,7 +330,9 @@ function renderListMode(entries, knownSet) {
 }
 
 function renderFlashcardsMode(entries, state, knownSet) {
-  const current = entries[state.glossaryCardIndex] || null;
+  const orderedEntries = buildOrderedEntries(entries, state.glossaryCardSeed);
+  const current = orderedEntries[state.glossaryCardIndex] || null;
+
   if (!current) {
     return "";
   }
@@ -81,6 +343,7 @@ function renderFlashcardsMode(entries, state, knownSet) {
     <div class="glossary-study">
       <div class="glossary-study__head">
         <span class="meta-chip">${state.glossaryCardIndex + 1}/${entries.length}</span>
+        <span class="meta-chip meta-chip--accent">Ordre mélangé</span>
         <span class="meta-chip ${isKnown ? "meta-chip--success" : "meta-chip--gold"}">
           ${isKnown ? "Connu" : "À revoir"}
         </span>
@@ -93,7 +356,7 @@ function renderFlashcardsMode(entries, state, knownSet) {
         <div class="flashcard__face flashcard__face--front">
           <p class="eyebrow">Carte mémoire</p>
           <h3>${current.term}</h3>
-          <p>Essaie d'expliquer ce terme avant de retourner la carte.</p>
+          <p>Essaie d'expliquer ce terme à voix haute avant de retourner la carte.</p>
           <div class="glossary-card__tags">
             ${current.tags.map((tag) => `<span class="glossary-tag">${tag}</span>`).join("")}
           </div>
@@ -113,7 +376,8 @@ function renderFlashcardsMode(entries, state, knownSet) {
         <button class="ghost-button" type="button" data-action="glossary-flip">
           ${state.glossaryCardFace === "front" ? "Retourner" : "Voir le terme"}
         </button>
-        <button class="action-button action-button--primary" type="button" data-action="glossary-next">Suivante</button>
+        <button class="ghost-button" type="button" data-action="glossary-shuffle">Mélanger</button>
+        <button class="action-button action-button--primary" type="button" data-action="glossary-next">Nouvelle carte</button>
       </div>
 
       ${renderStudyButtons(current.id, isKnown)}
@@ -121,73 +385,52 @@ function renderFlashcardsMode(entries, state, knownSet) {
   `;
 }
 
-function buildQuizQuestion(entries, index) {
-  if (!entries.length) {
-    return null;
-  }
-
-  const safeIndex = Math.min(index, entries.length - 1);
-  const correct = entries[safeIndex];
-  const distractors = [];
-
-  for (let offset = 1; offset < entries.length && distractors.length < 3; offset += 1) {
-    const candidate = entries[(safeIndex + offset) % entries.length];
-    if (candidate.id !== correct.id) {
-      distractors.push(candidate);
-    }
-  }
-
-  const options = [correct, ...distractors].slice(0, Math.min(entries.length, 4));
-  const rotation = safeIndex % options.length;
-  const orderedOptions = options.slice(rotation).concat(options.slice(0, rotation));
-
-  return {
-    correct,
-    options: orderedOptions
-  };
-}
-
 function renderQuizMode(entries, state, knownSet) {
-  const question = buildQuizQuestion(entries, state.glossaryQuizIndex);
+  const question = buildQuizQuestion(entries, state);
   if (!question) {
     return "";
   }
 
   const selectedId = state.glossaryQuizSelectedId;
   const answered = Boolean(selectedId);
-  const isCorrect = answered && selectedId === question.correct.id;
-  const correctKnown = knownSet.has(question.correct.id);
+  const isCorrect = answered && selectedId === question.correctOptionId;
+  const correctKnown = knownSet.has(question.correctEntry.id);
+  const correctCategory = getCategory(question.correctEntry);
 
   return `
     <div class="glossary-study glossary-study--quiz">
       <div class="glossary-study__head">
         <span class="meta-chip">${state.glossaryQuizIndex + 1}/${entries.length}</span>
-        <span class="meta-chip meta-chip--accent">Quiz</span>
+        <span class="meta-chip meta-chip--accent">${question.typeLabel}</span>
+        <span class="meta-chip">${correctCategory.label}</span>
       </div>
 
-      <article class="quiz-card quiz-card--glossary" data-glossary-quiz="${question.correct.id}">
-        <h3>Quel terme correspond à cette définition ?</h3>
-        <p>${question.correct.text}</p>
+      <article class="quiz-card quiz-card--glossary" data-glossary-quiz="${question.correctEntry.id}">
+        <p class="eyebrow">${question.eyebrow}</p>
+        <h3>${question.title}</h3>
+        <div class="glossary-quiz__prompt">
+          ${question.promptHtml}
+        </div>
 
-        <div class="quiz-option-list">
-          ${question.options.map((entry) => {
+        <div class="quiz-option-list quiz-option-list--glossary">
+          ${question.options.map((option) => {
             const optionState = !answered
               ? ""
-              : entry.id === question.correct.id
+              : option.id === question.correctOptionId
                 ? " is-correct"
-                : entry.id === selectedId
+                : option.id === selectedId
                   ? " is-wrong"
                   : "";
 
             return `
               <button
-                class="quiz-option${optionState}"
+                class="quiz-option${question.optionClassName}${optionState}"
                 type="button"
                 data-action="glossary-quiz-answer"
-                data-glossary-entry-id="${entry.id}"
+                data-glossary-option-id="${option.id}"
                 ${answered ? "disabled" : ""}
               >
-                ${entry.term}
+                ${option.label}
               </button>
             `;
           }).join("")}
@@ -195,15 +438,24 @@ function renderQuizMode(entries, state, knownSet) {
 
         ${answered ? `
           <div class="quiz-feedback glossary-quiz-feedback">
-            <p><strong>${isCorrect ? "Bonne réponse." : "Réponse attendue :"}</strong> ${question.correct.term}</p>
-            <p>${question.correct.example}</p>
-            ${renderCodeBlock(question.correct.codeExample)}
+            <div class="glossary-quiz-feedback__meta">
+              <span class="meta-chip ${isCorrect ? "meta-chip--success" : "meta-chip--gold"}">
+                ${isCorrect ? "Bonne réponse" : "À revoir"}
+              </span>
+              <span class="meta-chip">${question.correctEntry.term}</span>
+              <span class="meta-chip">${correctCategory.label}</span>
+            </div>
+
+            <p><strong>${isCorrect ? "Bien vu." : "Réponse attendue :"}</strong> ${question.correctEntry.term}</p>
+            <p>${question.correctEntry.text}</p>
+            <p>${question.correctEntry.example}</p>
+            ${renderCodeBlock(question.correctEntry.codeExample)}
             <div class="glossary-card__actions">
               <button
                 class="ghost-button ghost-button--compact"
                 type="button"
                 data-action="glossary-mark-review"
-                data-glossary-entry-id="${question.correct.id}"
+                data-glossary-entry-id="${question.correctEntry.id}"
               >
                 À revoir
               </button>
@@ -211,7 +463,7 @@ function renderQuizMode(entries, state, knownSet) {
                 class="action-button ${correctKnown ? "action-button--outline" : "action-button--primary"}"
                 type="button"
                 data-action="glossary-mark-known"
-                data-glossary-entry-id="${question.correct.id}"
+                data-glossary-entry-id="${question.correctEntry.id}"
               >
                 ${correctKnown ? "Connu" : "Je connais"}
               </button>
@@ -242,11 +494,6 @@ function syncGlossaryState(state, visibleEntries) {
 
   state.glossaryCardIndex = Math.min(state.glossaryCardIndex, visibleEntries.length - 1);
   state.glossaryQuizIndex = Math.min(state.glossaryQuizIndex, visibleEntries.length - 1);
-
-  const visibleIds = new Set(visibleEntries.map((entry) => entry.id));
-  if (!visibleIds.has(state.glossaryQuizSelectedId)) {
-    state.glossaryQuizSelectedId = "";
-  }
 }
 
 function renderGlossary(container, { entries, state }) {
@@ -278,7 +525,7 @@ function renderGlossary(container, { entries, state }) {
       <div>
         <p class="eyebrow">Révision rapide</p>
         <h2>Glossaire interactif</h2>
-        <p>Une même base de termes peut maintenant se réviser en liste enrichie, en cartes mémoire ou en quiz rapide.</p>
+        <p>Tu peux maintenant réviser les termes en lecture détaillée, en cartes mélangées ou via un quiz multi-formats plus exigeant.</p>
       </div>
 
       ${state.glossarySearch ? `

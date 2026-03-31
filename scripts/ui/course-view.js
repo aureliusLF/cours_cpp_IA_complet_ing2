@@ -166,46 +166,121 @@ function renderHero(container, {
 
 function renderOverview(container, {
   chapters,
+  currentChapter,
+  doneSet,
   filtersActive,
-  roadmap,
-  visibleCount
+  level,
+  nextChapter,
+  search,
+  visibleChapters
 }) {
+  const remainingVisible = visibleChapters.filter((chapter) => !doneSet.has(chapter.id));
+  const suggestedChapter = remainingVisible[0] || currentChapter || visibleChapters[0] || nextChapter || null;
+  const focusList = (remainingVisible.length ? remainingVisible : visibleChapters).slice(0, 3);
+  const filterLabel = search
+    ? `Recherche active : ${escapeHtml(search)}`
+    : level === "all"
+      ? "Tous les niveaux"
+      : `Filtre : ${level}`;
+  const levelDistribution = [
+    "Fondations",
+    "Intermédiaire",
+    "Avancé",
+    "Projet"
+  ].map((levelName) => ({
+    level: levelName,
+    count: visibleChapters.filter((chapter) => chapter.level === levelName).length
+  })).filter((entry) => entry.count > 0);
+
   container.innerHTML = `
     <div class="overview-panel__head">
       <div>
-        <p class="eyebrow">Vue d'ensemble</p>
-        <h2>Le parcours en 4 temps</h2>
+        <p class="eyebrow">Tableau de bord</p>
+        <h2>Plan de révision immédiat</h2>
         <p class="chapter-head__summary">
-          Une lecture simple du programme : démarrer sur des bases saines, monter en abstraction,
-          consolider les réflexes modernes puis savoir structurer un vrai projet.
+          Ce panneau sert à décider quoi faire maintenant : reprendre le bon chapitre,
+          repérer les zones encore fragiles et comprendre ce que tes filtres affichent vraiment.
         </p>
       </div>
 
       <div class="overview-panel__toolbar">
-        <span class="meta-chip">${visibleCount}/${chapters.length} chapitres affichés</span>
+        <span class="meta-chip">${visibleChapters.length}/${chapters.length} chapitres affichés</span>
+        <span class="meta-chip">${filterLabel}</span>
         ${filtersActive ? `
           <button class="ghost-button ghost-button--compact" type="button" data-action="reset-filters">
-            Afficher tout le parcours
+            Effacer les filtres
           </button>
         ` : ""}
       </div>
     </div>
 
-    <div class="overview-rail">
-      ${roadmap
-        .map(
-          (phase) => `
-            <article class="phase-card">
-              <span class="phase-card__index">${phase.index}</span>
-              <h3>${phase.title}</h3>
-              <p>${phase.text}</p>
-              <ul>
-                ${phase.bullets.map((item) => `<li>${item}</li>`).join("")}
-              </ul>
-            </article>
-          `
-        )
-        .join("")}
+    <div class="overview-dashboard">
+      <article class="overview-card overview-card--primary">
+        <span class="overview-card__eyebrow">Maintenant</span>
+        <h3>${suggestedChapter ? `${suggestedChapter.order}. ${suggestedChapter.title}` : "Aucun chapitre visible"}</h3>
+        <p>
+          ${suggestedChapter
+            ? (doneSet.has(suggestedChapter.id)
+              ? "Le parcours visible est déjà bien avancé. Tu peux rouvrir ce chapitre pour consolider les détails ou repartir sur un autre angle de révision."
+              : "C'est le chapitre le plus logique à ouvrir maintenant dans la vue courante : il reste visible, non validé et directement actionnable.")
+            : "La recherche masque tout le contenu pour l'instant. Repars d'un filtre plus large pour retrouver un plan de travail clair."}
+        </p>
+        <div class="overview-card__actions">
+          ${suggestedChapter ? `
+            <button class="action-button action-button--primary" type="button" data-chapter-id="${suggestedChapter.id}">
+              Ouvrir ce chapitre
+            </button>
+          ` : `
+            <button class="action-button action-button--primary" type="button" data-action="reset-filters">
+              Réafficher le parcours
+            </button>
+          `}
+          ${currentChapter ? `
+            <button class="ghost-button" type="button" data-chapter-id="${currentChapter.id}">
+              Revenir au chapitre courant
+            </button>
+          ` : ""}
+        </div>
+      </article>
+
+      <article class="overview-card">
+        <span class="overview-card__eyebrow">À consolider</span>
+        <h3>${remainingVisible.length ? `${remainingVisible.length} chapitre(s) encore à travailler` : "Vue actuelle validée"}</h3>
+        ${focusList.length ? `
+          <div class="overview-list">
+            ${focusList.map((chapter) => `
+              <button class="overview-link" type="button" data-chapter-id="${chapter.id}">
+                <span class="overview-link__title">${chapter.order}. ${chapter.shortTitle}</span>
+                <span class="overview-link__meta">${chapter.level} · ${chapter.duration}</span>
+              </button>
+            `).join("")}
+          </div>
+        ` : `
+          <p class="overview-card__empty">
+            Tous les chapitres visibles sont déjà validés. Tu peux élargir les filtres ou utiliser le glossaire en mode quiz pour changer de rythme.
+          </p>
+        `}
+      </article>
+
+      <article class="overview-card">
+        <span class="overview-card__eyebrow">Lecture rapide</span>
+        <h3>Répartition de la vue courante</h3>
+        <div class="overview-levels">
+          ${levelDistribution.length ? levelDistribution.map((entry) => `
+            <div class="overview-level">
+              <span>${entry.level}</span>
+              <strong>${entry.count}</strong>
+            </div>
+          `).join("") : `
+            <p class="overview-card__empty">Aucun niveau visible avec les filtres actuels.</p>
+          `}
+        </div>
+        <p class="overview-card__hint">
+          ${remainingVisible.length
+            ? "Astuce : valide les chapitres au fil de l'eau pour transformer ce bloc en vrai radar de révision."
+            : "Astuce : une vue entièrement validée est idéale pour relancer un sprint de quiz ou d'exercices."}
+        </p>
+      </article>
     </div>
   `;
 }

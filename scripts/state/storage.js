@@ -1,5 +1,10 @@
 (function initialiseCourseAppStorage(globalScope) {
   const STORAGE_KEY = "cours_cpp_complet_ing2_state_v4";
+  const MAX_SEED = 2147483647;
+
+  function createSeed() {
+    return Math.floor((Date.now() + Math.random() * 1000000) % MAX_SEED);
+  }
 
   function loadState() {
     try {
@@ -23,8 +28,10 @@
           glossaryKnownIds: state.glossaryKnownIds.slice(),
           glossaryCardIndex: state.glossaryCardIndex,
           glossaryCardFace: state.glossaryCardFace,
+          glossaryCardSeed: state.glossaryCardSeed,
           glossaryQuizIndex: state.glossaryQuizIndex,
           glossaryQuizSelectedId: state.glossaryQuizSelectedId,
+          glossaryQuizSeed: state.glossaryQuizSeed,
           level: state.level,
           tab: state.tab
         })
@@ -44,8 +51,10 @@
       glossaryKnownIds: [],
       glossaryCardIndex: 0,
       glossaryCardFace: "front",
+      glossaryCardSeed: createSeed(),
       glossaryQuizIndex: 0,
       glossaryQuizSelectedId: "",
+      glossaryQuizSeed: createSeed(),
       level: "all",
       tab: "cours"
     };
@@ -81,18 +90,25 @@
         ? rawState.glossaryCardIndex
         : defaultState.glossaryCardIndex,
       glossaryCardFace: rawState.glossaryCardFace === "back" ? "back" : "front",
+      glossaryCardSeed: Number.isInteger(rawState.glossaryCardSeed) && rawState.glossaryCardSeed >= 0
+        ? rawState.glossaryCardSeed
+        : defaultState.glossaryCardSeed,
       glossaryQuizIndex: Number.isInteger(rawState.glossaryQuizIndex) && rawState.glossaryQuizIndex >= 0
         ? rawState.glossaryQuizIndex
         : defaultState.glossaryQuizIndex,
-      glossaryQuizSelectedId: validGlossaryIds.has(rawState.glossaryQuizSelectedId)
+      glossaryQuizSelectedId: typeof rawState.glossaryQuizSelectedId === "string"
         ? rawState.glossaryQuizSelectedId
         : defaultState.glossaryQuizSelectedId,
+      glossaryQuizSeed: Number.isInteger(rawState.glossaryQuizSeed) && rawState.glossaryQuizSeed >= 0
+        ? rawState.glossaryQuizSeed
+        : defaultState.glossaryQuizSeed,
       level: validLevelIds.has(rawState.level) ? rawState.level : defaultState.level,
       tab: validTabIds.has(rawState.tab) ? rawState.tab : defaultState.tab
     };
   }
 
   globalScope.CourseAppStorage = {
+    createSeed,
     createDefaultState,
     loadState,
     sanitiseState,

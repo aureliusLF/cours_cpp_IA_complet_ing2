@@ -628,6 +628,123 @@ kbd {
   align-items: center;
 }
 
+.overview-dashboard {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 0.9fr);
+  gap: 16px;
+}
+
+.overview-card {
+  padding: 22px;
+  border-radius: 24px;
+  border: 1px solid var(--border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(248, 241, 231, 0.9)),
+    radial-gradient(circle at top right, rgba(15, 108, 112, 0.08), transparent 36%);
+  box-shadow: var(--shadow-soft);
+}
+
+.overview-card--primary {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(244, 235, 225, 0.96)),
+    radial-gradient(circle at top right, rgba(201, 109, 74, 0.14), transparent 34%);
+}
+
+.overview-card__eyebrow {
+  display: inline-flex;
+  margin-bottom: 12px;
+  color: var(--teal);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.overview-card h3 {
+  margin: 0 0 10px;
+  font-size: 1.18rem;
+}
+
+.overview-card p {
+  margin: 0;
+  color: var(--ink-soft);
+  line-height: 1.7;
+}
+
+.overview-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.overview-card__empty,
+.overview-card__hint {
+  color: var(--ink-soft);
+}
+
+.overview-card__hint {
+  margin-top: 16px;
+}
+
+.overview-list {
+  display: grid;
+  gap: 10px;
+}
+
+.overview-link {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(39, 48, 61, 0.08);
+  background: rgba(255, 255, 255, 0.64);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.overview-link:hover {
+  transform: translateY(-1px);
+  border-color: rgba(15, 108, 112, 0.24);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.overview-link__title,
+.overview-link__meta {
+  display: block;
+}
+
+.overview-link__title {
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.overview-link__meta {
+  margin-top: 4px;
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+}
+
+.overview-levels {
+  display: grid;
+  gap: 10px;
+}
+
+.overview-level {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: rgba(31, 39, 51, 0.05);
+}
+
+.overview-level strong {
+  font-size: 1.05rem;
+  color: var(--ink);
+}
+
 .overview-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1893,9 +2010,52 @@ body {
   padding: 24px;
 }
 
+.glossary-quiz__prompt {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.glossary-quiz__lead,
+.glossary-quiz__hint,
+.glossary-quiz__term {
+  margin: 0;
+}
+
+.glossary-quiz__lead {
+  color: var(--ink);
+  line-height: 1.7;
+}
+
+.glossary-quiz__hint {
+  color: var(--ink-soft);
+  line-height: 1.65;
+}
+
+.glossary-quiz__term {
+  font-family: var(--font-accent);
+  font-size: 1.3rem;
+  color: var(--accent-dark);
+}
+
+.quiz-option-list--glossary {
+  margin-top: 20px;
+}
+
+.quiz-option--long {
+  white-space: normal;
+  line-height: 1.6;
+}
+
 .glossary-quiz-feedback {
   display: grid;
   gap: 14px;
+}
+
+.glossary-quiz-feedback__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .glossary-quiz-feedback p {
@@ -1908,6 +2068,7 @@ body {
   }
 
   .overview-grid,
+  .overview-dashboard,
   .goal-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2001,6 +2162,7 @@ body {
 }
 
 @media (max-width: 1260px) {
+  .overview-dashboard,
   .overview-rail {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2026,6 +2188,7 @@ body {
   }
 
   .hero__layout,
+  .overview-dashboard,
   .overview-rail,
   .chapter-head,
   .lesson-deep-dive__grid,
@@ -2077,6 +2240,7 @@ body {
     border-radius: 22px;
   }
 
+  .overview-dashboard,
   .overview-rail,
   .goal-grid,
   .hero-facts {
@@ -2086,7 +2250,8 @@ body {
   .glossary-mode-switch,
   .glossary-topbar__meta,
   .glossary-card__actions,
-  .glossary-study__actions {
+  .glossary-study__actions,
+  .overview-card__actions {
     width: 100%;
   }
 
@@ -2096,6 +2261,8 @@ body {
   }
 
   .hero-actions .action-button,
+  .overview-card__actions .ghost-button,
+  .overview-card__actions .action-button,
   .chapter-head__actions .ghost-button,
   .chapter-head__actions .action-button,
   .glossary-card__actions .ghost-button,

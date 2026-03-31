@@ -3,6 +3,7 @@ const { buildGlossaryEntries } = globalScope.CourseAppGlossaryStudy || {};
 const { highlightCodeBlocks } = globalScope.CourseAppHighlight || {};
 const { escapeHtml, normalise } = globalScope.CourseAppStrings || {};
 const {
+  createSeed,
   createDefaultState,
   loadState,
   saveState,
@@ -27,6 +28,7 @@ function init() {
     !highlightCodeBlocks ||
     !escapeHtml ||
     !normalise ||
+    !createSeed ||
     !createDefaultState ||
     !loadState ||
     !saveState ||
@@ -51,7 +53,7 @@ function init() {
     return;
   }
 
-  const { courseMeta, roadmap, chapters } = data;
+  const { courseMeta, chapters } = data;
   const glossary = buildGlossaryEntries(data.glossary || []);
 
   const tabLabels = {
@@ -404,8 +406,10 @@ function init() {
     state.glossarySearch = "";
     state.glossaryCardIndex = 0;
     state.glossaryCardFace = "front";
+    state.glossaryCardSeed = createSeed();
     state.glossaryQuizIndex = 0;
     state.glossaryQuizSelectedId = "";
+    state.glossaryQuizSeed = createSeed();
     saveState(state);
     render();
   }
@@ -417,7 +421,11 @@ function init() {
 
     state.glossaryMode = mode;
     state.glossaryCardFace = "front";
+    state.glossaryCardSeed = createSeed();
+    state.glossaryCardIndex = 0;
     state.glossaryQuizSelectedId = "";
+    state.glossaryQuizSeed = createSeed();
+    state.glossaryQuizIndex = 0;
     saveState(state);
     render();
   }
@@ -441,6 +449,14 @@ function init() {
     render();
   }
 
+  function shuffleGlossaryCards() {
+    state.glossaryCardSeed = createSeed();
+    state.glossaryCardIndex = 0;
+    state.glossaryCardFace = "front";
+    saveState(state);
+    render();
+  }
+
   function markGlossaryEntry(entryId, known) {
     if (!validGlossaryIds.has(entryId)) {
       return;
@@ -458,12 +474,12 @@ function init() {
     render();
   }
 
-  function selectGlossaryQuizAnswer(entryId) {
-    if (!validGlossaryIds.has(entryId)) {
+  function selectGlossaryQuizAnswer(optionId) {
+    if (typeof optionId !== "string" || optionId.length === 0) {
       return;
     }
 
-    state.glossaryQuizSelectedId = entryId;
+    state.glossaryQuizSelectedId = optionId;
     saveState(state);
     render();
   }
@@ -474,7 +490,13 @@ function init() {
       return;
     }
 
-    state.glossaryQuizIndex = (state.glossaryQuizIndex + 1) % entries.length;
+    if (state.glossaryQuizIndex >= entries.length - 1) {
+      state.glossaryQuizIndex = 0;
+      state.glossaryQuizSeed = createSeed();
+    } else {
+      state.glossaryQuizIndex += 1;
+    }
+
     state.glossaryQuizSelectedId = "";
     saveState(state);
     render();
@@ -521,9 +543,13 @@ function init() {
     });
     renderOverview(elements.overview, {
       chapters,
+      currentChapter,
+      doneSet,
       filtersActive: state.level !== "all" || state.search.trim() !== "",
-      roadmap,
-      visibleCount: visibleChapters.length
+      level: state.level,
+      nextChapter: firstIncompleteChapter(),
+      search: state.search,
+      visibleChapters
     });
     renderChapterPanel(elements.chapterPanel, {
       assistantAvailable: typeof window.sendPrompt === "function",
@@ -559,8 +585,10 @@ function init() {
       state.glossarySearch = event.target.value;
       state.glossaryCardIndex = 0;
       state.glossaryCardFace = "front";
+      state.glossaryCardSeed = createSeed();
       state.glossaryQuizIndex = 0;
       state.glossaryQuizSelectedId = "";
+      state.glossaryQuizSeed = createSeed();
       render();
     }
   });
@@ -651,6 +679,11 @@ function init() {
         return;
       }
 
+      if (action === "glossary-shuffle") {
+        shuffleGlossaryCards();
+        return;
+      }
+
       if (action === "glossary-mark-known") {
         markGlossaryEntry(actionTrigger.dataset.glossaryEntryId, true);
         return;
@@ -663,7 +696,7 @@ function init() {
 
       if (action === "glossary-quiz-answer") {
         if (!state.glossaryQuizSelectedId) {
-          selectGlossaryQuizAnswer(actionTrigger.dataset.glossaryEntryId);
+          selectGlossaryQuizAnswer(actionTrigger.dataset.glossaryOptionId);
         }
         return;
       }

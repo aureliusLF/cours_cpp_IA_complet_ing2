@@ -123,9 +123,9 @@ const courseMeta = {
   description:
     "Le fil directeur suit la logique d'un semestre d'ING2, mais repart vraiment des bases de syntaxe sans supposer de bagage en C, puis étend le parcours avec les réflexes du C++ moderne : RAII, STL, move semantics, debug, architecture et mini-projet final.",
   stats: [
-    { value: "13", label: "chapitres progressifs" },
-    { value: "40+", label: "objectifs et checklists" },
-    { value: "26", label: "exercices guidés" },
+    { value: "16", label: "chapitres progressifs" },
+    { value: "55+", label: "objectifs et checklists" },
+    { value: "33", label: "exercices guidés" },
     { value: "C++20", label: "base de compilation recommandée" }
   ]
 };
@@ -667,6 +667,258 @@ while (tentative < 3) {
     keywords: ["syntaxe", "main", "cout", "cin", "types", "string", "initialisation", "constexpr", "enum class", "conditions", "boucles", "if", "for", "while"]
   },
   {
+    id: "pointeurs-memoire",
+    shortTitle: "Pointeurs et mémoire",
+    title: "Pointeurs, adresses mémoire et allocation dynamique",
+    level: "Fondations",
+    duration: "50 min",
+    track: "SE1",
+    summary:
+      "Un pointeur n'est pas une abstraction de niveau avancé : c'est simplement une variable qui contient une adresse. Comprendre ce mécanisme ouvre la porte à la gestion mémoire, aux tableaux dynamiques, aux structures chaînées et au polymorphisme.",
+    goals: [
+      "lire et écrire une déclaration de pointeur avec <code>&amp;</code> et <code>*</code> sans confondre leurs rôles",
+      "raisonner sur l'arithmétique des pointeurs et la relation tableau / pointeur",
+      "distinguer les différentes combinaisons de <code>const</code> avec un pointeur",
+      "identifier les pièges classiques : pointeur non initialisé, pointeur suspendu, confusion <code>delete</code>/<code>delete[]</code>"
+    ],
+    highlights: ["&", "*", "nullptr", "new/delete", "->"],
+    body: [
+      lesson(
+        "L'adresse d'une variable et la déclaration d'un pointeur",
+        paragraphs(
+          "La mémoire RAM est un tableau de cases numérotées. Chaque variable occupe une ou plusieurs cases consécutives, et l'adresse d'une variable est le numéro de sa première case. Un <strong>pointeur</strong> est simplement une variable dont la valeur est une adresse.",
+          "L'opérateur <code>&amp;</code> renvoie l'adresse d'une variable existante. L'opérateur <code>*</code> a deux rôles distincts : dans une déclaration, il indique que la variable est un pointeur ; dans une expression, il <em>déréférence</em> le pointeur, c'est-à-dire accède à la valeur stockée à l'adresse pointée."
+        ),
+        code(
+          "cpp",
+          `
+int x = 42;
+int* p = &x;   // p contient l'adresse de x
+
+std::cout << p  << '\\n';  // affiche l'adresse (ex: 0x7ffe1c)
+std::cout << *p << '\\n';  // affiche 42 — déréférencement
+
+*p = 99;                   // modifie x à travers p
+std::cout << x  << '\\n';  // affiche 99
+          `,
+          "Adresse, pointeur et déréférencement"
+        ),
+        table(
+          ["Opérateur", "Contexte", "Signification"],
+          [
+            ["<code>&amp;x</code>", "Expression", "Adresse de la variable <code>x</code>."],
+            ["<code>int* p</code>", "Déclaration", "<code>p</code> est un pointeur vers un <code>int</code>."],
+            ["<code>*p</code>", "Expression", "Valeur stockée à l'adresse contenue dans <code>p</code>."]
+          ]
+        ),
+        callout("danger", "Toujours initialiser", "Un pointeur non initialisé contient une adresse aléatoire. Le déréférencer provoque un comportement indéfini, souvent un crash. Si l'adresse cible n'est pas encore connue, utilise <code>nullptr</code>.")
+      ),
+      lesson(
+        "Arithmétique des pointeurs et relation avec les tableaux",
+        paragraphs(
+          "Quand on incrémente un pointeur, il avance non pas d'un octet, mais d'une case du type pointé. Sur un <code>int*</code>, <code>p + 1</code> avance de <code>sizeof(int)</code> octets, soit généralement 4. Le compilateur gère ce calcul automatiquement.",
+          "Le nom d'un tableau se comporte comme un pointeur constant vers son premier élément. La notation <code>arr[i]</code> est strictement équivalente à <code>*(arr + i)</code> : c'est la même instruction, deux syntaxes différentes."
+        ),
+        code(
+          "cpp",
+          `
+int arr[] = {10, 20, 30, 40};
+int* p = arr;          // pointe vers arr[0]
+
+std::cout << *p        << '\\n';  // 10
+p++;                              // avance d'un int (4 octets)
+std::cout << *p        << '\\n';  // 20
+std::cout << *(arr + 2)<< '\\n';  // 30 — équivalent à arr[2]
+          `,
+          "Arithmétique sur pointeur"
+        ),
+        bullets([
+          "Incrémenter avance d'un élément du type pointé, pas d'un octet.",
+          "<code>arr[i]</code> et <code>*(arr + i)</code> sont identiques pour le compilateur.",
+          "La soustraction de deux pointeurs retourne un nombre d'éléments (type <code>ptrdiff_t</code>).",
+          "L'arithmétique n'est valide qu'à l'intérieur d'un même tableau ; sortir des bornes est un comportement indéfini."
+        ]),
+        callout("warn", "Tableau en paramètre de fonction", "Un tableau passé à une fonction se transforme en pointeur (<em>decay</em>). <code>sizeof</code> donnera la taille du pointeur (8 octets), pas du tableau. Préfère <code>std::vector</code>, <code>std::array</code> ou <code>std::span</code> pour conserver l'information de taille.")
+      ),
+      lesson(
+        "Const et pointeurs : quatre combinaisons",
+        paragraphs(
+          "Le mot-clé <code>const</code> peut qualifier soit la valeur pointée, soit le pointeur lui-même, soit les deux. La règle de lecture est simple : lis de droite à gauche. Ce qui est à gauche de <code>*</code> protège la valeur ; ce qui est à droite protège l'adresse.",
+          "La combinaison la plus courante en pratique est le pointeur vers une valeur constante (<code>const T*</code>), utilisé pour recevoir un tableau en lecture seule sans copie."
+        ),
+        table(
+          ["Déclaration", "Valeur modifiable ?", "Adresse modifiable ?", "Usage typique"],
+          [
+            ["<code>int* p</code>", "Oui", "Oui", "Pointeur classique, propriété ou observation mutable."],
+            ["<code>const int* p</code>", "Non", "Oui", "Lecture seule de la valeur. Équivalent d'une <code>const T&amp;</code>."],
+            ["<code>int* const p</code>", "Oui", "Non", "Adresse fixe, valeur modifiable. Rare."],
+            ["<code>const int* const p</code>", "Non", "Non", "Tout est figé. Pointeur immuable vers donnée immuable."]
+          ]
+        ),
+        code(
+          "cpp",
+          `
+int val = 10;
+const int* pc = &val;   // lecture seule — *pc = 20 interdit
+int* const cp = &val;   // adresse fixe — cp++ interdit
+*cp = 20;               // valeur modifiable — ok
+          `,
+          "Les quatre combinaisons"
+        )
+      ),
+      lesson(
+        "Allocation dynamique : syntaxe de new et delete",
+        paragraphs(
+          "<code>new</code> alloue un objet sur le tas et retourne un pointeur vers lui. <code>delete</code> libère la mémoire correspondante et appelle le destructeur. Pour un tableau, les formes <code>new[]</code> et <code>delete[]</code> sont obligatoires — les mélanger avec leurs homologues simples est un comportement indéfini.",
+          "La règle mécanique est absolue : un <code>new</code> ↔ un <code>delete</code>, un <code>new[]</code> ↔ un <code>delete[]</code>. C'est la contrainte principale que la syntaxe impose. Quand utiliser ces primitives plutôt que des abstractions standards, et comment exprimer la propriété mémoire, fait l'objet du chapitre <em>Mémoire et ownership</em>."
+        ),
+        code(
+          "cpp",
+          `
+// Objet unique
+int* p = new int(42);        // alloue un int sur le tas, valeur 42
+std::cout << *p << '\\n';    // 42 — déréférencement
+delete p;                    // libère la mémoire et appelle le destructeur
+p = nullptr;                 // bonne pratique : évite un double-delete accidentel
+
+// Tableau
+int* arr = new int[5]{10, 20, 30, 40, 50};
+arr[2] = 99;                 // accès indexé normal
+std::cout << arr[2] << '\\n'; // 99
+delete[] arr;                // [] obligatoire — ne pas utiliser delete simple
+arr = nullptr;
+          `,
+          "Syntaxe new / delete et new[] / delete[]"
+        ),
+        table(
+          ["Allocation", "Libération", "Erreur si mélangé"],
+          [
+            ["<code>new T</code>", "<code>delete p</code>", "Comportement indéfini si on utilise <code>delete[]</code>."],
+            ["<code>new T[n]</code>", "<code>delete[] p</code>", "Comportement indéfini si on utilise <code>delete</code>."]
+          ]
+        ),
+        callout("warn", "Règle mécanique", "Oublier <code>delete</code> = fuite mémoire. Appeler <code>delete</code> deux fois = comportement indéfini. Mettre le pointeur à <code>nullptr</code> après <code>delete</code> protège contre la seconde erreur.")
+      ),
+      lesson(
+        "Opérateur flèche, pointeurs sur fonctions et pièges classiques",
+        paragraphs(
+          "L'opérateur <code>-&gt;</code> combine déréférencement et accès à un membre : <code>ptr-&gt;x</code> est exactement équivalent à <code>(*ptr).x</code>. C'est la notation dominante dès qu'on manipule des objets via un pointeur.",
+          "En C++ moderne, les pointeurs sur fonctions existent toujours mais sont supplantés par <code>std::function</code> et les lambdas, plus flexibles et plus lisibles."
+        ),
+        code(
+          "cpp",
+          `
+struct Point { double x; double y; };
+
+Point* pt = new Point{3.0, 4.0};
+std::cout << pt->x << '\\n';  // équivalent à (*pt).x
+delete pt;
+
+// Pointeur sur fonction
+int addition(int a, int b) { return a + b; }
+using BinaryOp = int(*)(int, int);
+BinaryOp op = addition;
+std::cout << op(3, 4) << '\\n';  // 7
+
+// Même chose avec std::function (préférable)
+std::function<int(int, int)> op2 = addition;
+          `,
+          "Opérateur flèche et pointeur sur fonction"
+        ),
+        bullets([
+          "<strong>Pointeur non initialisé :</strong> toujours initialiser à <code>nullptr</code>.",
+          "<strong>Pointeur suspendu (dangling) :</strong> ne jamais retourner l'adresse d'une variable locale.",
+          "<strong>Confusion <code>delete</code> / <code>delete[]</code> :</strong> <code>new[]</code> impose <code>delete[]</code>.",
+          "<strong>Double libération :</strong> mettre le pointeur à <code>nullptr</code> après <code>delete</code> pour éviter une seconde suppression accidentelle.",
+          "<strong>Dépassement de borne :</strong> l'arithmétique hors d'un tableau est un comportement indéfini ; préférer <code>std::vector</code>."
+        ])
+      )
+    ].join(""),
+    checklist: [
+      "Je sais lire une déclaration de pointeur et distinguer <code>&amp;</code> (adresse) et <code>*</code> (déréférencement).",
+      "Je comprends ce que contient un pointeur et ce que signifie le déréférencer.",
+      "Je sais pourquoi <code>p++</code> avance d'un élément du type pointé, pas d'un octet.",
+      "Je peux lire les quatre combinaisons <code>const</code> / pointeur.",
+      "Je sais utiliser <code>new</code> / <code>delete</code> et je comprends pourquoi les éviter en C++ moderne.",
+      "Je connais l'opérateur <code>-&gt;</code> et son équivalence avec <code>(*ptr).membre</code>.",
+      "Je peux citer trois pièges classiques des pointeurs et leur parade."
+    ],
+    quiz: [
+      {
+        question: "Quelle est la différence entre <code>&amp;x</code> et <code>*p</code> ?",
+        options: [
+          "<code>&amp;x</code> copie la valeur de x ; <code>*p</code> crée un nouveau pointeur",
+          "<code>&amp;x</code> retourne l'adresse de x ; <code>*p</code> retourne la valeur à l'adresse contenue dans p",
+          "Ces deux expressions sont interchangeables"
+        ],
+        answer: 1,
+        explanation: "<code>&amp;</code> produit une adresse ; <code>*</code> en expression déréférence un pointeur pour lire ou écrire la valeur cible."
+      },
+      {
+        question: "Si <code>p</code> est un <code>int*</code> pointant vers <code>arr[0]</code>, que vaut <code>*(p + 2)</code> pour <code>arr = {10, 20, 30}</code> ?",
+        options: ["20", "30", "L'adresse de arr[2]"],
+        answer: 1,
+        explanation: "<code>p + 2</code> avance de deux <code>int</code>, soit vers <code>arr[2]</code>. Le déréférencement <code>*(p + 2)</code> donne la valeur 30."
+      },
+      {
+        question: "Quelle déclaration exprime un pointeur dont <strong>l'adresse</strong> ne peut pas être modifiée mais dont la <strong>valeur pointée</strong> peut l'être ?",
+        options: [
+          "<code>const int* p</code>",
+          "<code>int* const p</code>",
+          "<code>const int* const p</code>"
+        ],
+        answer: 1,
+        explanation: "Lire de droite à gauche : <code>const</code> à droite de <code>*</code> protège l'adresse ; l'absence de <code>const</code> à gauche laisse la valeur modifiable."
+      },
+      {
+        question: "Pourquoi faut-il utiliser <code>delete[]</code> et non <code>delete</code> pour libérer un tableau alloué avec <code>new int[5]</code> ?",
+        options: [
+          "C'est une convention stylistique sans impact réel",
+          "<code>delete</code> ne libère que le premier élément ; <code>delete[]</code> libère tout le bloc et appelle les destructeurs de chaque élément",
+          "<code>delete[]</code> est obligatoire uniquement pour les types avec destructeur"
+        ],
+        answer: 1,
+        explanation: "Mélanger <code>new[]</code> et <code>delete</code> est un comportement indéfini. <code>delete[]</code> sait que le bloc contient plusieurs objets et les détruit correctement."
+      }
+    ],
+    exercises: [
+      {
+        title: "Exploration d'adresses",
+        difficulty: "Facile",
+        time: "15 min",
+        prompt: "Déclare plusieurs variables de types différents, affiche leurs adresses avec <code>&amp;</code>, puis modifie-les à travers des pointeurs. Observe l'alignement mémoire.",
+        deliverables: [
+          "affichage des adresses de chaque variable",
+          "modification via déréférencement et vérification",
+          "observation de l'écart entre deux adresses consécutives de même type"
+        ]
+      },
+      {
+        title: "Parcours de tableau par arithmétique de pointeurs",
+        difficulty: "Intermédiaire",
+        time: "20 min",
+        prompt: "Écris une fonction qui reçoit un tableau et sa taille, calcule la somme et trouve le maximum en utilisant uniquement l'arithmétique de pointeurs (sans <code>[]</code>).",
+        deliverables: [
+          "la fonction avec pointeur d'entrée et fin",
+          "une démonstration dans <code>main</code>",
+          "une version équivalente avec <code>std::vector</code> pour comparer"
+        ]
+      },
+      {
+        title: "Gestion manuelle avec new/delete puis refactoring",
+        difficulty: "Intermédiaire",
+        time: "25 min",
+        prompt: "Implémente une pile d'entiers avec allocation dynamique manuelle (<code>new[]</code> / <code>delete[]</code>), puis refactorise-la pour utiliser <code>std::vector</code> et supprimer toute gestion manuelle.",
+        deliverables: [
+          "version avec allocation manuelle fonctionnelle",
+          "version refactorisée avec <code>std::vector</code>",
+          "liste des problèmes éliminés par la refactorisation"
+        ]
+      }
+    ],
+    keywords: ["pointeur", "adresse", "dereferencement", "nullptr", "new", "delete", "arithmetique pointeur", "tableau", "const pointeur", "fleche", "dangling pointer", "fuite memoire"]
+  },
+  {
     id: "fonctions-references",
     shortTitle: "Fonctions et références",
     title: "Fonctions, surcharge, références et espaces de noms",
@@ -1191,31 +1443,180 @@ private:
           "Éviter <code>shared_ptr</code> par confort : son coût et sa sémantique sont réels.",
           "Quand un objet est optionnel sans propriété, <code>T*</code> ou <code>std::optional</code> peuvent être plus justes qu'un partage artificiel."
         ])
+      ),
+      lesson(
+        "unique_ptr en détail : transfert, release et custom deleter",
+        paragraphs(
+          "<code>std::unique_ptr</code> incarne la possession exclusive : un seul propriétaire à la fois, destruction automatique à la sortie de portée. Il est non copiable mais mobile, ce qui permet de transférer la propriété explicitement avec <code>std::move</code>.",
+          "Les opérations clés sont <code>release()</code> (abandonne la possession sans détruire), <code>reset()</code> (remplace ou libère la ressource) et <code>get()</code> (observe sans posséder). Une ressource non standard — socket, descripteur de fichier, verrou C — peut être gérée via un <em>custom deleter</em>."
+        ),
+        code(
+          "cpp",
+          `
+#include <memory>
+
+auto p1 = std::make_unique<std::string>("hello");
+// auto p2 = p1;             // ❌ copie interdite
+auto p2 = std::move(p1);     // ✅ transfert de propriété
+// p1 est maintenant nullptr
+
+p2.reset();                  // libère la ressource immédiatement
+p2.reset(new std::string("world")); // remplace par une nouvelle valeur
+
+auto p3 = std::make_unique<std::string>("temp");
+std::string* raw = p3.release(); // p3 n'est plus propriétaire
+delete raw;                       // responsabilité transférée manuellement
+          `,
+          "Opérations de unique_ptr"
+        ),
+        code(
+          "cpp",
+          `
+// Custom deleter pour une ressource C (ex: FILE*)
+auto fermerFichier = [](FILE* f) { if (f) std::fclose(f); };
+std::unique_ptr<FILE, decltype(fermerFichier)>
+    fichier{std::fopen("data.txt", "r"), fermerFichier};
+
+if (fichier) {
+    // lecture...
+} // fermeture automatique à la sortie de portée, même en cas d'exception
+          `,
+          "Custom deleter RAII sur ressource C"
+        ),
+        table(
+          ["Opération", "Effet"],
+          [
+            ["<code>std::move(p)</code>", "Transfère la possession. <code>p</code> devient <code>nullptr</code>."],
+            ["<code>p.get()</code>", "Retourne le pointeur brut sans céder la possession."],
+            ["<code>p.release()</code>", "Abandonne la possession, retourne le pointeur brut. Responsabilité transférée à l'appelant."],
+            ["<code>p.reset()</code>", "Libère la ressource. <code>p</code> devient <code>nullptr</code>."],
+            ["<code>p.reset(q)</code>", "Libère l'ancienne ressource et prend possession de <code>q</code>."]
+          ]
+        ),
+        callout("info", "Préférer make_unique", "<code>std::make_unique&lt;T&gt;(args...)</code> est préférable à <code>new</code> direct : aucune fuite possible en cas d'exception dans les arguments, et le code est plus lisible.")
+      ),
+      lesson(
+        "shared_ptr, weak_ptr et cycles de dépendance",
+        paragraphs(
+          "<code>std::shared_ptr</code> permet la copropriété : plusieurs smart pointers partagent la même ressource, qui ne sera détruite que lorsque le dernier propriétaire disparaît. Ce mécanisme repose sur un <em>compteur de références</em> (reference count) maintenu dans un bloc de contrôle alloué séparément.",
+          "Le coût de <code>shared_ptr</code> est réel — incrémentation/décrémentation atomique, allocation supplémentaire — et sa sémantique implique de la réflexion : un cycle de <code>shared_ptr</code> (A pointe vers B qui pointe vers A) fait monter le compteur sans jamais le redescendre à zéro, créant une fuite mémoire. <code>std::weak_ptr</code> brise ces cycles en observant sans posséder."
+        ),
+        code(
+          "cpp",
+          `
+#include <memory>
+#include <iostream>
+
+auto p1 = std::make_shared<int>(42);
+std::cout << p1.use_count() << '\\n'; // 1
+
+auto p2 = p1;   // copie — compteur passe à 2
+auto p3 = p1;   // compteur passe à 3
+std::cout << p1.use_count() << '\\n'; // 3
+
+p2.reset();     // compteur passe à 2
+p3.reset();     // compteur passe à 1
+// quand p1 sort de portée : compteur → 0, ressource détruite
+          `,
+          "Compteur de références de shared_ptr"
+        ),
+        code(
+          "cpp",
+          `
+struct Noeud {
+    std::string valeur;
+    std::shared_ptr<Noeud> suivant;
+    std::weak_ptr<Noeud>   precedent; // weak_ptr brise le cycle
+};
+
+auto n1 = std::make_shared<Noeud>("A");
+auto n2 = std::make_shared<Noeud>("B");
+
+n1->suivant   = n2;
+n2->precedent = n1;   // weak_ptr : n1 n'est pas co-possédé par n2
+
+// n1 et n2 seront bien détruits à la fin du scope
+          `,
+          "Liste doublement chaînée sans cycle"
+        ),
+        code(
+          "cpp",
+          `
+std::weak_ptr<int> observateur;
+{
+    auto propriétaire = std::make_shared<int>(100);
+    observateur = propriétaire;
+
+    if (auto verrou = observateur.lock()) {   // tente d'obtenir un shared_ptr
+        std::cout << *verrou << '\\n';         // 100 — ressource encore vivante
+    }
+}
+// propriétaire est détruit ici
+
+if (observateur.expired()) {
+    std::cout << "ressource libérée\\n";      // vrai
+}
+          `,
+          "weak_ptr : observer sans posséder"
+        ),
+        table(
+          ["Type", "Possession", "Copie", "Coût extra", "Cas typique"],
+          [
+            ["<code>unique_ptr</code>", "Exclusive", "Interdit (move seulement)", "Nul", "Possession simple, factory, RAII."],
+            ["<code>shared_ptr</code>", "Partagée", "Autorisée (incrémente le compteur)", "Bloc de contrôle + atomique", "Copropriété réelle et justifiée."],
+            ["<code>weak_ptr</code>", "Aucune", "Autorisée", "Faible", "Observer sans prolonger la durée de vie ; briser les cycles."]
+          ]
+        ),
+        callout("warn", "shared_ptr n'est pas la solution par défaut", "La tentation d'utiliser <code>shared_ptr</code> partout pour 'ne pas se poser de questions' est un piège courant. Commence toujours par <code>unique_ptr</code> et passe à <code>shared_ptr</code> seulement quand le besoin de copropriété est réel et justifiable.")
       )
     ].join(""),
     checklist: [
-      "Je peux expliquer ce que signifie posséder un objet.",
-      "Je préfère <code>vector</code> à un tableau dynamique brut.",
-      "Je réserve <code>unique_ptr</code> aux possessions exclusives.",
-      "Je n'emploie pas <code>shared_ptr</code> sans raison claire.",
-      "Je sais décrire le rôle d'un pointeur observateur."
+      "Je peux expliquer ce que signifie posséder un objet et pourquoi cette notion est centrale en C++.",
+      "Je préfère <code>std::vector</code> à un tableau dynamique brut.",
+      "Je sais créer et utiliser un <code>unique_ptr</code> avec <code>make_unique</code>.",
+      "Je comprends que <code>unique_ptr</code> est non copiable et que <code>std::move</code> transfère la possession.",
+      "Je connais les opérations <code>get()</code>, <code>reset()</code> et <code>release()</code> de <code>unique_ptr</code>.",
+      "Je sais expliquer le compteur de références de <code>shared_ptr</code> et ce qui le fait descendre à zéro.",
+      "Je comprends pourquoi un cycle de <code>shared_ptr</code> est une fuite mémoire et comment <code>weak_ptr</code> le brise.",
+      "Je réserve <code>shared_ptr</code> aux copropriétés réellement justifiées.",
+      "Je sais décrire le rôle d'un pointeur nu observateur et le distinguer d'un pointeur propriétaire."
     ],
     quiz: [
       {
         question: "Quel outil standard remplace le plus souvent un tableau dynamique alloué manuellement ?",
         options: ["<code>std::vector</code>", "<code>std::exception</code>", "<code>std::pair</code>"],
         answer: 0,
-        explanation: "<code>std::vector</code> gère allocation, destruction, taille et accès de façon sûre."
+        explanation: "<code>std::vector</code> gère allocation, destruction, taille et accès de façon sûre, sans aucun <code>new[]</code> / <code>delete[]</code> manuel."
       },
       {
-        question: "Quand <code>std::unique_ptr</code> est-il le plus adapté ?",
+        question: "Que devient un <code>unique_ptr</code> après un <code>std::move</code> ?",
         options: [
-          "Quand plusieurs objets doivent co-posséder la même ressource",
-          "Quand un seul objet possède clairement la ressource",
-          "Quand on veut éviter toute allocation dynamique"
+          "Il garde une copie de la ressource",
+          "Il devient <code>nullptr</code> — la possession est transférée",
+          "Il est détruit immédiatement"
         ],
         answer: 1,
-        explanation: "<code>unique_ptr</code> exprime une possession exclusive et rend ce choix visible dans le code."
+        explanation: "<code>std::move</code> transfère la possession : le <code>unique_ptr</code> source perd la ressource et vaut <code>nullptr</code>."
+      },
+      {
+        question: "Pourquoi un cycle de <code>shared_ptr</code> crée-t-il une fuite mémoire ?",
+        options: [
+          "Parce que <code>shared_ptr</code> ne gère pas les destructions",
+          "Parce que le compteur de références reste supérieur à zéro indéfiniment, empêchant toute libération",
+          "Parce que les cycles sont interdits par la norme"
+        ],
+        answer: 1,
+        explanation: "Si A et B se possèdent mutuellement via <code>shared_ptr</code>, leurs compteurs ne descendent jamais à zéro et les destructeurs ne sont jamais appelés."
+      },
+      {
+        question: "Quelle est la différence entre <code>p.get()</code> et <code>p.release()</code> sur un <code>unique_ptr</code> ?",
+        options: [
+          "<code>get()</code> et <code>release()</code> font la même chose",
+          "<code>get()</code> observe sans céder la possession ; <code>release()</code> abandonne la possession sans détruire",
+          "<code>get()</code> libère la mémoire ; <code>release()</code> ne fait rien"
+        ],
+        answer: 1,
+        explanation: "<code>get()</code> est une simple observation : le <code>unique_ptr</code> reste propriétaire. <code>release()</code> cède la responsabilité à l'appelant sans appeler le destructeur."
       }
     ],
     exercises: [
@@ -1223,26 +1624,37 @@ private:
         title: "Remplacer du <code>new[]</code> par <code>vector</code>",
         difficulty: "Intermédiaire",
         time: "20 min",
-        prompt: "Reprends un exercice avec tableau dynamique et remplace toute la gestion manuelle par un conteneur standard.",
+        prompt: "Reprends un exercice avec tableau dynamique et remplace toute la gestion manuelle par un conteneur standard. Identifie les bugs potentiels éliminés.",
         deliverables: [
-          "la version initiale",
-          "la version avec STL",
-          "les bugs évités grâce à la refonte"
+          "la version initiale avec <code>new[]</code> / <code>delete[]</code>",
+          "la version avec <code>std::vector</code>",
+          "la liste des risques éliminés (fuite, double delete, taille perdue)"
         ]
       },
       {
-        title: "Cartographie des ownerships",
+        title: "Graphe d'ownership avec unique_ptr et shared_ptr",
+        difficulty: "Avancé",
+        time: "35 min",
+        prompt: "Modélise un arbre de noeuds où chaque noeud possède ses enfants (<code>unique_ptr</code>) et peut observer son parent (<code>T*</code> ou <code>weak_ptr</code>). Vérifie que la destruction de la racine libère tout l'arbre.",
+        deliverables: [
+          "la structure <code>Noeud</code> avec ses enfants en <code>unique_ptr</code>",
+          "la relation parent en pointeur non propriétaire",
+          "une démonstration de destruction automatique en cascade"
+        ]
+      },
+      {
+        title: "Briser un cycle avec weak_ptr",
         difficulty: "Avancé",
         time: "30 min",
-        prompt: "Sur une petite architecture objet, note pour chaque relation s'il s'agit d'une possession, d'un simple accès ou d'un partage réel.",
+        prompt: "Crée deux classes qui se référencent mutuellement. Implémente d'abord la version avec deux <code>shared_ptr</code> (observe la fuite), puis corrige avec un <code>weak_ptr</code>.",
         deliverables: [
-          "un schéma simple des relations",
-          "le type C++ retenu pour chaque lien",
-          "une justification"
+          "la version cyclique avec fuite confirmée (par log de destructeurs absents)",
+          "la version corrigée avec <code>weak_ptr</code>",
+          "l'explication de pourquoi le cycle était impossible à résoudre avec <code>shared_ptr</code> seul"
         ]
       }
     ],
-    keywords: ["memory", "ownership", "vector", "unique_ptr", "shared_ptr", "heap"]
+    keywords: ["memory", "ownership", "vector", "unique_ptr", "shared_ptr", "weak_ptr", "heap", "make_unique", "make_shared", "reference counting", "cycle", "deleter", "release", "reset"]
   },
   {
     id: "copie-mouvement",
@@ -2455,6 +2867,231 @@ for (const auto& [nom, note] : notesParEtudiant) {
     keywords: ["auto", "optional", "structured bindings", "modern cpp", "string_view", "nodiscard"]
   },
   {
+    id: "concurrence-threads",
+    shortTitle: "Concurrence",
+    title: "Threads, synchronisation et programmation concurrente",
+    level: "Avancé",
+    duration: "55 min",
+    track: "Extension",
+    summary:
+      "Le C++11 a intégré un modèle de threads portable dans la bibliothèque standard. Ce chapitre pose les bases de la concurrence : créer des threads, protéger des données partagées et exprimer des tâches asynchrones de façon sûre.",
+    goals: [
+      "créer et synchroniser des <code>std::thread</code> avec <code>join()</code>",
+      "protéger une ressource partagée avec <code>std::mutex</code> et <code>std::lock_guard</code>",
+      "déléguer une tâche asynchrone avec <code>std::async</code> et récupérer son résultat via <code>std::future</code>"
+    ],
+    highlights: ["thread", "mutex", "async", "future"],
+    body: [
+      lesson(
+        "Le modèle de concurrence du C++",
+        paragraphs(
+          "Depuis C++11, la norme inclut un modèle de mémoire multithreads et une bibliothèque de concurrence portable. Un <em>thread</em> est un fil d'exécution indépendant qui partage la mémoire du processus avec les autres threads.",
+          "La difficulté fondamentale est que plusieurs threads accédant à la même donnée sans synchronisation créent un <em>data race</em> : comportement indéfini garanti. Comprendre ce risque avant d'écrire du code concurrent est la première étape indispensable."
+        ),
+        table(
+          ["Abstraction", "Rôle"],
+          [
+            ["<code>std::thread</code>", "Créer et gérer un fil d'exécution."],
+            ["<code>std::mutex</code>", "Protéger une section critique."],
+            ["<code>std::lock_guard</code>", "Verrouillage RAII d'un mutex."],
+            ["<code>std::async</code>", "Lancer une tâche asynchrone avec retour de valeur."],
+            ["<code>std::future</code>", "Récupérer le résultat d'une tâche asynchrone."]
+          ]
+        ),
+        callout("warn", "Data race : comportement indéfini", "Lire et écrire la même variable depuis plusieurs threads sans synchronisation est un comportement indéfini. Le programme peut sembler fonctionner, puis se comporter de façon erratique sous charge.")
+      ),
+      lesson(
+        "std::thread : création, join et detach",
+        paragraphs(
+          "Un <code>std::thread</code> démarre à sa construction et exécute la fonction passée en argument. Avant la destruction de l'objet thread, il faut impérativement appeler <code>join()</code> ou <code>detach()</code>, sous peine de termination du programme.",
+          "<code>join()</code> bloque le thread appelant jusqu'à la fin du thread cible. <code>detach()</code> laisse le thread vivre indépendamment, sans possibilité de récupérer son résultat ni de détecter sa fin. Dans la majorité des cas pédagogiques, <code>join()</code> est le bon choix."
+        ),
+        code(
+          "cpp",
+          `
+#include <thread>
+#include <iostream>
+
+void traitement(int id) {
+    std::cout << "Thread " << id << " en cours\\n";
+}
+
+int main() {
+    std::thread t1{traitement, 1};
+    std::thread t2{traitement, 2};
+
+    t1.join();
+    t2.join();
+
+    std::cout << "Tous les threads ont terminé\\n";
+}
+          `,
+          "Création et synchronisation de threads"
+        ),
+        code(
+          "cpp",
+          `
+std::thread t{[](int n) {
+    for (int i = 0; i < n; ++i) {
+        std::cout << i << '\\n';
+    }
+}, 5};
+
+t.join();
+          `,
+          "Thread avec lambda"
+        ),
+        callout("danger", "Piège majeur", "Si un objet <code>std::thread</code> est détruit sans join ni detach, le programme appelle <code>std::terminate()</code>. Utilise un garde RAII ou vérifie toujours l'état avant la destruction de l'objet.")
+      ),
+      lesson(
+        "Mutex, lock_guard et protection des données partagées",
+        paragraphs(
+          "Le mutex est la primitive de synchronisation de base. Il garantit qu'un seul thread à la fois accède à une section critique. <code>std::lock_guard</code> verrouille le mutex à la construction et le déverrouille automatiquement à la destruction, suivant le principe RAII.",
+          "Il faut protéger tous les accès à une donnée partagée, en lecture comme en écriture. Un mutex appliqué seulement aux écritures laisse passer les data races sur les lectures concurrentes."
+        ),
+        code(
+          "cpp",
+          `
+#include <mutex>
+#include <thread>
+#include <iostream>
+
+std::mutex verrou;
+int compteur{0};
+
+void incrementer(int n) {
+    for (int i = 0; i < n; ++i) {
+        std::lock_guard<std::mutex> garde{verrou};
+        ++compteur;
+    }
+}
+
+int main() {
+    std::thread t1{incrementer, 1000};
+    std::thread t2{incrementer, 1000};
+    t1.join();
+    t2.join();
+    std::cout << compteur << '\\n'; // garantit 2000
+}
+          `,
+          "Compteur partagé protégé"
+        ),
+        bullets([
+          "<code>std::lock_guard</code> est libéré automatiquement même en cas d'exception.",
+          "Minimise la taille de la section critique pour ne pas bloquer les autres threads inutilement.",
+          "<code>std::unique_lock</code> est plus flexible que <code>lock_guard</code> mais implique un coût supplémentaire.",
+          "Acquérir plusieurs mutex dans des ordres différents selon les threads est la recette classique du deadlock."
+        ])
+      ),
+      lesson(
+        "std::async et std::future : tâches asynchrones de haut niveau",
+        paragraphs(
+          "<code>std::async</code> lance une tâche dans un thread séparé et renvoie un <code>std::future</code>. Ce future permet de récupérer le résultat plus tard, de façon synchronisée, sans gérer soi-même les threads ni les mutex.",
+          "C'est souvent l'abstraction la plus pratique pour un calcul parallèle ponctuel : on démarre les tâches, on continue d'autres traitements si possible, puis on récupère les résultats quand on en a besoin."
+        ),
+        code(
+          "cpp",
+          `
+#include <future>
+#include <iostream>
+
+int calculerSomme(int debut, int fin) {
+    int total = 0;
+    for (int i = debut; i <= fin; ++i) {
+        total += i;
+    }
+    return total;
+}
+
+int main() {
+    auto f1 = std::async(std::launch::async, calculerSomme, 1, 5000);
+    auto f2 = std::async(std::launch::async, calculerSomme, 5001, 10000);
+
+    int resultat = f1.get() + f2.get();
+    std::cout << "Somme : " << resultat << '\\n';
+}
+          `,
+          "Calcul parallèle avec async"
+        ),
+        table(
+          ["Méthode", "Comportement"],
+          [
+            ["<code>.get()</code>", "Bloque jusqu'au résultat et le retourne (ou relance l'exception levée dans la tâche)."],
+            ["<code>.wait()</code>", "Bloque sans récupérer la valeur."],
+            ["<code>.valid()</code>", "Vérifie si le future est associé à une valeur en attente."]
+          ]
+        ),
+        callout("info", "std::launch::async", "Sans la politique <code>std::launch::async</code> explicite, l'exécution peut être différée (lazy). Spécifie-la pour garantir un vrai parallélisme.")
+      )
+    ].join(""),
+    checklist: [
+      "Je comprends ce qu'est un data race et pourquoi c'est un comportement indéfini.",
+      "Je sais créer un thread, lui passer des arguments et appeler <code>join()</code>.",
+      "Je protège les données partagées avec un mutex et <code>std::lock_guard</code>.",
+      "Je connais la différence de sémantique entre <code>join()</code> et <code>detach()</code>.",
+      "Je sais utiliser <code>std::async</code> pour déléguer un calcul dans un thread.",
+      "Je récupère un résultat asynchrone via <code>std::future::get()</code>.",
+      "Je minimise les sections critiques pour éviter les contentions inutiles."
+    ],
+    quiz: [
+      {
+        question: "Que se passe-t-il si un <code>std::thread</code> est détruit sans avoir été rejoint ni détaché ?",
+        options: [
+          "Le thread continue silencieusement en arrière-plan",
+          "Le programme appelle <code>std::terminate()</code>",
+          "Le thread est automatiquement rejoint par le runtime"
+        ],
+        answer: 1,
+        explanation: "Détruire un thread joignable sans join ni detach déclenche <code>std::terminate()</code> : c'est une erreur de conception, pas un simple warning."
+      },
+      {
+        question: "Quel outil garantit le déverrouillage d'un mutex même en cas d'exception ?",
+        options: [
+          "<code>std::thread</code>",
+          "<code>std::lock_guard</code>",
+          "<code>std::future</code>"
+        ],
+        answer: 1,
+        explanation: "<code>lock_guard</code> suit le principe RAII : il déverrouille le mutex dans son destructeur, quelle que soit la cause de sortie de la portée."
+      },
+      {
+        question: "Comment récupérer le résultat d'une tâche lancée avec <code>std::async</code> ?",
+        options: [
+          "En appelant <code>.result()</code> sur le thread",
+          "En appelant <code>.get()</code> sur le <code>std::future</code> retourné",
+          "En lisant directement la variable globale modifiée par la tâche"
+        ],
+        answer: 1,
+        explanation: "<code>std::async</code> renvoie un <code>std::future</code> ; <code>.get()</code> bloque jusqu'à disponibilité du résultat et le retourne, ou relance l'exception."
+      }
+    ],
+    exercises: [
+      {
+        title: "Calcul parallèle de statistiques",
+        difficulty: "Avancé",
+        time: "35 min",
+        prompt: "Calcule la somme et la valeur maximale d'un grand vecteur en divisant le travail entre deux tâches <code>std::async</code>, puis agrège les résultats.",
+        deliverables: [
+          "les deux tâches asynchrones avec leur plage respective",
+          "la récupération et l'agrégation correcte des résultats",
+          "une vérification que le résultat est identique à la version séquentielle"
+        ]
+      },
+      {
+        title: "Compteur thread-safe encapsulé",
+        difficulty: "Intermédiaire",
+        time: "25 min",
+        prompt: "Crée une classe <code>CompteurSur</code> qui encapsule un entier et un mutex pour garantir des incréments et lectures cohérents depuis plusieurs threads simultanés.",
+        deliverables: [
+          "la classe avec son mutex interne",
+          "une démonstration avec deux threads qui incrémentent simultanément",
+          "la vérification que le résultat final est toujours correct quel que soit l'entrelacement"
+        ]
+      }
+    ],
+    keywords: ["thread", "mutex", "lock_guard", "async", "future", "concurrence", "parallelisme", "synchronisation", "data race", "join", "detach"]
+  },
+  {
     id: "architecture-projet",
     shortTitle: "Architecture projet",
     title: "Méthodologie de projet C++ : architecture, debug et mini-projet final",
@@ -2589,6 +3226,192 @@ g++ -std=c++20 -Wall -Wextra -pedantic \
     keywords: ["architecture", "debug", "sanitizer", "tests", "mini project", "cmake"]
   }
 ];
+
+// Chapitre tests-qualite inséré avant architecture-projet via splice pour conserver l'ordre
+rawChapters.splice(rawChapters.length - 1, 0, {
+    id: "tests-qualite",
+    shortTitle: "Tests et qualité",
+    title: "Tests unitaires, TDD et qualité du code C++",
+    level: "Projet",
+    duration: "45 min",
+    track: "Extension",
+    summary:
+      "Un code non testé est un code dont on ignore le comportement réel. Ce chapitre introduit les principes de vérification automatique, l'outillage pratique avec Catch2 et la discipline TDD pour écrire du C++ fiable.",
+    goals: [
+      "distinguer tests unitaires, tests d'intégration et tests de système",
+      "écrire des cas de test lisibles avec Catch2 et les macros <code>REQUIRE</code> / <code>CHECK</code>",
+      "comprendre et appliquer le cycle TDD rouge-vert-refactoring"
+    ],
+    highlights: ["REQUIRE", "Catch2", "TDD"],
+    body: [
+      lesson(
+        "Pourquoi tester et quelle stratégie adopter",
+        paragraphs(
+          "Un test est une affirmation exécutable : pour cette entrée, j'attends cette sortie. Quand il échoue, il localise un problème précis. Sans tests, chaque modification du code risque d'introduire silencieusement une régression.",
+          "On distingue les tests unitaires, qui vérifient un module en isolation, les tests d'intégration, qui vérifient la coopération entre modules, et les tests de système, qui vérifient l'ensemble. En C++ pédagogique, les tests unitaires sont le point d'entrée le plus rentable."
+        ),
+        table(
+          ["Type", "Cible", "Isolation"],
+          [
+            ["Test unitaire", "Une classe ou une fonction", "Maximale : dépendances minimales ou substituées."],
+            ["Test d'intégration", "Plusieurs modules ensemble", "Partielle."],
+            ["Test de système", "Comportement complet du programme", "Nulle."]
+          ]
+        ),
+        callout("success", "Bonne règle de départ", "Un test unitaire doit être rapide, déterministe et ne tester qu'une seule chose à la fois.")
+      ),
+      lesson(
+        "Premiers tests avec Catch2",
+        paragraphs(
+          "Catch2 est un framework de tests header-only très répandu en C++. Il permet d'écrire des cas de test lisibles avec des macros comme <code>TEST_CASE</code>, <code>REQUIRE</code> et <code>CHECK</code>.",
+          "<code>REQUIRE</code> interrompt le test courant en cas d'échec ; <code>CHECK</code> continue et rapporte tous les échecs accumulés. L'enjeu est d'écrire des tests qui documentent le comportement attendu, pas seulement ceux qui 'semblent passer'."
+        ),
+        code(
+          "cpp",
+          `
+#define CATCH_CONFIG_MAIN
+#include <catch2/catch.hpp>
+
+#include "fraction.h"
+
+TEST_CASE("Fraction : valeur décimale correcte") {
+    Fraction f{1, 4};
+    REQUIRE(f.valeur() == Approx(0.25));
+}
+
+TEST_CASE("Fraction : dénominateur nul interdit") {
+    REQUIRE_THROWS_AS(Fraction(1, 0), std::invalid_argument);
+}
+
+TEST_CASE("Fraction : addition de deux fractions") {
+    Fraction a{1, 2};
+    Fraction b{1, 3};
+    Fraction c = a + b;
+    REQUIRE(c.valeur() == Approx(5.0 / 6.0));
+}
+          `,
+          "Tests Catch2 simples"
+        ),
+        bullets([
+          "<code>Approx</code> gère les comparaisons à virgule flottante avec une tolérance configurable.",
+          "Le nom du <code>TEST_CASE</code> décrit le comportement testé, pas l'implémentation.",
+          "Couvre au minimum : cas normal, valeur limite, erreur attendue."
+        ]),
+        callout("info", "Intégration dans CMake", "Catch2 s'intègre facilement avec CMake via <code>FetchContent</code> ou un sous-module git, sans dépendance externe à installer manuellement.")
+      ),
+      lesson(
+        "TDD : rouge, vert, refactoring",
+        paragraphs(
+          "Le Test-Driven Development propose d'écrire le test avant le code. Le cycle est : rouge (le test échoue car le code n'existe pas), vert (écrire le minimum pour faire passer le test), refactoring (améliorer sans casser les tests existants).",
+          "Cette discipline force à penser l'API depuis l'usage avant de concevoir l'implémentation. Les interfaces qui émergent du TDD sont souvent plus simples et mieux délimitées."
+        ),
+        code(
+          "cpp",
+          `
+// Étape 1 — Rouge : le test est écrit en premier
+TEST_CASE("CompteBancaire : un dépôt augmente le solde") {
+    CompteBancaire compte{100.0};
+    compte.deposer(50.0);
+    REQUIRE(compte.solde() == Approx(150.0));
+}
+
+// Étape 2 — Vert : implémentation minimale pour passer le test
+class CompteBancaire {
+public:
+    explicit CompteBancaire(double solde) : solde_{solde} {}
+    void deposer(double montant) { solde_ += montant; }
+    double solde() const { return solde_; }
+private:
+    double solde_;
+};
+
+// Étape 3 — Refactoring : ajouter les contraintes et améliorer
+          `,
+          "Cycle TDD illustré sur CompteBancaire"
+        ),
+        callout("info", "TDD n'est pas obligatoire partout", "TDD est une pratique, pas une règle absolue. L'essentiel est d'avoir des tests utiles ; leur ordre d'écriture dépend du contexte et de la maturité du projet.")
+      ),
+      lesson(
+        "Ce qu'un bon test vérifie — et ce qu'il évite",
+        paragraphs(
+          "Un bon test vérifie le comportement observable, pas les détails d'implémentation. Un test qui dépend des noms de méthodes privées ou du layout interne casse à chaque refactoring sain et décourage la maintenance.",
+          "Les cas limites méritent une attention particulière : valeurs nulles, bords de tableau, fichier inexistant, entrée maximale. Ce sont souvent les oublis qui créent des bugs en production."
+        ),
+        table(
+          ["À tester", "À éviter dans un test unitaire"],
+          [
+            ["Comportement observable par l'interface publique", "Détails d'implémentation internes."],
+            ["Cas limites et comportements en erreur", "Logique triviale sans branche réelle."],
+            ["Invariants importants de la classe", "Noms de membres ou méthodes privées."],
+            ["Contrats des signatures publiques", "Ordre interne d'exécution."]
+          ]
+        ),
+        callout("warn", "Fausse sécurité", "Un taux de couverture élevé ne signifie pas que les bons cas sont testés. Quelques tests précis sur les invariants valent mieux que beaucoup de tests superficiels.")
+      )
+    ].join(""),
+    checklist: [
+      "Je sais distinguer test unitaire, d'intégration et de système.",
+      "Je peux écrire un test simple avec <code>REQUIRE</code> et <code>CHECK</code>.",
+      "Je teste les cas normaux, les cas limites et les cas d'erreur.",
+      "Je comprends le cycle TDD rouge-vert-refactoring.",
+      "Je ne teste pas les détails d'implémentation internes.",
+      "Je nomme mes tests par le comportement attendu, pas par le mécanisme."
+    ],
+    quiz: [
+      {
+        question: "Quel est le but premier d'un test unitaire ?",
+        options: [
+          "Prouver que le programme compile sans erreur ni warning",
+          "Vérifier le comportement d'une unité en isolation et détecter les régressions",
+          "Remplacer la relecture de code par un pair"
+        ],
+        answer: 1,
+        explanation: "Un test unitaire documente le comportement attendu et alerte automatiquement en cas de régression lors d'une modification future."
+      },
+      {
+        question: "Dans le cycle TDD, que désigne la phase 'rouge' ?",
+        options: [
+          "Le code produit une erreur mémoire à l'exécution",
+          "Un test écrit avant le code échoue, comme prévu",
+          "La compilation produit des warnings bloquants"
+        ],
+        answer: 1,
+        explanation: "En TDD, le test est écrit en premier : il échoue d'abord (rouge) parce que le code n'existe pas encore, puis on implémente pour le faire passer (vert)."
+      },
+      {
+        question: "Quelle macro Catch2 interrompt immédiatement le test en cas d'échec ?",
+        options: ["<code>CHECK</code>", "<code>REQUIRE</code>", "<code>WARN</code>"],
+        answer: 1,
+        explanation: "<code>REQUIRE</code> arrête le test courant à l'échec ; <code>CHECK</code> continue et rapporte tous les problèmes rencontrés dans le test."
+      }
+    ],
+    exercises: [
+      {
+        title: "Suite de tests pour Fraction",
+        difficulty: "Intermédiaire",
+        time: "30 min",
+        prompt: "Écris une suite de tests Catch2 pour une classe <code>Fraction</code> : cas normaux, cas limites et exceptions.",
+        deliverables: [
+          "au moins cinq tests couvrant des comportements distincts",
+          "un test d'erreur avec <code>REQUIRE_THROWS_AS</code>",
+          "un bref commentaire sur les cas qui restent non couverts"
+        ]
+      },
+      {
+        title: "Mini session TDD sur une Pile générique",
+        difficulty: "Avancé",
+        time: "40 min",
+        prompt: "Développe une classe <code>Pile&lt;T&gt;</code> en TDD : rédige d'abord les tests, implémente ensuite le strict minimum pour les faire passer.",
+        deliverables: [
+          "les tests rédigés avant toute implémentation",
+          "l'implémentation minimale qui fait passer les tests",
+          "les cas limites couverts : pile vide, dépilement sur pile vide"
+        ]
+      }
+    ],
+    keywords: ["tests", "catch2", "tdd", "assert", "REQUIRE", "unitaire", "integration", "regression", "qualite", "test case", "rouge vert"]
+  }
+);
 
 const lessonDeepDivesByChapter = {
   "vision-outillage": [
@@ -2763,6 +3586,93 @@ const lessonDeepDivesByChapter = {
         "Teste à la main les premières et dernières itérations pour vérifier le comportement."
       ],
       check: "Quand tu lis une boucle, peux-tu énoncer ce qui est parcouru, ce qui change à chaque tour et ce qui provoque la sortie ?"
+    }
+  ],
+  "pointeurs-memoire": [
+    {
+      focus: "Un pointeur n'est pas un concept mystérieux réservé aux experts : c'est une variable ordinaire dont la valeur est une adresse. Tout le reste — arithmétique, tableaux, allocation dynamique — découle de cette idée simple. Bien la comprendre déverrouille une grande partie de la mécanique interne du C++.",
+      retenir: [
+        "<code>&amp;</code> donne l'adresse d'une variable ; <code>*</code> en déclaration annonce un pointeur ; <code>*</code> en expression déréférence.",
+        "Un pointeur non initialisé contient une adresse quelconque : le déréférencer est un comportement indéfini."
+      ],
+      pitfalls: [
+        "Confondre <code>&amp;</code> (adresse) et <code>*</code> (déréférencement) selon le contexte déclaration vs expression.",
+        "Oublier d'initialiser un pointeur et supposer qu'il vaut automatiquement <code>nullptr</code>."
+      ],
+      method: [
+        "Lis une déclaration de pointeur de droite à gauche.",
+        "Pour tout pointeur déclaré, demande-toi immédiatement : vers quoi pointe-t-il, et qui est responsable de la ressource ?",
+        "Teste mentalement chaque opération : que contient le pointeur ? que vaut le déréférencement ?"
+      ],
+      check: "Peux-tu expliquer à voix haute la différence entre <code>int* p = &amp;x</code> et <code>*p = 99</code> ?"
+    },
+    {
+      focus: "L'arithmétique des pointeurs est cohérente parce qu'elle raisonne en éléments, pas en octets. Cette propriété explique pourquoi les tableaux C se comportent comme des pointeurs, et pourquoi <code>arr[i]</code> et <code>*(arr + i)</code> sont identiques.",
+      retenir: [
+        "Incrémenter un pointeur avance d'une unité du type pointé, pas d'un octet.",
+        "<code>arr[i]</code> est du sucre syntaxique pour <code>*(arr + i)</code> : les deux génèrent le même code."
+      ],
+      pitfalls: [
+        "Croire qu'un tableau passé à une fonction conserve sa taille : il se transforme en pointeur nu.",
+        "Sortir des bornes du tableau avec l'arithmétique : le compilateur ne le détecte pas toujours."
+      ],
+      method: [
+        "Pour chaque accès par pointeur, vérifie que l'adresse reste dans les bornes du tableau source.",
+        "Quand tu passes un tableau à une fonction, transmets aussi sa taille ou utilise un conteneur standard.",
+        "Préfère <code>std::span</code> (C++20) ou <code>std::vector</code> pour les fonctions recevant des séquences."
+      ],
+      check: "Si <code>p</code> pointe vers <code>arr[1]</code>, que vaut <code>*(p + 2)</code> pour un tableau <code>{10, 20, 30, 40}</code> ?"
+    },
+    {
+      focus: "Lire les qualificatifs <code>const</code> sur un pointeur de droite à gauche résout immédiatement toute ambiguïté. C'est une règle mécanique que le compilateur applique et que tout lecteur peut reproduire sans apprentissage supplémentaire.",
+      retenir: [
+        "<code>const</code> à gauche de <code>*</code> protège la valeur pointée.",
+        "<code>const</code> à droite de <code>*</code> protège l'adresse stockée dans le pointeur."
+      ],
+      pitfalls: [
+        "Retirer <code>const</code> pour 'faire marcher' le code : c'est souvent le signe d'un problème de conception plus profond.",
+        "Confondre un pointeur vers <code>const</code> et un pointeur constant : deux contraintes distinctes."
+      ],
+      method: [
+        "Lis la déclaration de droite à gauche.",
+        "Pour chaque paramètre de fonction, demande-toi si tu lis, modifies ou possèdes la valeur pointée.",
+        "Choisis la combinaison <code>const</code> la plus restrictive qui satisfait l'usage."
+      ],
+      check: "Quelle déclaration représente un pointeur qu'on ne peut pas rediriger mais dont la valeur cible reste modifiable ?"
+    },
+    {
+      focus: "L'allocation dynamique est nécessaire quand la durée de vie doit dépasser le scope courant ou quand la taille n'est connue qu'à l'exécution. Mais la gestion manuelle est fragile : <code>new</code> / <code>delete</code> à la main n'est quasiment plus justifiable en C++ moderne.",
+      retenir: [
+        "Chaque <code>new</code> doit avoir exactement un <code>delete</code> ; chaque <code>new[]</code> exactement un <code>delete[]</code>.",
+        "En C++ moderne, <code>std::vector</code> et <code>std::unique_ptr</code> rendent la gestion manuelle presque toujours inutile."
+      ],
+      pitfalls: [
+        "Oublier <code>delete</code> après une sortie anticipée ou une exception : fuite mémoire garantie.",
+        "Mélanger <code>delete</code> et <code>delete[]</code> : comportement indéfini."
+      ],
+      method: [
+        "Chaque fois que tu écris <code>new</code>, demande-toi : quel objet appellera <code>delete</code> et dans quelle portée ?",
+        "Si la réponse est complexe, utilise directement <code>std::unique_ptr</code>.",
+        "Réserve <code>new</code> / <code>delete</code> manuels aux interfaces C héritées ou aux cas très spécifiques."
+      ],
+      check: "Qu'est-ce qui garantit qu'une fuite mémoire n'est pas possible avec <code>std::vector</code>, et comment retrouver cette garantie avec un pointeur brut ?"
+    },
+    {
+      focus: "L'opérateur <code>-&gt;</code> est un raccourci de lecture essentiel. Comprendre qu'il combine déréférencement et accès membre aide à lire n'importe quel code orienté objet manipulant des pointeurs — y compris tout le polymorphisme dynamique du chapitre suivant.",
+      retenir: [
+        "<code>ptr-&gt;membre</code> est identique à <code>(*ptr).membre</code> : même sémantique, écriture plus claire.",
+        "Les pointeurs sur fonctions existent mais sont supplantés par <code>std::function</code> et les lambdas pour la lisibilité."
+      ],
+      pitfalls: [
+        "Utiliser <code>.</code> au lieu de <code>-&gt;</code> sur un pointeur : erreur de compilation.",
+        "Retourner l'adresse d'une variable locale depuis une fonction : pointeur suspendu à l'appel suivant."
+      ],
+      method: [
+        "Chaque fois que tu vois <code>-&gt;</code>, rappelle-toi que c'est un déréférencement : le pointeur doit être valide.",
+        "Avant tout accès via pointeur, vérifie qu'il n'est pas <code>nullptr</code>.",
+        "Pour les callbacks, préfère une lambda ou <code>std::function</code> à un pointeur sur fonction nu."
+      ],
+      check: "Si <code>p</code> est un <code>Point*</code>, que se passe-t-il si tu appelles <code>p-&gt;x</code> alors que <code>p == nullptr</code> ?"
     }
   ],
   "fonctions-references": [
@@ -2975,6 +3885,40 @@ const lessonDeepDivesByChapter = {
         "Vérifie toujours que la durée de vie de la cible dépasse celle de l'usage."
       ],
       check: "Dans une signature, saurais-tu distinguer immédiatement un pointeur d'observation d'un mécanisme de propriété ?"
+    },
+    {
+      focus: "unique_ptr est l'outil de propriété par défaut. Il exprime sans ambiguïté 'une seule entité est responsable de cette ressource'. Comprendre ses opérations — move, release, reset, custom deleter — permet de couvrir l'immense majorité des besoins de gestion manuelle tout en restant sûr.",
+      retenir: [
+        "unique_ptr est non copiable : la possession ne peut être que transférée, jamais dupliquée.",
+        "release() cède la responsabilité sans détruire ; c'est une porte de sortie vers du code C, pas un raccourci habituel."
+      ],
+      pitfalls: [
+        "Appeler get() puis stocker le pointeur brut plus longtemps que le unique_ptr : dangling pointer garanti.",
+        "Utiliser release() sans assurer ensuite la libération : c'est retrouver une fuite mémoire manuelle."
+      ],
+      method: [
+        "Pour chaque ressource à durée de vie contrôlée, commence par unique_ptr.",
+        "Si la ressource a un mode de libération non standard, encapsule-le dans un custom deleter.",
+        "N'expose get() qu'aux fonctions qui observent ; n'expose jamais release() sauf interface C héritée."
+      ],
+      check: "Peux-tu distinguer quand utiliser get(), reset() et release() sur un unique_ptr, et les risques propres à chacun ?"
+    },
+    {
+      focus: "shared_ptr résout un vrai problème : quand plusieurs entités ont besoin de prolonger la durée de vie d'une ressource. Mais son coût — atomique, bloc de contrôle, cycles possibles — est réel. Ne l'utilise pas par défaut ; utilise-le quand le besoin de copropriété est prouvé.",
+      retenir: [
+        "Le compteur de références de shared_ptr est géré de façon atomique : c'est plus cher qu'un simple entier.",
+        "Un cycle de shared_ptr est une fuite mémoire silencieuse que le compilateur ne détecte pas."
+      ],
+      pitfalls: [
+        "Choisir shared_ptr pour 'éviter de réfléchir à l'ownership' : cela déplace le problème sans le résoudre.",
+        "Créer un shared_ptr à partir d'un pointeur brut déjà géré par un autre smart pointer : double deletion."
+      ],
+      method: [
+        "Commence par unique_ptr. Passe à shared_ptr seulement si plusieurs propriétaires sont nécessaires.",
+        "Dès qu'un cycle devient possible, introduis weak_ptr sur le côté 'observateur' de la relation.",
+        "Utilise make_shared (pas new dans un shared_ptr) pour une seule allocation et une meilleure sécurité."
+      ],
+      check: "Comment reconnaîtrais-tu dans une architecture que deux classes forment un cycle de shared_ptr, avant même que la fuite ne soit visible ?"
     }
   ],
   "copie-mouvement": [
@@ -3448,6 +4392,146 @@ const lessonDeepDivesByChapter = {
         "Prévois dès le début comment tu vérifieras chaque partie importante."
       ],
       check: "Si tu devais défendre ton mini-projet devant un enseignant, saurais-tu expliquer pourquoi son découpage et ses choix techniques sont cohérents ?"
+    }
+  ],
+  "concurrence-threads": [
+    {
+      focus: "La concurrence n'est pas juste une question de performance ; c'est d'abord une question de correction. Un programme concurrent mal synchronisé peut sembler fonctionner pendant des heures, puis se comporter de façon imprévisible sous charge. Comprendre le data race avant d'écrire du code concurrent est le vrai point de départ.",
+      retenir: [
+        "Tout accès non synchronisé à une donnée partagée depuis plusieurs threads est un comportement indéfini.",
+        "Le modèle de mémoire C++11 définit ce que le compilateur peut ou ne peut pas réordonner."
+      ],
+      pitfalls: [
+        "Supposer que le code 'semble marcher' en test suffit à prouver l'absence de data race.",
+        "Ignorer que le compilateur ou le processeur peut réordonner les instructions sans barrière mémoire."
+      ],
+      method: [
+        "Identifie toutes les données accédées par plusieurs threads.",
+        "Détermine qui lit et qui écrit chaque donnée partagée.",
+        "Protège systématiquement ces accès avant de tester quoi que ce soit."
+      ],
+      check: "Pourrais-tu identifier dans un programme simple tous les endroits où une synchronisation est nécessaire ?"
+    },
+    {
+      focus: "join() et detach() ne sont pas des détails techniques : ils expriment deux intentions radicalement différentes. Le premier dit 'j'attends ce thread', le second dit 'je n'en suis plus responsable'. Choisir entre les deux est une décision de conception, pas une formalité syntaxique.",
+      retenir: [
+        "Un thread détruit sans join ni detach termine le programme avec <code>std::terminate()</code>.",
+        "detach() transfère la responsabilité au runtime ; join() maintient le contrôle dans le code appelant."
+      ],
+      pitfalls: [
+        "Appeler join() sur un thread déjà rejoint provoque une exception.",
+        "Utiliser detach() sans s'assurer que les données référencées restent valides pendant toute la durée du thread."
+      ],
+      method: [
+        "Par défaut, préfère join() pour garder le contrôle sur la durée de vie des threads.",
+        "Utilise detach() seulement pour des tâches réellement autonomes sans communication retour.",
+        "Envisage un RAII wrapper pour garantir le join à la sortie de portée."
+      ],
+      check: "Dans quel scénario detach() est-il réellement justifié plutôt que simplement commode ?"
+    },
+    {
+      focus: "Un mutex protège une section critique. L'enjeu n'est pas la taille du mutex mais celle de la section protégée : plus elle est grande, plus les threads attendent. L'optimisation d'un code concurrent commence souvent par la réduction des sections critiques.",
+      retenir: [
+        "<code>lock_guard</code> libère le mutex à la sortie de portée, même en cas d'exception.",
+        "Protéger en lecture comme en écriture est indispensable ; une lecture non protégée d'une donnée écrite par un autre thread est aussi un data race."
+      ],
+      pitfalls: [
+        "Acquérir deux mutex dans des ordres différents selon les chemins d'exécution : deadlock certain.",
+        "Oublier de protéger les lectures qui semblent 'inoffensives'."
+      ],
+      method: [
+        "Identifie la donnée partagée, puis toutes ses portes d'accès.",
+        "Minimise la région protégée par le mutex.",
+        "Documente clairement quel mutex protège quelle donnée."
+      ],
+      check: "Comment détecterais-tu qu'un deadlock est possible dans un code qui acquiert deux mutex ?"
+    },
+    {
+      focus: "std::async et std::future sont l'abstraction de haut niveau pour les tâches parallèles ponctuelles. Plutôt que de gérer des threads et de la synchronisation manuellement, on exprime une tâche et on récupère son résultat quand on en a besoin — le runtime se charge du reste.",
+      retenir: [
+        "<code>std::async</code> avec <code>launch::async</code> garantit l'exécution dans un thread séparé.",
+        "<code>future::get()</code> bloque jusqu'au résultat et propage les exceptions levées dans la tâche."
+      ],
+      pitfalls: [
+        "Ne pas spécifier <code>launch::async</code> peut mener à une exécution différée non parallèle.",
+        "Appeler <code>get()</code> deux fois sur le même future lève une exception."
+      ],
+      method: [
+        "Utilise async pour des calculs indépendants que tu veux paralléliser sans gérer de threads.",
+        "Lance plusieurs futures, puis collecte les résultats dans l'ordre qui fait sens.",
+        "Gère les exceptions via try/catch autour de <code>get()</code>."
+      ],
+      check: "Réécrirais-tu ce calcul séquentiel en deux tâches async ? Si oui, quelles données chaque tâche ne doit-elle pas partager ?"
+    }
+  ],
+  "tests-qualite": [
+    {
+      focus: "Tester n'est pas une étape facultative pour 'être sûr' : c'est un outil de conception. Un test bien écrit force à clarifier ce que doit faire une fonction avant de l'implémenter, ce qui conduit souvent à une meilleure interface et à un code plus simple.",
+      retenir: [
+        "Un test unitaire vérifie le comportement observable, pas l'implémentation interne.",
+        "La valeur d'un test se mesure à sa capacité à détecter une régression, pas à sa quantité."
+      ],
+      pitfalls: [
+        "Écrire des tests qui vérifient l'implémentation plutôt que le comportement : ils cassent à chaque refactoring sain.",
+        "Confondre couverture de code élevée et qualité des tests."
+      ],
+      method: [
+        "Pour chaque unité, énumère les cas normaux, les cas limites et les cas d'erreur.",
+        "Nomme chaque test par le comportement attendu, pas par le mécanisme testé.",
+        "Commence par les tests des invariants les plus importants de la classe ou de la fonction."
+      ],
+      check: "Peux-tu écrire les tests d'une fonction avant d'en connaître l'implémentation exacte ?"
+    },
+    {
+      focus: "Catch2 rend les tests lisibles parce que les macros expriment des assertions en langage presque naturel. Mais l'outil n'est pas l'essentiel : c'est la rigueur dans le choix des cas testés qui fait la différence entre des tests utiles et du bruit.",
+      retenir: [
+        "<code>REQUIRE</code> arrête le test à l'échec ; <code>CHECK</code> continue pour rapporter tous les problèmes du test.",
+        "<code>Approx</code> permet de comparer des flottants sans dépendre de l'égalité exacte."
+      ],
+      pitfalls: [
+        "Utiliser <code>CHECK</code> là où <code>REQUIRE</code> s'impose : continuer après un état incohérent masque la vraie cause.",
+        "Oublier les cas d'erreur et les exceptions dans les tests."
+      ],
+      method: [
+        "Écris un <code>TEST_CASE</code> par comportement à vérifier, pas par classe ou par méthode.",
+        "Utilise <code>REQUIRE</code> pour les préconditions et les résultats critiques.",
+        "Couvre au minimum : cas normal, valeur limite, erreur attendue."
+      ],
+      check: "Pourrais-tu donner le même nom à deux TEST_CASEs distincts ? Que t'apprendrait cette situation sur la clarté de tes tests ?"
+    },
+    {
+      focus: "TDD change l'ordre d'écriture, pas seulement la séquence des actions. Son vrai bénéfice est de forcer à penser l'interface depuis l'usage avant l'implémentation. Quand on écrit le test en premier, on adopte naturellement le point de vue de l'appelant.",
+      retenir: [
+        "Rouge : test échoue (code inexistant). Vert : code minimal qui fait passer. Refactoring : améliorer sans casser.",
+        "Le cycle TDD est court : on ne vise pas 'tout implémenter', mais 'faire passer ce test précis'."
+      ],
+      pitfalls: [
+        "Écrire trop de code pendant la phase verte et contourner la discipline du cycle court.",
+        "Refactorer avant que tous les tests soient verts."
+      ],
+      method: [
+        "Commence par le test le plus simple qui peut échouer.",
+        "Implémente juste assez pour le faire passer, pas plus.",
+        "Refactorise seulement quand tous les tests existants sont verts."
+      ],
+      check: "Qu'est-ce que le compilateur te dirait si tu écrivais uniquement les tests d'une classe sans son implémentation ?"
+    },
+    {
+      focus: "Un bon test vérifie le comportement, pas l'implémentation. Cette distinction est subtile mais décisive : un test dépendant des détails internes casse à chaque refactoring sain et finit par décourager les améliorations de code.",
+      retenir: [
+        "Teste par l'interface publique : ce qu'un appelant légitime peut observer.",
+        "Les cas limites révèlent souvent plus de bugs que les cas normaux."
+      ],
+      pitfalls: [
+        "Un taux de couverture élevé ne garantit pas des tests pertinents.",
+        "Tester des méthodes privées directement fragilise les tests sans apporter de valeur supplémentaire."
+      ],
+      method: [
+        "Pour chaque test, demande-toi : quel invariant ou quelle promesse de l'interface vérifie-t-il ?",
+        "Ajoute un test à chaque bug corrigé pour éviter la régression.",
+        "Garde les tests rapides et indépendants les uns des autres."
+      ],
+      check: "Si tu renommes un attribut privé d'une classe, combien de tes tests devraient casser idéalement ?"
     }
   ]
 };
