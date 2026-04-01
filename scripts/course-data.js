@@ -1817,7 +1817,7 @@ private:
     shortTitle: "Surcharge d'opérateurs",
     title: "Surcharge d'opérateurs avec une vraie sémantique",
     level: "Avancé",
-    duration: "40 min",
+    duration: "50 min",
     track: "SE3",
     summary:
       "Surcharger un opérateur n'est utile que si cela rend l'objet plus naturel à manipuler. Ce chapitre insiste sur la cohérence sémantique plutôt que sur la simple prouesse syntaxique.",
@@ -1881,14 +1881,62 @@ bool operator==(const Fraction& left, const Fraction& right) {
           "Égalité logique"
         ),
         callout("info", "Point de méthode", "Documente ce que signifie l'égalité d'un type. C'est souvent plus important que la syntaxe de l'opérateur lui-même.")
+      ),
+      lesson(
+        "Opérateur d'extraction >> et les six comparaisons",
+        paragraphs(
+          "L'opérateur <code>operator&gt;&gt;</code> est le symétrique de <code>operator&lt;&lt;</code> : il lit depuis un flux vers un objet. Sa signature prend un <code>std::istream&amp;</code> en premier argument et retourne cette même référence, comme son pendant de sortie retourne un <code>std::ostream&amp;</code>.",
+          "Les six opérateurs de comparaison (<code>==</code>, <code>!=</code>, <code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code>, <code>&gt;=</code>) forment un groupe cohérent. En C++ classique, si tu définis l'un d'eux, les autres doivent être en accord. La règle pratique : implémenter <code>==</code> et <code>&lt;</code> en logique, puis dériver les quatre restants."
+        ),
+        code(
+          "cpp",
+          `
+class Date {
+    short jour_, mois_;
+    int annee_;
+public:
+    Date(short j, short m, int a) : jour_{j}, mois_{m}, annee_{a} {}
+
+    // lecture depuis un flux : "12 3 2025"
+    friend std::istream& operator>>(std::istream& in, Date& d) {
+        in >> d.jour_ >> d.mois_ >> d.annee_;
+        return in;
+    }
+
+    bool operator==(const Date& other) const {
+        return annee_ == other.annee_ && mois_ == other.mois_ && jour_ == other.jour_;
+    }
+    bool operator!=(const Date& other) const { return !(*this == other); }
+    bool operator< (const Date& other) const {
+        if (annee_ != other.annee_) return annee_ < other.annee_;
+        if (mois_  != other.mois_)  return mois_  < other.mois_;
+        return jour_ < other.jour_;
+    }
+    bool operator> (const Date& other) const { return other < *this; }
+    bool operator<=(const Date& other) const { return !(other < *this); }
+    bool operator>=(const Date& other) const { return !(*this < other); }
+};
+          `,
+          "operator>> et les 6 comparaisons"
+        ),
+        bullets([
+          "<code>operator&gt;&gt;</code> retourne <code>istream&amp;</code> (non-const) pour permettre le chaînage.",
+          "Déclarer en <code>friend</code> permet d'accéder aux membres privés depuis la fonction libre.",
+          "Dériver <code>!=</code>, <code>&gt;</code>, <code>&lt;=</code>, <code>&gt;=</code> depuis <code>==</code> et <code>&lt;</code> évite la duplication de la logique de comparaison.",
+          "En C++20, le <code>spaceship operator &lt;=&gt;</code> génère les six automatiquement."
+        ]),
+        callout("warn", "Opérateur hors de la classe", "Surcharger <code>&lt;</code> comme fonction libre plutôt que comme méthode membre permet d'éviter des problèmes d'accès en cas de type primitif à gauche, mais nécessite alors <code>friend</code> si l'implémentation lit des membres privés.")
       )
     ].join(""),
     checklist: [
       "Je surcharge seulement quand la sémantique est naturelle.",
       "Je sais distinguer opérateur membre et non-membre.",
       "Je fais retourner le flux dans <code>operator&lt;&lt;</code>.",
+      "Je retourne <code>istream&amp;</code> dans <code>operator&gt;&gt;</code>.",
       "Je définis l'égalité selon un vrai contrat métier.",
-      "Je réutilise les opérateurs composés pour limiter la duplication."
+      "Je réutilise les opérateurs composés pour limiter la duplication.",
+      "Je sais dériver les 6 opérateurs de comparaison depuis <code>==</code> et <code>&lt;</code>.",
+      "Je comprends pourquoi <code>friend</code> est nécessaire pour un opérateur non-membre accédant aux membres privés."
     ],
     quiz: [
       {
@@ -1906,6 +1954,16 @@ bool operator==(const Fraction& left, const Fraction& right) {
         options: ["<code>operator+=</code>", "<code>operator+</code>", "<code>operator&lt;&lt;</code>"],
         answer: 0,
         explanation: "Il modifie l'objet courant et s'exprime naturellement comme comportement interne."
+      },
+      {
+        question: "Quelle est la signature correcte de <code>operator&gt;&gt;</code> pour lire un objet <code>Foo</code> depuis un flux ?",
+        options: [
+          "<code>std::ostream&amp; operator&gt;&gt;(std::ostream&amp; in, Foo&amp; f)</code>",
+          "<code>std::istream&amp; operator&gt;&gt;(std::istream&amp; in, Foo&amp; f)</code>",
+          "<code>void operator&gt;&gt;(std::istream&amp; in, const Foo&amp; f)</code>"
+        ],
+        answer: 1,
+        explanation: "operator>> prend un istream& (non-const) et l'objet destination par référence non-const, puis retourne le flux pour permettre le chaînage."
       }
     ],
     exercises: [
@@ -1913,11 +1971,22 @@ bool operator==(const Fraction& left, const Fraction& right) {
         title: "Complexe lisible",
         difficulty: "Avancé",
         time: "30 min",
-        prompt: "Ajoute à une classe <code>Complexe</code> les opérateurs <code>+=</code>, <code>+</code>, <code>==</code> et <code>&lt;&lt;</code> avec une sémantique cohérente.",
+        prompt: "Ajoute à une classe <code>Complexe</code> les opérateurs <code>+=</code>, <code>+</code>, <code>==</code>, <code>&lt;&lt;</code> et <code>&gt;&gt;</code> avec une sémantique cohérente.",
         deliverables: [
           "une justification du choix membre / non-membre",
           "les opérateurs compilables",
-          "un jeu d'exemples simples"
+          "une démonstration lecture/écriture sur flux"
+        ]
+      },
+      {
+        title: "Date comparable",
+        difficulty: "Intermédiaire",
+        time: "25 min",
+        prompt: "Implémente les 6 opérateurs de comparaison sur une classe <code>Date</code> en les dérivant de <code>==</code> et <code>&lt;</code>.",
+        deliverables: [
+          "les 6 opérateurs",
+          "un jeu de tests couvrant les cas limites (même mois, même jour...)",
+          "une phrase expliquant le choix membre ou non-membre"
         ]
       },
       {
@@ -1932,7 +2001,7 @@ bool operator==(const Fraction& left, const Fraction& right) {
         ]
       }
     ],
-    keywords: ["operator overloading", "friend", "ostream", "comparaison", "plus égale"]
+    keywords: ["operator overloading", "friend", "ostream", "istream", "comparaison", "plus égale", "operator>>", "extraction"]
   },
   {
     id: "heritage-polymorphisme",
@@ -2232,7 +2301,7 @@ void afficher(const Shape& shape) {
     shortTitle: "Templates et STL",
     title: "Templates, conteneurs STL, itérateurs et algorithmes",
     level: "Avancé",
-    duration: "65 min",
+    duration: "75 min",
     track: "SE7",
     summary:
       "Les templates changent l'échelle du code C++ : on écrit des abstractions génériques sans sacrifier la performance. La STL rend ensuite ces abstractions immédiatement utiles.",
@@ -2397,6 +2466,68 @@ v.erase(last, v.end());
           "Une lambda courte améliore souvent la lecture ; si elle grossit, donne un nom à l'opération.",
           "Les algorithmes standards évitent de réécrire des boucles répétitives pour des tâches déjà nommées."
         ])
+      ),
+      lesson(
+        "Pile, file et algorithmes copy/transform",
+        paragraphs(
+          "<code>std::stack</code> et <code>std::queue</code> sont des adaptateurs de conteneur qui imposent une discipline d'accès. Une pile (LIFO) ne donne accès qu'au sommet ; une file (FIFO) ne donne accès qu'à la tête. Ils se construisent sur <code>std::deque</code> par défaut et exposent une interface volontairement restreinte.",
+          "<code>std::copy</code> et <code>std::transform</code> sont deux algorithmes fondamentaux souvent combinés. <code>copy</code> recopie une plage vers une destination ; <code>transform</code> applique une opération élément par élément. Ces deux algorithmes illustrent le style déclaratif : on décrit ce qu'on fait, pas comment itérer."
+        ),
+        code(
+          "cpp",
+          `
+#include <stack>
+#include <queue>
+
+std::stack<int> pile;
+pile.push(1); pile.push(2); pile.push(3);
+while (!pile.empty()) {
+    std::cout << pile.top() << '\\n';   // affiche 3, 2, 1
+    pile.pop();
+}
+
+std::queue<std::string> file;
+file.push("A"); file.push("B"); file.push("C");
+while (!file.empty()) {
+    std::cout << file.front() << '\\n'; // affiche A, B, C
+    file.pop();
+}
+          `,
+          "Pile LIFO et file FIFO"
+        ),
+        code(
+          "cpp",
+          `
+#include <algorithm>
+#include <cctype>
+
+std::vector<char> source{'a', 'b', 'c', 'd'};
+std::vector<char> dest(source.size());
+
+// copy : recopie vers dest
+std::copy(source.begin(), source.end(), dest.begin());
+
+// transform : convertit en majuscules dans dest
+std::transform(source.begin(), source.end(), dest.begin(), [](char c) {
+    return static_cast<char>(std::toupper(c));
+});
+// dest = {'A', 'B', 'C', 'D'}
+
+// tri classique
+std::sort(dest.begin(), dest.end());
+          `,
+          "copy, transform et sort"
+        ),
+        table(
+          ["Conteneur / Algorithme", "Rôle", "Méthodes clés"],
+          [
+            ["<code>std::stack&lt;T&gt;</code>", "Pile LIFO", "<code>push</code>, <code>top</code>, <code>pop</code>, <code>empty</code>"],
+            ["<code>std::queue&lt;T&gt;</code>", "File FIFO", "<code>push</code>, <code>front</code>, <code>back</code>, <code>pop</code>, <code>empty</code>"],
+            ["<code>std::copy</code>", "Recopie une plage", "Itérateurs source + itérateur destination"],
+            ["<code>std::transform</code>", "Applique une fonction sur chaque élément", "Plage source + destination + foncteur/lambda"]
+          ]
+        ),
+        callout("info", "Quand choisir stack/queue ?", "Préfère <code>std::stack</code> ou <code>std::queue</code> quand la sémantique d'accès restreint (LIFO/FIFO) est un invariant métier réel. Si tu as besoin d'un accès libre à n'importe quel élément, reste sur <code>std::vector</code>.")
       )
     ].join(""),
     checklist: [
@@ -2407,7 +2538,9 @@ v.erase(last, v.end());
       "Je sais ce que représentent <code>begin()</code> et <code>end()</code>.",
       "Je reconnais l'intérêt des algorithmes STL.",
       "Je peux lire une lambda simple ou un prédicat.",
-      "Je n'écris pas une boucle maison quand un algorithme standard raconte mieux l'intention."
+      "Je n'écris pas une boucle maison quand un algorithme standard raconte mieux l'intention.",
+      "Je connais la différence entre LIFO (<code>std::stack</code>) et FIFO (<code>std::queue</code>).",
+      "Je sais utiliser <code>std::copy</code> et <code>std::transform</code> avec des itérateurs."
     ],
     quiz: [
       {
@@ -2445,6 +2578,16 @@ v.erase(last, v.end());
         ],
         answer: 2,
         explanation: "<code>end()</code> marque la fin de la plage ; on ne le déréférence pas."
+      },
+      {
+        question: "Quelle est la différence fondamentale entre <code>std::stack</code> et <code>std::queue</code> ?",
+        options: [
+          "stack est trié, queue ne l'est pas",
+          "stack donne accès au dernier élément entré (LIFO), queue au premier entré (FIFO)",
+          "stack n'accepte que des entiers, queue accepte tous les types"
+        ],
+        answer: 1,
+        explanation: "stack = Last In First Out (le sommet est le dernier entré) ; queue = First In First Out (on sort dans l'ordre d'arrivée)."
       }
     ],
     exercises: [
@@ -2469,16 +2612,27 @@ v.erase(last, v.end());
           "les algorithmes utilisés",
           "le gain de lisibilité obtenu"
         ]
+      },
+      {
+        title: "Pile et file de Pokémons",
+        difficulty: "Intermédiaire",
+        time: "25 min",
+        prompt: "Lis une liste de noms depuis un fichier, stocke-les dans une <code>std::queue</code>, puis utilise <code>std::transform</code> pour les convertir en majuscules dans un <code>std::vector</code>.",
+        deliverables: [
+          "la lecture et le remplissage de la queue",
+          "la transformation avec std::transform",
+          "l'affichage du résultat final"
+        ]
       }
     ],
-    keywords: ["template", "stl", "vector", "map", "unordered_map", "algorithm", "lambda", "iterateur", "foncteur", "predicat"]
+    keywords: ["template", "stl", "vector", "map", "unordered_map", "algorithm", "lambda", "iterateur", "foncteur", "predicat", "stack", "queue", "copy", "transform", "lifo", "fifo"]
   },
   {
     id: "exceptions-io",
     shortTitle: "Exceptions et I/O",
     title: "Exceptions, assertions et gestion des entrées/sorties",
     level: "Avancé",
-    duration: "60 min",
+    duration: "75 min",
     track: "SE5/SE6",
     summary:
       "Un programme solide n'ignore ni l'échec ni la donnée imparfaite. Le C++ fournit des flux, des exceptions et des assertions ; encore faut-il savoir les combiner intelligemment.",
@@ -2662,6 +2816,91 @@ private:
           "Classe d'exception personnalisée"
         ),
         callout("success", "Niveau de capture", "Attrape une exception au niveau où tu peux vraiment décider quoi faire : corriger, relancer avec plus de contexte, journaliser ou arrêter proprement.")
+      ),
+      lesson(
+        "Arguments de ligne de commande : argc et argv",
+        paragraphs(
+          "Tout programme C++ peut recevoir des arguments directement depuis le terminal. La signature étendue de <code>main</code> expose ces arguments via deux paramètres : <code>argc</code> (le nombre d'arguments, toujours au moins 1 car <code>argv[0]</code> est le nom du programme) et <code>argv</code> (le tableau de chaînes de caractères correspondant).",
+          "C'est le mécanisme utilisé dans les TPs pour passer le nom d'un fichier en paramètre au lieu de le coder en dur dans le programme. Il suffit de vérifier <code>argc &gt;= 2</code> avant d'accéder à <code>argv[1]</code>."
+        ),
+        code(
+          "cpp",
+          `
+// Lancement : ./mon_programme Tournoi.txt
+int main(int argc, char* argv[]) {
+    if (argc < 2) {
+        std::cerr << "Usage : " << argv[0] << " <fichier>\\n";
+        return 1;
+    }
+
+    std::string nomFichier{argv[1]};  // "Tournoi.txt"
+    std::ifstream fichier{nomFichier};
+
+    if (!fichier) {
+        std::cerr << "Impossible d'ouvrir " << nomFichier << "\\n";
+        return 1;
+    }
+
+    // lecture...
+}
+          `,
+          "argc / argv : passer un fichier en argument"
+        ),
+        table(
+          ["Variable", "Type", "Contenu"],
+          [
+            ["<code>argc</code>", "<code>int</code>", "Nombre d'arguments (≥ 1)."],
+            ["<code>argv[0]</code>", "<code>char*</code>", "Nom ou chemin du programme."],
+            ["<code>argv[1]</code>", "<code>char*</code>", "Premier argument fourni par l'utilisateur."],
+            ["<code>argv[argc]</code>", "<code>nullptr</code>", "Sentinelle de fin du tableau."]
+          ]
+        ),
+        callout("warn", "Toujours vérifier argc", "Accéder à <code>argv[1]</code> sans vérifier que <code>argc &gt;= 2</code> est un comportement indéfini si l'utilisateur n'a pas fourni d'argument.")
+      ),
+      lesson(
+        "Formatage de la sortie avec <iomanip>",
+        paragraphs(
+          "Par défaut, <code>std::cout</code> affiche les données sans alignement particulier. Pour produire des tableaux alignés en colonnes, on utilise les manipulateurs de la bibliothèque <code>&lt;iomanip&gt;</code>. Ces manipulateurs modifient l'état du flux et restent actifs jusqu'au prochain changement.",
+          "<code>std::setw(n)</code> réserve une largeur de <em>n</em> caractères pour le prochain champ. <code>std::left</code> et <code>std::right</code> contrôlent l'alignement. <code>std::setfill(c)</code> remplace les espaces vides par le caractère <em>c</em>. <code>std::setprecision(n)</code> limite le nombre de chiffres significatifs pour les réels."
+        ),
+        code(
+          "cpp",
+          `
+#include <iomanip>
+
+// En-tête aligné
+std::cout << std::left
+          << std::setw(15) << "Équipe"
+          << std::setw(8)  << "Points"
+          << std::setw(8)  << "Buts"
+          << "\\n";
+std::cout << std::string(31, '-') << "\\n";
+
+// Ligne de données
+std::cout << std::left
+          << std::setw(15) << "France"
+          << std::right
+          << std::setw(8)  << 9
+          << std::setw(8)  << 6
+          << "\\n";
+
+// Réels
+double pi = 3.14159265;
+std::cout << std::fixed << std::setprecision(2) << pi << "\\n"; // 3.14
+          `,
+          "Alignement en colonnes avec iomanip"
+        ),
+        table(
+          ["Manipulateur", "Effet"],
+          [
+            ["<code>std::setw(n)</code>", "Largeur du prochain champ uniquement (non persistant)."],
+            ["<code>std::left</code> / <code>std::right</code>", "Alignement du texte dans la largeur réservée (persistant)."],
+            ["<code>std::setfill(c)</code>", "Caractère de remplissage (persistant, défaut : espace)."],
+            ["<code>std::setprecision(n)</code>", "Nombre de chiffres significatifs ou décimaux (persistant)."],
+            ["<code>std::fixed</code>", "Notation décimale fixe pour les réels (persistant)."]
+          ]
+        ),
+        callout("warn", "setw n'est pas persistant", "<code>std::setw</code> s'applique uniquement au prochain champ affiché et se remet à zéro ensuite. Tous les autres manipulateurs de ce tableau persistent jusqu'à modification.")
       )
     ].join(""),
     checklist: [
@@ -2673,7 +2912,9 @@ private:
       "Je ne traite pas les exceptions comme du contrôle de flux normal.",
       "Je capture une exception par référence constante.",
       "Je sépare parsing et logique métier.",
-      "Je place mes <code>catch</code> au bon niveau de responsabilité."
+      "Je place mes <code>catch</code> au bon niveau de responsabilité.",
+      "Je sais déclarer <code>main(int argc, char* argv[])</code> et accéder aux arguments en vérifiant <code>argc</code>.",
+      "Je connais les manipulateurs de base de <code>&lt;iomanip&gt;</code> pour aligner des sorties en colonnes."
     ],
     quiz: [
       {
@@ -2715,9 +2956,40 @@ private:
         ],
         answer: 1,
         explanation: "La condition <code>while (ifs >> valeur)</code> s'arrête exactement quand la lecture échoue."
+      },
+      {
+        question: "Que contient <code>argv[0]</code> ?",
+        options: [
+          "Le premier argument passé par l'utilisateur",
+          "Le nom ou chemin du programme lui-même",
+          "Toujours la valeur <code>nullptr</code>"
+        ],
+        answer: 1,
+        explanation: "argv[0] est le nom du programme ; les arguments utilisateur commencent à argv[1]."
+      },
+      {
+        question: "Lequel de ces manipulateurs <code>&lt;iomanip&gt;</code> n'est PAS persistant ?",
+        options: [
+          "<code>std::left</code>",
+          "<code>std::setw(10)</code>",
+          "<code>std::setprecision(3)</code>"
+        ],
+        answer: 1,
+        explanation: "std::setw s'applique uniquement au prochain champ affiché, puis se réinitialise. Les autres manipulateurs persistent."
       }
     ],
     exercises: [
+      {
+        title: "Classement en colonnes",
+        difficulty: "Facile",
+        time: "20 min",
+        prompt: "Reçois un nom de fichier via <code>argv[1]</code>, lis des lignes \"equipe;points;buts\" et affiche un tableau aligné avec <code>&lt;iomanip&gt;</code>.",
+        deliverables: [
+          "vérification de argc avant lecture",
+          "ouverture robuste du fichier",
+          "affichage formaté en colonnes alignées"
+        ]
+      },
       {
         title: "Chargeur de notes",
         difficulty: "Intermédiaire",
@@ -2741,7 +3013,7 @@ private:
         ]
       }
     ],
-    keywords: ["exception", "assert", "ifstream", "ofstream", "runtime_error", "parsing", "getline", "cerr", "seekg", "tellg", "noexcept", "std::exception"]
+    keywords: ["exception", "assert", "ifstream", "ofstream", "runtime_error", "parsing", "getline", "cerr", "seekg", "tellg", "noexcept", "std::exception", "argc", "argv", "iomanip", "setw", "setfill", "setprecision"]
   },
   {
     id: "modern-cpp",
@@ -4025,6 +4297,23 @@ const lessonDeepDivesByChapter = {
         "Relis tous les opérateurs ensemble pour vérifier leur cohérence globale."
       ],
       check: "Ton opérateur d'égalité compare-t-il l'essentiel du métier ou seulement une représentation pratique ?"
+    },
+    {
+      focus: "L'opérateur >> et les six comparaisons forment un groupe symétrique. La règle d'or : implémenter l'essentiel (== et <), puis dériver tout le reste mécaniquement pour garantir la cohérence.",
+      retenir: [
+        "operator>> retourne istream& non-const pour permettre le chaînage et modifier l'objet destination.",
+        "Les 4 opérateurs >, !=, <=, >= se dérivent naturellement de == et < : pas de logique dupliquée."
+      ],
+      pitfalls: [
+        "Oublier de retourner le flux dans operator>> — l'enchaînement `in >> a >> b` échoue silencieusement.",
+        "Implémenter les 6 comparaisons de manière indépendante au lieu de les dériver : incohérence garantie à terme."
+      ],
+      method: [
+        "Écris == et < avec la vraie logique métier.",
+        "Dérive != comme `!(*this == other)`, > comme `other < *this`, etc.",
+        "Teste un cas limite : objets égaux, ordre inverse, champs identiques sauf un."
+      ],
+      check: "Si tu modifies la logique de <, est-ce que >, >=, <= se mettent à jour automatiquement ?"
     }
   ],
   "heritage-polymorphisme": [
@@ -4199,6 +4488,23 @@ const lessonDeepDivesByChapter = {
         "Garde la règle injectée courte ; sinon, factorise-la clairement."
       ],
       check: "Quand préfères-tu une boucle explicite à un algorithme STL, et pour quelle raison de lisibilité ?"
+    },
+    {
+      focus: "stack, queue, copy et transform sont la jonction entre la généricité des templates et le côté pratique de la STL. Ils illustrent que la discipline d'accès (LIFO/FIFO) peut être un choix de design autant qu'un détail d'implémentation.",
+      retenir: [
+        "stack et queue imposent un protocole d'accès, ce qui peut être une contrainte ou une garantie selon le contexte.",
+        "copy et transform évitent les boucles de remplissage répétitives et expriment clairement l'intention."
+      ],
+      pitfalls: [
+        "Utiliser stack ou queue alors qu'on a besoin d'accéder à un élément arbitraire — vector ou deque sont alors plus adaptés.",
+        "Passer un itérateur d'insertion `back_inserter` à copy sans allouer préalablement l'espace dans dest."
+      ],
+      method: [
+        "Identifie la discipline d'accès réelle du problème : LIFO, FIFO ou accès libre ?",
+        "Choisis le conteneur adapté, puis exprime la transformation avec copy ou transform.",
+        "Vérifie que la destination a la bonne taille avant d'appeler copy."
+      ],
+      check: "Pour le problème de Josephus, pourquoi queue est-il plus expressif qu'un vecteur avec un index manuel ?"
     }
   ],
   "exceptions-io": [
@@ -4286,6 +4592,40 @@ const lessonDeepDivesByChapter = {
         "Ajoute du contexte au bon niveau sans déformer la cause initiale."
       ],
       check: "Dans ton code, saurais-tu distinguer ce qui relève d'un bug interne, d'un aléa système et d'une erreur métier signalable ?"
+    },
+    {
+      focus: "argc/argv est le pont entre le programme et son contexte d'exécution. C'est souvent la première interface avec l'utilisateur : bien vérifier argc avant d'accéder à argv[1] est une règle absolue.",
+      retenir: [
+        "argc vaut toujours au moins 1 (argv[0] = nom du programme).",
+        "argv[1]...argv[argc-1] sont les arguments utilisateur ; argv[argc] vaut nullptr."
+      ],
+      pitfalls: [
+        "Accéder à argv[1] sans vérifier argc >= 2 — comportement indéfini si l'argument est absent.",
+        "Oublier que argv contient des char* et pas des std::string directement."
+      ],
+      method: [
+        "Commence par tester argc avant tout accès à argv.",
+        "Convertis argv[i] en std::string dès que tu en as besoin pour traitement.",
+        "Affiche un usage clair vers std::cerr si les arguments sont invalides."
+      ],
+      check: "Que se passe-t-il si l'utilisateur oublie de passer le nom de fichier et que ton code accède à argv[1] sans vérification ?"
+    },
+    {
+      focus: "iomanip transforme cout en moteur de rendu simple. Le piège à retenir : setw ne s'applique qu'au prochain champ, les autres manipulateurs sont persistants — oublier cette asymétrie produit des alignements décalés.",
+      retenir: [
+        "setw est à usage unique ; left/right/setprecision/setfill persistent.",
+        "fixed + setprecision(2) est la combinaison standard pour afficher des réels formatés."
+      ],
+      pitfalls: [
+        "Réutiliser setw sans le rappeler pour chaque champ.",
+        "Oublier de revenir à right après avoir utilisé left sur une colonne de texte."
+      ],
+      method: [
+        "Dessine la structure de ta sortie avant de coder (largeurs, alignements).",
+        "Applique setw juste avant chaque valeur à aligner.",
+        "Teste avec des valeurs de longueurs différentes pour détecter les débordements."
+      ],
+      check: "Si tu affiches 5 colonnes, combien de fois dois-tu appeler setw ?"
     }
   ],
   "modern-cpp": [
@@ -4796,6 +5136,201 @@ const glossary = [
     term: "Undefined behavior",
     text: "Comportement pour lequel la norme ne garantit rien ; le programme peut sembler marcher puis casser ailleurs.",
     tags: ["safety", "debug"]
+  },
+  {
+    term: "Lambda",
+    text: "Fonction anonyme définie en ligne, capturant éventuellement des variables du contexte via sa liste de capture. Syntaxe : <code>[capture](params) { corps }</code>.",
+    tags: ["syntaxe", "modern cpp", "stl"]
+  },
+  {
+    term: "unique_ptr",
+    text: "Smart pointer à possession exclusive. Un seul propriétaire à la fois ; non copiable, mais déplaçable avec <code>std::move</code>. Détruit automatiquement la ressource à la sortie de portée.",
+    tags: ["memoire", "ownership", "modern cpp"]
+  },
+  {
+    term: "shared_ptr",
+    text: "Smart pointer à possession partagée. Maintient un compteur de références atomique ; la ressource est détruite quand le dernier propriétaire disparaît.",
+    tags: ["memoire", "ownership", "modern cpp"]
+  },
+  {
+    term: "weak_ptr",
+    text: "Observateur non propriétaire d'une ressource gérée par <code>shared_ptr</code>. Ne modifie pas le compteur de références. Permet de briser les cycles de dépendance.",
+    tags: ["memoire", "ownership", "modern cpp"]
+  },
+  {
+    term: "nullptr",
+    text: "Littéral C++11 représentant un pointeur nul typé. Remplace <code>NULL</code> et <code>0</code> pour éviter les ambiguïtés de surcharge.",
+    tags: ["syntaxe", "pointeur", "modern cpp"]
+  },
+  {
+    term: "override",
+    text: "Mot-clé placé après la signature d'une méthode dérivée pour demander au compilateur de vérifier qu'elle redéfinit bien une méthode virtuelle de la base.",
+    tags: ["poo", "heritage", "polymorphisme"]
+  },
+  {
+    term: "auto",
+    text: "Mot-clé demandant au compilateur de déduire le type d'une variable ou d'un retour de fonction. Améliore la lisibilité quand le type est évident ou très verbeux.",
+    tags: ["syntaxe", "modern cpp"]
+  },
+  {
+    term: "noexcept",
+    text: "Spécificateur indiquant qu'une fonction ne lancera pas d'exception. Permet aux conteneurs standard de préférer le déplacement à la copie en toute sécurité.",
+    tags: ["exceptions", "modern cpp", "performance"]
+  },
+  {
+    term: "Mutex",
+    text: "Primitive de synchronisation qui garantit qu'un seul thread à la fois accède à une section critique. En C++, <code>std::mutex</code> se verrouille avec <code>lock()</code> et se déverrouille avec <code>unlock()</code>.",
+    tags: ["concurrence", "thread", "safety"]
+  },
+  {
+    term: "Thread",
+    text: "Fil d'exécution indépendant partageant la mémoire du processus. En C++, représenté par <code>std::thread</code> ; doit être rejoint (<code>join()</code>) ou détaché (<code>detach()</code>) avant sa destruction.",
+    tags: ["concurrence", "thread"]
+  },
+  {
+    term: "Data race",
+    text: "Accès concurrent non synchronisé à une même donnée par au moins deux threads, dont l'un au moins est en écriture. Constitue un comportement indéfini en C++.",
+    tags: ["concurrence", "safety", "debug"]
+  },
+  {
+    term: "std::future",
+    text: "Objet permettant de récupérer le résultat d'une tâche asynchrone lancée avec <code>std::async</code>. L'appel à <code>.get()</code> bloque jusqu'à disponibilité du résultat.",
+    tags: ["concurrence", "modern cpp"]
+  },
+  {
+    term: "TDD (Test-Driven Development)",
+    text: "Pratique de développement consistant à écrire le test avant le code. Cycle : rouge (test échoue) → vert (implémentation minimale) → refactoring.",
+    tags: ["qualite", "design"]
+  },
+  {
+    term: "Test unitaire",
+    text: "Test automatisé qui vérifie le comportement d'une unité de code (fonction, classe) en isolation, indépendamment des autres modules.",
+    tags: ["qualite", "debug"]
+  },
+  {
+    term: "Dangling pointer",
+    text: "Pointeur dont la cible a été détruite ou est sortie de portée. Le déréférencer est un comportement indéfini.",
+    tags: ["pointeur", "memoire", "safety", "debug"]
+  },
+  {
+    term: "Fuite mémoire",
+    text: "Ressource allouée dynamiquement qui n'est jamais libérée. En C++, résulte typiquement d'un <code>new</code> sans <code>delete</code> correspondant.",
+    tags: ["memoire", "safety", "debug"]
+  },
+  {
+    term: "lvalue / rvalue",
+    text: "<em>lvalue</em> : expression désignant un objet persistant, addressable. <em>rvalue</em> : valeur temporaire sans adresse stable. La distinction guide les règles de move semantics.",
+    tags: ["syntaxe", "modern cpp", "copie"]
+  },
+  {
+    term: "Structured bindings",
+    text: "Syntaxe C++17 permettant de décomposer une paire, un tuple ou une struct en variables nommées : <code>auto [clé, valeur] = ...</code>.",
+    tags: ["syntaxe", "modern cpp"]
+  },
+  {
+    term: "Copy-and-swap",
+    text: "Idiome d'implémentation de l'opérateur d'affectation : créer une copie locale, l'échanger avec <code>*this</code> via <code>swap</code>, laisser le destructeur nettoyer l'ancienne valeur. Garantit la sécurité aux exceptions.",
+    tags: ["copie", "design", "poo"]
+  },
+  {
+    term: "vtable",
+    text: "Table de pointeurs de fonctions virtuelles générée par le compilateur pour chaque classe polymorphique. Permet la résolution dynamique des appels de méthodes virtuelles à l'exécution.",
+    tags: ["poo", "polymorphisme", "performance"]
+  },
+  {
+    term: "lock_guard",
+    text: "Wrapper RAII autour d'un mutex : verrouille à la construction, déverrouille automatiquement à la destruction, même en cas d'exception.",
+    tags: ["concurrence", "raii", "memoire"]
+  },
+  {
+    term: "std::move",
+    text: "Fonction utilitaire qui convertit une expression en rvalue, autorisant le transfert de ressources plutôt que leur copie. N'effectue aucun déplacement par elle-même.",
+    tags: ["copie", "modern cpp", "performance"]
+  },
+  {
+    term: "Sanitizer",
+    text: "Outil de détection dynamique d'erreurs activé à la compilation (<code>-fsanitize=address,undefined</code>). Détecte les débordements, accès invalides et comportements indéfinis à l'exécution.",
+    tags: ["debug", "safety"]
+  },
+  {
+    term: "Portée (scope)",
+    text: "Région du code où un identifiant est visible et utilisable. En C++, délimitée par des accolades <code>{ }</code>. Les objets locaux sont détruits à la sortie de leur portée.",
+    tags: ["syntaxe", "memoire"]
+  },
+  {
+    term: "explicit",
+    text: "Mot-clé appliqué à un constructeur pour interdire les conversions implicites. Force l'appelant à construire explicitement l'objet.",
+    tags: ["poo", "syntaxe"]
+  },
+  {
+    term: "Règle de 3 / 5",
+    text: "Si une classe définit l'un des éléments suivants (destructeur, constructeur de copie, opérateur d'affectation), elle doit définir les trois (règle de 3) ou les cinq avec move (règle de 5).",
+    tags: ["poo", "copie", "memoire"]
+  },
+  {
+    term: "std::string_view",
+    text: "Vue légère non propriétaire sur une chaîne de caractères existante. Évite la copie lors de la lecture d'une chaîne sans en modifier le contenu.",
+    tags: ["modern cpp", "performance", "std"]
+  },
+  {
+    term: "argc / argv",
+    text: "Paramètres de <code>main(int argc, char* argv[])</code> permettant de récupérer les arguments passés en ligne de commande. <code>argc</code> est leur nombre (≥ 1) ; <code>argv[0]</code> est le nom du programme, <code>argv[1]</code> le premier argument utilisateur.",
+    tags: ["syntaxe", "io", "compilation"]
+  },
+  {
+    term: "iomanip / setw",
+    text: "Bibliothèque <code>&lt;iomanip&gt;</code> fournissant des manipulateurs de flux : <code>std::setw(n)</code> réserve une largeur, <code>std::left</code>/<code>std::right</code> aligne, <code>std::setprecision(n)</code> contrôle les décimales. <code>setw</code> n'est pas persistant ; les autres le sont.",
+    tags: ["io", "flux", "formatage"]
+  },
+  {
+    term: "std::stack",
+    text: "Adaptateur de conteneur STL implémentant une pile LIFO (Last In First Out). Interface : <code>push</code>, <code>top</code>, <code>pop</code>, <code>empty</code>, <code>size</code>. Construit sur <code>std::deque</code> par défaut.",
+    tags: ["stl", "conteneurs"]
+  },
+  {
+    term: "std::queue",
+    text: "Adaptateur de conteneur STL implémentant une file FIFO (First In First Out). Interface : <code>push</code>, <code>front</code>, <code>back</code>, <code>pop</code>, <code>empty</code>. Construit sur <code>std::deque</code> par défaut.",
+    tags: ["stl", "conteneurs"]
+  },
+  {
+    term: "std::copy",
+    text: "Algorithme STL qui recopie les éléments d'une plage source vers une destination. Nécessite que l'espace de destination soit déjà alloué.",
+    tags: ["stl", "algorithmes"]
+  },
+  {
+    term: "std::transform",
+    text: "Algorithme STL qui applique une fonction à chaque élément d'une plage source et écrit le résultat dans une destination. Remplace avantageusement une boucle de transformation manuelle.",
+    tags: ["stl", "algorithmes"]
+  },
+  {
+    term: "LIFO / FIFO",
+    text: "<em>LIFO</em> (Last In First Out) : le dernier élément inséré est le premier retiré — modèle de la pile (<code>std::stack</code>). <em>FIFO</em> (First In First Out) : le premier inséré est le premier retiré — modèle de la file (<code>std::queue</code>).",
+    tags: ["stl", "algorithmes", "conteneurs"]
+  },
+  {
+    term: "Constructeur par recopie",
+    text: "Constructeur qui crée un nouvel objet comme copie d'un objet existant du même type. Signature : <code>MaClasse(const MaClasse&amp; other)</code>. Appelé automatiquement lors d'un passage par valeur ou d'une initialisation par copie.",
+    tags: ["poo", "copie", "cycle de vie"]
+  },
+  {
+    term: "Opérateur d'affectation",
+    text: "Opérateur <code>operator=</code> qui copie l'état d'un objet dans un objet existant du même type. Distinct du constructeur par recopie : l'objet cible existe déjà. Doit gérer l'auto-affectation et respecter la règle de 3/5.",
+    tags: ["operateurs", "poo", "copie"]
+  },
+  {
+    term: "Opérateur d'extraction (>>)",
+    text: "Surcharge de <code>operator&gt;&gt;</code> pour lire un objet depuis un flux. Retourne <code>std::istream&amp;</code> pour permettre le chaînage. Généralement déclaré <code>friend</code> pour accéder aux membres privés.",
+    tags: ["operateurs", "io", "flux"]
+  },
+  {
+    term: "Nombre rationnel",
+    text: "Nombre de la forme p/q (numérateur entier, dénominateur entier non nul). En C++, souvent modélisé par une classe <code>Fraction</code> surchargeant les opérateurs arithmétiques et de comparaison.",
+    tags: ["poo", "operateurs", "maths"]
+  },
+  {
+    term: "std::list",
+    text: "Conteneur séquentiel STL implémentant une liste doublement chaînée. Insertions et suppressions en O(1) à n'importe quel endroit, mais accès indexé en O(n). À préférer à <code>std::vector</code> uniquement si les insertions au milieu sont l'opération dominante.",
+    tags: ["stl", "conteneurs"]
   }
 ].sort((left, right) => left.term.localeCompare(right.term, "fr", { sensitivity: "base" }));
 

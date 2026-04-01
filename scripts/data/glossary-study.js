@@ -302,6 +302,489 @@ int main() {
 int* ptr = nullptr;
 std::cout << *ptr << '\\n';
       `, "Comportement indéfini")
+    },
+    "Lambda": {
+      example: "On passe une lambda comme critère de tri : l'intention est lisible sans avoir besoin de nommer une fonction séparée.",
+      codeExample: snippet("cpp", `
+std::vector<int> v{5, 2, 8, 1};
+std::sort(v.begin(), v.end(), [](int a, int b) {
+    return a < b;
+});
+
+int seuil = 4;
+auto it = std::find_if(v.begin(), v.end(), [seuil](int x) {
+    return x > seuil;  // capture par valeur
+});
+      `, "Lambda avec capture")
+    },
+    "unique_ptr": {
+      example: "Un unique_ptr garantit qu'un seul propriétaire gère la ressource ; la transférer efface le source.",
+      codeExample: snippet("cpp", `
+auto p1 = std::make_unique<std::string>("hello");
+// auto p2 = p1;            // ❌ copie interdite
+auto p2 = std::move(p1);   // ✅ transfert — p1 == nullptr
+p2.reset();                 // libère la ressource
+      `, "unique_ptr : création et transfert")
+    },
+    "shared_ptr": {
+      example: "Plusieurs parties du code partagent la même ressource ; elle ne sera libérée qu'à la mort du dernier propriétaire.",
+      codeExample: snippet("cpp", `
+auto p1 = std::make_shared<int>(42);
+auto p2 = p1;   // compteur passe à 2
+std::cout << p1.use_count() << '\\n'; // 2
+p2.reset();     // compteur redescend à 1
+// p1 sort de portée → compteur 0 → objet détruit
+      `, "shared_ptr et compteur de références")
+    },
+    "weak_ptr": {
+      example: "Un nœud observe son parent sans en prolonger la durée de vie, évitant ainsi un cycle de shared_ptr.",
+      codeExample: snippet("cpp", `
+auto propriétaire = std::make_shared<int>(100);
+std::weak_ptr<int> obs = propriétaire;
+
+if (auto v = obs.lock()) {
+    std::cout << *v << '\\n'; // 100
+}
+// propriétaire détruit ici
+std::cout << obs.expired() << '\\n'; // 1 (true)
+      `, "weak_ptr : observer sans posséder")
+    },
+    "nullptr": {
+      example: "Initialiser un pointeur à nullptr rend sa nullité explicite et évite les ambiguïtés de surcharge avec NULL.",
+      codeExample: snippet("cpp", `
+int* p = nullptr;        // pointeur nul explicitement typé
+
+void f(int*);
+void f(int);
+// f(NULL)    → ambigu
+// f(nullptr) → appelle f(int*) sans ambiguïté
+      `, "nullptr vs NULL")
+    },
+    "override": {
+      example: "Le compilateur vérifie que la méthode redéfinit bien une virtuelle de la base — un typo dans la signature devient une erreur.",
+      codeExample: snippet("cpp", `
+class Base {
+    virtual void afficher() const;
+};
+
+class Dérivée : public Base {
+    void afficher() const override; // ✅ vérifié
+    // void aficher() const override; // ❌ erreur de compilation
+};
+      `, "override comme garde-fou")
+    },
+    "auto": {
+      example: "auto est utile quand le type est évident à droite ou franchement verbeux à gauche.",
+      codeExample: snippet("cpp", `
+auto compteur = 0;                          // int
+auto it = tableDeSymboles.begin();          // iterator verbeux
+auto p = std::make_unique<std::string>();   // type déjà visible
+
+// À éviter : le type est sémantiquement important
+// auto résultat = calculerScore();  // quel type retourne-t-il ?
+      `, "auto : quand l'utiliser")
+    },
+    "noexcept": {
+      example: "Marquer un move constructor noexcept permet à std::vector de choisir le déplacement plutôt que la copie lors d'un resize.",
+      codeExample: snippet("cpp", `
+class Buffer {
+public:
+    Buffer(Buffer&& other) noexcept
+        : data_{other.data_}, taille_{other.taille_} {
+        other.data_ = nullptr;
+        other.taille_ = 0;
+    }
+};
+      `, "noexcept sur le move constructor")
+    },
+    "Mutex": {
+      example: "Un mutex protège l'incrémentation partagée : sans lui, deux threads simultanés produiraient un résultat aléatoire.",
+      codeExample: snippet("cpp", `
+std::mutex verrou;
+int compteur = 0;
+
+void incrementer() {
+    std::lock_guard<std::mutex> garde{verrou};
+    ++compteur;   // section critique protégée
+}
+      `, "Mutex et lock_guard")
+    },
+    "Thread": {
+      example: "Deux traitements indépendants sont lancés en parallèle ; join() attend leur fin avant de continuer.",
+      codeExample: snippet("cpp", `
+void traitement(int id) {
+    std::cout << "Thread " << id << "\\n";
+}
+
+std::thread t1{traitement, 1};
+std::thread t2{traitement, 2};
+t1.join();
+t2.join();
+      `, "Créer et rejoindre des threads")
+    },
+    "Data race": {
+      example: "Sans synchronisation, deux threads incrémentant le même compteur produisent un résultat imprévisible.",
+      codeExample: snippet("cpp", `
+int compteur = 0;
+
+// Thread 1                 // Thread 2
+// compteur++;              // compteur++;
+// Résultat final : 1 ou 2 — comportement indéfini
+
+// Correction : protéger avec std::mutex
+      `, "Data race : exemple et correction")
+    },
+    "std::future": {
+      example: "Un future permet de lancer un calcul en arrière-plan et d'en récupérer le résultat plus tard.",
+      codeExample: snippet("cpp", `
+auto f = std::async(std::launch::async, []() {
+    return 6 * 7;
+});
+
+// ... autres traitements ...
+
+int résultat = f.get(); // bloque si nécessaire → 42
+      `, "Récupérer un résultat asynchrone")
+    },
+    "TDD (Test-Driven Development)": {
+      example: "On écrit d'abord le test qui échoue (rouge), puis le minimum de code pour le faire passer (vert), puis on améliore.",
+      codeExample: snippet("cpp", `
+// 1. Écrire le test (rouge)
+TEST_CASE("deposer augmente le solde") {
+    Compte c{100.0};
+    c.deposer(50.0);
+    REQUIRE(c.solde() == Approx(150.0));
+}
+
+// 2. Implémenter le minimum (vert)
+void Compte::deposer(double montant) { solde_ += montant; }
+      `, "Cycle TDD rouge-vert")
+    },
+    "Test unitaire": {
+      example: "Chaque test vérifie un comportement précis : cas normal, cas limite, erreur attendue.",
+      codeExample: snippet("cpp", `
+TEST_CASE("Fraction : valeur décimale") {
+    Fraction f{1, 4};
+    REQUIRE(f.valeur() == Approx(0.25));
+}
+TEST_CASE("Fraction : dénominateur nul interdit") {
+    REQUIRE_THROWS_AS(Fraction(1, 0), std::invalid_argument);
+}
+      `, "Tests Catch2")
+    },
+    "Dangling pointer": {
+      example: "Le pointeur désigne une zone mémoire libérée ou une variable sortie de portée.",
+      codeExample: snippet("cpp", `
+int* p = nullptr;
+{
+    int x = 42;
+    p = &x;
+}  // x est détruit ici — p est désormais suspendu
+// *p = 99;  // ❌ comportement indéfini
+      `, "Pointeur suspendu")
+    },
+    "Fuite mémoire": {
+      example: "La ressource est allouée mais jamais libérée ; le programme consomme de la mémoire indéfiniment.",
+      codeExample: snippet("cpp", `
+void mauvaise() {
+    int* p = new int[100]; // alloué
+    // delete[] p;  ← oublié
+}  // fuite : 100 int perdus à chaque appel
+
+// Correction : utiliser std::vector ou unique_ptr
+      `, "Fuite mémoire et correction")
+    },
+    "lvalue / rvalue": {
+      example: "Une lvalue a une adresse stable ; une rvalue est temporaire. std::move transforme une lvalue en rvalue.",
+      codeExample: snippet("cpp", `
+int x = 5;          // x est une lvalue
+int y = x + 1;      // (x + 1) est une rvalue temporaire
+
+std::string s = "hello";
+std::string t = std::move(s); // s traité comme rvalue — transfert
+// s est vide après le move
+      `, "lvalue, rvalue et std::move")
+    },
+    "Structured bindings": {
+      example: "On décompose une paire map en variables nommées, évitant .first et .second.",
+      codeExample: snippet("cpp", `
+std::map<std::string, int> notes{{"Alice", 17}, {"Bob", 14}};
+
+for (const auto& [nom, note] : notes) {
+    std::cout << nom << " : " << note << "\\n";
+}
+
+auto [min, max] = std::minmax(3, 9);
+      `, "Structured bindings C++17")
+    },
+    "Copy-and-swap": {
+      example: "L'affectation copie l'argument, l'échange avec *this, puis laisse le destructeur nettoyer l'ancien état.",
+      codeExample: snippet("cpp", `
+Buffer& operator=(Buffer other) { // copie par valeur
+    swap(*this, other);           // échange les ressources
+    return *this;
+}   // l'ancien état est détruit avec 'other'
+      `, "Copy-and-swap idiom")
+    },
+    "vtable": {
+      example: "Le compilateur génère une table par classe virtuelle ; chaque appel virtuel passe par ce tableau de pointeurs.",
+      codeExample: snippet("cpp", `
+class Forme {
+public:
+    virtual double aire() const = 0; // entrée dans la vtable
+    virtual ~Forme() = default;
+};
+
+// À l'exécution :
+// Forme* f = new Cercle(5.0);
+// f->aire();  → vtable de Cercle → Cercle::aire()
+      `, "vtable et dispatch dynamique")
+    },
+    "lock_guard": {
+      example: "Le verrou se libère automatiquement à la sortie du bloc, même en cas d'exception.",
+      codeExample: snippet("cpp", `
+std::mutex m;
+
+void ecriture(int valeur) {
+    std::lock_guard<std::mutex> garde{m}; // verrouille ici
+    données.push_back(valeur);
+}  // déverrouille ici — RAII garanti
+      `, "lock_guard RAII")
+    },
+    "std::move": {
+      example: "std::move ne déplace rien par lui-même : il signale que la ressource peut être transférée.",
+      codeExample: snippet("cpp", `
+std::string a = "hello";
+std::string b = std::move(a); // transfert des données internes
+// a est vide maintenant, b vaut "hello"
+
+std::vector<std::string> v;
+v.push_back(std::move(b));    // évite une copie de la chaîne
+      `, "std::move : sémantique de déplacement")
+    },
+    "Sanitizer": {
+      example: "Les sanitizers détectent les bugs mémoire et comportements indéfinis à l'exécution, avant qu'ils ne deviennent des crashes silencieux.",
+      codeExample: snippet("bash", `
+g++ -std=c++20 -Wall -Wextra \\
+    -fsanitize=address,undefined \\
+    -g src/*.cpp -o app
+
+# AddressSanitizer : détecte buffer overflow, use-after-free
+# UndefinedBehaviorSanitizer : overflow entier, nullptr deref, ...
+      `, "Compiler avec les sanitizers")
+    },
+    "Portée (scope)": {
+      example: "La variable n'existe que dans le bloc qui la déclare ; en sortir déclenche son destructeur.",
+      codeExample: snippet("cpp", `
+{
+    int local = 10;
+    // local visible ici
+}
+// local détruit ici — inaccessible au-delà
+
+for (int i = 0; i < 5; ++i) {
+    // i n'existe que dans cette boucle
+}
+      `, "Portée des variables")
+    },
+    "explicit": {
+      example: "Sans explicit, le compilateur convertit silencieusement un entier en objet, ce qui peut masquer des erreurs.",
+      codeExample: snippet("cpp", `
+class Taille {
+public:
+    explicit Taille(int valeur) : valeur_{valeur} {}
+private:
+    int valeur_;
+};
+
+// Taille t = 5;     // ❌ interdit sans explicit
+Taille t{5};         // ✅ construction explicite requise
+      `, "explicit : interdire la conversion implicite")
+    },
+    "Règle de 3 / 5": {
+      example: "Une classe avec un destructeur custom possède probablement une ressource ; la copie et l'affectation doivent être pensées.",
+      codeExample: snippet("cpp", `
+class Buffer {
+public:
+    ~Buffer();                            // destructeur custom
+    Buffer(const Buffer&);               // constructeur copie
+    Buffer& operator=(const Buffer&);    // affectation copie
+    Buffer(Buffer&&) noexcept;           // + move (règle de 5)
+    Buffer& operator=(Buffer&&) noexcept;
+};
+      `, "Règle de 5 complète")
+    },
+    "argc / argv": {
+      example: "On passe le nom d'un fichier en argument au lieu de le coder en dur : ./programme Tournoi.txt — argv[1] vaut alors \"Tournoi.txt\".",
+      codeExample: snippet("cpp", `
+int main(int argc, char* argv[]) {
+    if (argc < 2) {
+        std::cerr << "Usage : " << argv[0] << " <fichier>\\n";
+        return 1;
+    }
+    std::ifstream f{argv[1]};
+    // ...
+}
+      `, "Lire un fichier passé en argument")
+    },
+    "iomanip / setw": {
+      example: "On affiche un classement avec des colonnes parfaitement alignées grâce aux manipulateurs de <iomanip>.",
+      codeExample: snippet("cpp", `
+#include <iomanip>
+std::cout << std::left  << std::setw(12) << "France"
+          << std::right << std::setw(6)  << 9
+          << std::right << std::setw(6)  << 6 << "\\n";
+// France           9     6
+      `, "Colonnes alignées avec setw")
+    },
+    "std::stack": {
+      example: "On modélise une pile d'appels ou d'opérations à annuler (undo) avec std::stack.",
+      codeExample: snippet("cpp", `
+std::stack<int> pile;
+pile.push(1); pile.push(2); pile.push(3);
+while (!pile.empty()) {
+    std::cout << pile.top() << "\\n"; // 3, 2, 1
+    pile.pop();
+}
+      `, "Pile LIFO avec std::stack")
+    },
+    "std::queue": {
+      example: "On traite des requêtes dans l'ordre d'arrivée avec std::queue.",
+      codeExample: snippet("cpp", `
+std::queue<std::string> file;
+file.push("Alice"); file.push("Bob"); file.push("Charlie");
+while (!file.empty()) {
+    std::cout << file.front() << "\\n"; // Alice, Bob, Charlie
+    file.pop();
+}
+      `, "File FIFO avec std::queue")
+    },
+    "std::copy": {
+      example: "On recopie les éléments d'un vecteur vers un autre sans boucle explicite.",
+      codeExample: snippet("cpp", `
+std::vector<int> source{1, 2, 3, 4, 5};
+std::vector<int> dest(source.size());
+std::copy(source.begin(), source.end(), dest.begin());
+// dest = {1, 2, 3, 4, 5}
+      `, "Copier un vecteur avec std::copy")
+    },
+    "std::transform": {
+      example: "On convertit un vecteur de chaînes en minuscules vers des majuscules sans écrire de boucle.",
+      codeExample: snippet("cpp", `
+#include <cctype>
+std::vector<char> src{'a', 'b', 'c'};
+std::vector<char> dst(src.size());
+std::transform(src.begin(), src.end(), dst.begin(), [](char c) {
+    return static_cast<char>(std::toupper(c));
+});
+// dst = {'A', 'B', 'C'}
+      `, "Transformer avec std::transform")
+    },
+    "LIFO / FIFO": {
+      example: "Une pile d'assiettes (LIFO : on reprend la dernière posée) vs une file d'attente en caisse (FIFO : le premier arrivé est servi en premier).",
+      codeExample: snippet("cpp", `
+std::stack<int> lifo;  // Last In First Out
+lifo.push(1); lifo.push(2);
+std::cout << lifo.top(); // 2 (le dernier entré)
+
+std::queue<int> fifo;  // First In First Out
+fifo.push(1); fifo.push(2);
+std::cout << fifo.front(); // 1 (le premier entré)
+      `, "LIFO vs FIFO")
+    },
+    "Constructeur par recopie": {
+      example: "Quand on passe un objet par valeur à une fonction, le constructeur par recopie est appelé pour créer une copie locale indépendante.",
+      codeExample: snippet("cpp", `
+class Point {
+public:
+    Point(int x, int y) : x_{x}, y_{y} {}
+    // constructeur par recopie
+    Point(const Point& other) : x_{other.x_}, y_{other.y_} {}
+private:
+    int x_, y_;
+};
+
+Point a{1, 2};
+Point b{a};        // appel du constructeur par recopie
+Point c = a;       // idem
+      `, "Constructeur par recopie")
+    },
+    "Opérateur d'affectation": {
+      example: "L'opérateur = sur un objet existant doit copier l'état source sans provoquer de fuite ni de double-delete.",
+      codeExample: snippet("cpp", `
+class Polynome {
+public:
+    Polynome& operator=(const Polynome& other) {
+        if (this != &other) {       // garde anti-autoaffectation
+            delete[] coeffs_;
+            degree_ = other.degree_;
+            coeffs_ = new double[degree_ + 1];
+            std::copy(other.coeffs_, other.coeffs_ + degree_ + 1, coeffs_);
+        }
+        return *this;
+    }
+private:
+    int degree_;
+    double* coeffs_;
+};
+      `, "Opérateur d'affectation")
+    },
+    "Opérateur d'extraction (>>)": {
+      example: "On lit les champs d'un objet depuis un fichier texte avec le même << que pour cin.",
+      codeExample: snippet("cpp", `
+class Date {
+    short j_, m_; int a_;
+public:
+    friend std::istream& operator>>(std::istream& in, Date& d) {
+        in >> d.j_ >> d.m_ >> d.a_;
+        return in;
+    }
+};
+
+Date d;
+std::cin >> d;          // depuis la console
+fichier >> d;           // depuis un fichier
+      `, "operator>> pour lire un objet")
+    },
+    "Nombre rationnel": {
+      example: "Une fraction comme 3/4 se représente par un numérateur et un dénominateur avec les opérateurs arithmétiques surchargés.",
+      codeExample: snippet("cpp", `
+class Fraction {
+    int num_, den_;
+public:
+    Fraction(int n, int d) : num_{n}, den_{d != 0 ? d : throw std::invalid_argument{"den=0"}} {}
+
+    Fraction operator+(const Fraction& o) const {
+        return {num_ * o.den_ + o.num_ * den_, den_ * o.den_};
+    }
+    bool operator==(const Fraction& o) const {
+        return num_ * o.den_ == o.num_ * den_;
+    }
+};
+      `, "Classe Fraction")
+    },
+    "std::list": {
+      example: "On préfère std::list quand on insère et supprime fréquemment au milieu d'une séquence, car les itérateurs existants restent valides.",
+      codeExample: snippet("cpp", `
+std::list<int> l{1, 2, 3, 4, 5};
+auto it = std::find(l.begin(), l.end(), 3);
+l.insert(it, 99);   // insère 99 avant 3 en O(1)
+l.erase(it);        // supprime 3 en O(1)
+// l = {1, 2, 99, 4, 5}
+      `, "std::list : insertion O(1)")
+    },
+    "std::string_view": {
+      example: "On passe une vue sur une chaîne sans copier : la fonction lit sans posséder.",
+      codeExample: snippet("cpp", `
+void afficher(std::string_view sv) {
+    std::cout << sv << "\\n"; // lecture seule, pas de copie
+}
+
+std::string s = "hello";
+afficher(s);          // depuis un string
+afficher("world");    // depuis un littéral
+afficher(s.substr(0, 3)); // ⚠️ substr retourne un string temp — ok ici
+      `, "string_view : vue légère")
     }
   };
 

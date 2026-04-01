@@ -13,7 +13,6 @@ const {
   renderChapterPanel,
   renderFilters,
   renderHero,
-  renderOverview,
   renderSidebar
 } = globalScope.CourseAppCourseView || {};
 const {
@@ -36,7 +35,6 @@ function init() {
     !renderChapterPanel ||
     !renderFilters ||
     !renderHero ||
-    !renderOverview ||
     !renderSidebar ||
     !filterGlossaryEntries ||
     !renderGlossary ||
@@ -77,7 +75,6 @@ function init() {
     glossaryPanel: "glossaryPanel",
     hero: "hero",
     levelFilters: "levelFilters",
-    overview: "overview",
     progressFill: "progressFill",
     progressLabel: "progressLabel",
     searchInput: "searchInput",
@@ -541,16 +538,6 @@ function init() {
       nextChapter: firstIncompleteChapter(),
       visibleCount: visibleChapters.length
     });
-    renderOverview(elements.overview, {
-      chapters,
-      currentChapter,
-      doneSet,
-      filtersActive: state.level !== "all" || state.search.trim() !== "",
-      level: state.level,
-      nextChapter: firstIncompleteChapter(),
-      search: state.search,
-      visibleChapters
-    });
     renderChapterPanel(elements.chapterPanel, {
       assistantAvailable: typeof window.sendPrompt === "function",
       chapter: currentChapter,
@@ -561,11 +548,24 @@ function init() {
     });
     highlightCodeBlocks(elements.chapterPanel);
 
+    const glossarySearchWasFocused = document.activeElement && document.activeElement.id === "glossarySearch";
+    const glossarySearchCursor = glossarySearchWasFocused ? document.activeElement.selectionStart : null;
+
     renderGlossary(elements.glossaryPanel, {
       entries: visibleGlossaryEntries,
       state
     });
     highlightCodeBlocks(elements.glossaryPanel);
+
+    if (glossarySearchWasFocused) {
+      const restored = elements.glossaryPanel.querySelector("#glossarySearch");
+      if (restored) {
+        restored.focus();
+        if (glossarySearchCursor !== null) {
+          restored.setSelectionRange(glossarySearchCursor, glossarySearchCursor);
+        }
+      }
+    }
 
     renderAssistantPanel();
     updateProgressBar();
