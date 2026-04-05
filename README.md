@@ -11,8 +11,13 @@ Ce dossier contient désormais une version autonome du support de cours sous for
 
 - `index.html` : structure de la page et points d'ancrage de l'application
 - `styles/main.css` : identité visuelle, layout responsive et composants
-- `scripts/course-data.js` : contenu pédagogique principal des chapitres
+- `scripts/course-data.js` : bootstrap final qui assemble et publie `window.COURSE_DATA`
 - `scripts/app.js` : orchestrateur principal de l'application
+- `scripts/data/course-runtime.js` : helpers de contenu et registre global des données du cours
+- `scripts/data/course-meta.js` : métadonnées du parcours
+- `scripts/data/course-roadmap.js` : feuille de route du cours
+- `scripts/data/course-glossary.js` : glossaire principal
+- `scripts/data/chapters/` : un fichier par chapitre, avec son contenu et ses deep dives
 - `scripts/data/glossary-study.js` : enrichissement du glossaire pour la révision interactive
 - `scripts/lib/` : utilitaires de texte et coloration syntaxique
 - `scripts/state/storage.js` : persistance de la progression et de l'état de révision
@@ -50,7 +55,7 @@ Ce dossier contient désormais une version autonome du support de cours sous for
 
 ## Idées d'extension
 
-- ajouter d'autres chapitres dans `scripts/course-data.js`
+- ajouter d'autres chapitres dans `scripts/data/chapters/`
 - enrichir le glossaire et les quiz
 - brancher une vraie impression PDF ou une génération de fiches de révision
 - ajouter une section de corrigés détaillés ou d'annales
