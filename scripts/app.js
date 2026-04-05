@@ -53,6 +53,12 @@ function init() {
 
   const { courseMeta, chapters } = data;
   const glossary = buildGlossaryEntries(data.glossary || []);
+  const searchDebounceMs = 150;
+  const courseTabIds = ["cours", "checklist", "quiz", "exercises"];
+  const glossaryModeIds = ["list", "flashcards", "quiz"];
+  const reducedMotionQuery = typeof globalScope.matchMedia === "function"
+    ? globalScope.matchMedia("(prefers-reduced-motion: reduce)")
+    : null;
 
   const tabLabels = {
     cours: "Cours",
@@ -127,11 +133,15 @@ function init() {
   let assistantPrompt = "";
   let assistantContext = "";
   let assistantFeedback = "";
+  let courseSearchTimer = 0;
+  let glossarySearchTimer = 0;
 
   syncHash(state.currentChapterId);
+  syncCurrentChapterSelection();
+  syncGlossaryState(state, getVisibleGlossaryEntries());
 
   function getHashChapterId(validIds) {
-    const hash = window.location.hash.replace(/^#/, "");
+    const hash = globalScope.location.hash.replace(/^#/, "");
     return validIds.has(hash) ? hash : null;
   }
 
@@ -141,19 +151,27 @@ function init() {
     }
 
     const nextHash = `#${chapterId}`;
-    if (window.location.hash === nextHash) {
+    if (globalScope.location.hash === nextHash) {
       return;
     }
 
     try {
-      if (window.history && typeof window.history.replaceState === "function") {
-        window.history.replaceState(null, "", nextHash);
+      if (globalScope.history && typeof globalScope.history.replaceState === "function") {
+        globalScope.history.replaceState(null, "", nextHash);
       } else {
-        window.location.hash = chapterId;
+        globalScope.location.hash = chapterId;
       }
     } catch {
-      window.location.hash = chapterId;
+      globalScope.location.hash = chapterId;
     }
+  }
+
+  function prefersReducedMotion() {
+    return Boolean(reducedMotionQuery && reducedMotionQuery.matches);
+  }
+
+  function scrollBehavior() {
+    return prefersReducedMotion() ? "auto" : "smooth";
   }
 
   function completedSet() {
@@ -170,47 +188,57 @@ function init() {
     });
   }
 
-  function ensureCurrentChapterIsVisible() {
-    const visible = getVisibleChapters();
-    if (visible.length === 0) {
-      return null;
+  function syncCurrentChapterSelection() {
+    const visibleChapters = getVisibleChapters();
+
+    if (visibleChapters.length === 0) {
+      return false;
     }
 
-    const currentChapter = visible.find((chapter) => chapter.id === state.currentChapterId);
-    if (currentChapter) {
-      return currentChapter;
+    if (visibleChapters.some((chapter) => chapter.id === state.currentChapterId)) {
+      return false;
     }
 
-    state.currentChapterId = visible[0].id;
+    state.currentChapterId = visibleChapters[0].id;
     syncHash(state.currentChapterId);
-    return visible[0];
+    return true;
   }
 
-  function getCurrentChapter() {
-    return ensureCurrentChapterIsVisible();
+  function getCourseViewState() {
+    const visibleChapters = getVisibleChapters();
+    const currentChapter = visibleChapters.find((chapter) => chapter.id === state.currentChapterId) || null;
+    const doneSet = completedSet();
+
+    return {
+      currentChapter,
+      doneSet,
+      nextChapter: firstIncompleteChapter(doneSet),
+      progress: getCompletionRatio(doneSet),
+      visibleChapters
+    };
   }
 
-  function getCompletionRatio() {
+  function getCompletionRatio(doneSet = completedSet()) {
     if (chapters.length === 0) {
       return 0;
     }
 
-    return Math.round((completedSet().size / chapters.length) * 100);
+    return Math.round((doneSet.size / chapters.length) * 100);
   }
 
-  function firstIncompleteChapter() {
-    const done = completedSet();
-    return chapters.find((chapter) => !done.has(chapter.id)) || null;
+  function firstIncompleteChapter(doneSet = completedSet()) {
+    return chapters.find((chapter) => !doneSet.has(chapter.id)) || null;
   }
 
   function getAdjacentVisibleChapter(offset) {
-    const visible = getVisibleChapters();
-    const currentIndex = visible.findIndex((chapter) => chapter.id === state.currentChapterId);
+    const visibleChapters = getVisibleChapters();
+    const currentIndex = visibleChapters.findIndex((chapter) => chapter.id === state.currentChapterId);
+
     if (currentIndex === -1) {
       return null;
     }
 
-    return visible[currentIndex + offset] || null;
+    return visibleChapters[currentIndex + offset] || null;
   }
 
   function getVisibleGlossaryEntries() {
@@ -218,11 +246,19 @@ function init() {
   }
 
   function scrollToChapterPanel() {
-    elements.chapterPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+    elements.chapterPanel.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
   }
 
-  function updateProgressBar() {
-    const progress = getCompletionRatio();
+  function focusTab(tabGroup, tabValue) {
+    const selector = `[role="tab"][data-tab-group="${tabGroup}"][data-tab-value="${tabValue}"]`;
+    const tab = document.querySelector(selector);
+
+    if (tab) {
+      tab.focus();
+    }
+  }
+
+  function updateProgressBar(progress) {
     elements.progressFill.style.width = `${progress}%`;
     elements.progressLabel.textContent = `${progress}%`;
 
@@ -256,23 +292,6 @@ function init() {
     } catch {
       return false;
     }
-  }
-
-  function showAssistantPrompt(prompt, context) {
-    assistantPrompt = prompt;
-    assistantContext = context || "";
-    renderAssistantPanel();
-
-    if (elements.assistantPanel) {
-      elements.assistantPanel.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }
-
-  function hideAssistantPrompt() {
-    assistantPrompt = "";
-    assistantContext = "";
-    assistantFeedback = "";
-    renderAssistantPanel();
   }
 
   function renderAssistantPanel() {
@@ -321,16 +340,168 @@ function init() {
     `;
   }
 
+  function showAssistantPrompt(prompt, context) {
+    assistantPrompt = prompt;
+    assistantContext = context || "";
+    renderAssistantPanel();
+
+    if (elements.assistantPanel) {
+      elements.assistantPanel.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
+    }
+  }
+
+  function hideAssistantPrompt() {
+    assistantPrompt = "";
+    assistantContext = "";
+    assistantFeedback = "";
+    renderAssistantPanel();
+  }
+
+  function renderChrome(courseViewState) {
+    if (elements.searchInput.value !== state.search) {
+      elements.searchInput.value = state.search;
+    }
+
+    renderFilters(elements.levelFilters, levelOptions, state.level);
+    renderSidebar(elements.chapterNav, elements.visibleCount, {
+      chapters,
+      visibleChapters: courseViewState.visibleChapters,
+      currentChapterId: courseViewState.currentChapter ? courseViewState.currentChapter.id : "",
+      doneSet: courseViewState.doneSet
+    });
+    updateProgressBar(courseViewState.progress);
+  }
+
+  function renderHeroSection(courseViewState) {
+    renderHero(elements.hero, {
+      assistantAvailable: typeof globalScope.sendPrompt === "function",
+      chapters,
+      completedCount: courseViewState.doneSet.size,
+      courseMeta,
+      currentChapter: courseViewState.currentChapter,
+      search: state.search,
+      level: state.level,
+      progress: courseViewState.progress,
+      nextChapter: courseViewState.nextChapter,
+      visibleCount: courseViewState.visibleChapters.length
+    });
+  }
+
+  function renderChapterSection(courseViewState) {
+    renderChapterPanel(elements.chapterPanel, {
+      assistantAvailable: typeof globalScope.sendPrompt === "function",
+      chapter: courseViewState.currentChapter,
+      doneSet: courseViewState.doneSet,
+      tab: state.tab,
+      tabLabels,
+      visibleChapters: courseViewState.visibleChapters
+    });
+    highlightCodeBlocks(elements.chapterPanel);
+  }
+
+  function renderCourseSections(options = {}) {
+    const settings = Object.assign({
+      chapter: true,
+      chrome: true,
+      hero: true
+    }, options);
+    const courseViewState = getCourseViewState();
+
+    if (settings.chrome) {
+      renderChrome(courseViewState);
+    }
+
+    if (settings.hero) {
+      renderHeroSection(courseViewState);
+    }
+
+    if (settings.chapter) {
+      renderChapterSection(courseViewState);
+    }
+  }
+
+  function renderGlossarySection(options = {}) {
+    const settings = Object.assign({ preserveFocus: true }, options);
+    const glossarySearchWasFocused = settings.preserveFocus && document.activeElement
+      ? document.activeElement.id === "glossarySearch"
+      : false;
+    const glossarySearchCursor = glossarySearchWasFocused ? document.activeElement.selectionStart : null;
+    const visibleGlossaryEntries = getVisibleGlossaryEntries();
+
+    syncGlossaryState(state, visibleGlossaryEntries);
+    renderGlossary(elements.glossaryPanel, {
+      entries: visibleGlossaryEntries,
+      state
+    });
+    highlightCodeBlocks(elements.glossaryPanel);
+
+    if (glossarySearchWasFocused) {
+      const restored = elements.glossaryPanel.querySelector("#glossarySearch");
+
+      if (restored) {
+        restored.focus();
+        if (glossarySearchCursor !== null) {
+          restored.setSelectionRange(glossarySearchCursor, glossarySearchCursor);
+        }
+      }
+    }
+  }
+
+  function renderInitialState() {
+    renderCourseSections();
+    renderGlossarySection({ preserveFocus: false });
+    renderAssistantPanel();
+  }
+
+  function cancelCourseSearchRender() {
+    if (!courseSearchTimer) {
+      return;
+    }
+
+    globalScope.clearTimeout(courseSearchTimer);
+    courseSearchTimer = 0;
+  }
+
+  function cancelGlossarySearchRender() {
+    if (!glossarySearchTimer) {
+      return;
+    }
+
+    globalScope.clearTimeout(glossarySearchTimer);
+    glossarySearchTimer = 0;
+  }
+
+  function scheduleCourseSearchRender() {
+    cancelCourseSearchRender();
+    courseSearchTimer = globalScope.setTimeout(() => {
+      courseSearchTimer = 0;
+      syncCurrentChapterSelection();
+      saveState(state);
+      renderCourseSections();
+    }, searchDebounceMs);
+  }
+
+  function scheduleGlossarySearchRender() {
+    cancelGlossarySearchRender();
+    glossarySearchTimer = globalScope.setTimeout(() => {
+      glossarySearchTimer = 0;
+      syncGlossaryState(state, getVisibleGlossaryEntries());
+      saveState(state);
+      renderGlossarySection();
+    }, searchDebounceMs);
+  }
+
   function askForMoreExercises(scope) {
-    const chapter = getCurrentChapter();
+    const courseViewState = getCourseViewState();
+    const chapter = courseViewState.currentChapter;
     const chapterTitle = scope || (chapter ? chapter.title : "C++ ING2");
     const prompt =
       `Je révise le chapitre "${chapterTitle}". ` +
       "Génère-moi une série d'exercices progressifs en français avec corrigés indicatifs, " +
       "en couvrant les pièges classiques, une version challenge et les points de vigilance à vérifier.";
 
-    if (typeof window.sendPrompt === "function") {
-      window.sendPrompt(prompt);
+    if (typeof globalScope.sendPrompt === "function") {
+      globalScope.sendPrompt(prompt);
       hideAssistantPrompt();
       return;
     }
@@ -348,45 +519,73 @@ function init() {
       return;
     }
 
+    cancelCourseSearchRender();
     state.currentChapterId = chapterId;
     state.tab = "cours";
     syncHash(chapterId);
     saveState(state);
-    render();
+    renderCourseSections();
 
     if (shouldScroll) {
       scrollToChapterPanel();
     }
   }
 
+  function activateCourseTab(tabId, options = {}) {
+    const settings = Object.assign({ focusTab: false }, options);
+
+    if (!validTabIds.has(tabId)) {
+      return;
+    }
+
+    if (state.tab === tabId) {
+      if (settings.focusTab) {
+        focusTab("course", tabId);
+      }
+      return;
+    }
+
+    cancelCourseSearchRender();
+    state.tab = tabId;
+    saveState(state);
+    renderCourseSections({ chrome: false, hero: false });
+
+    if (settings.focusTab) {
+      focusTab("course", tabId);
+    }
+  }
+
   function goToAdjacentChapter(offset) {
     const target = getAdjacentVisibleChapter(offset);
+
     if (target) {
       goToChapter(target.id);
     }
   }
 
   function toggleCurrentChapterCompletion() {
-    const chapter = getCurrentChapter();
+    const courseViewState = getCourseViewState();
+    const chapter = courseViewState.currentChapter;
+
     if (!chapter) {
       return;
     }
 
-    if (completedSet().has(chapter.id)) {
+    if (courseViewState.doneSet.has(chapter.id)) {
       state.completedIds = state.completedIds.filter((id) => id !== chapter.id);
     } else {
       state.completedIds = state.completedIds.concat(chapter.id);
     }
 
     saveState(state);
-    render();
+    renderCourseSections();
   }
 
   function resumeProgress() {
-    const visible = getVisibleChapters();
-    const source = visible.length > 0 ? visible : chapters;
-    const done = completedSet();
-    const target = source.find((chapter) => !done.has(chapter.id)) || source[0];
+    const visibleChapters = getVisibleChapters();
+    const source = visibleChapters.length > 0 ? visibleChapters : chapters;
+    const doneSet = completedSet();
+    const target = source.find((chapter) => !doneSet.has(chapter.id)) || source[0];
 
     if (target) {
       goToChapter(target.id);
@@ -394,12 +593,16 @@ function init() {
   }
 
   function resetFilters() {
+    cancelCourseSearchRender();
     state.search = "";
     state.level = "all";
-    render();
+    syncCurrentChapterSelection();
+    saveState(state);
+    renderCourseSections();
   }
 
   function resetGlossaryView() {
+    cancelGlossarySearchRender();
     state.glossarySearch = "";
     state.glossaryCardIndex = 0;
     state.glossaryCardFace = "front";
@@ -408,14 +611,24 @@ function init() {
     state.glossaryQuizSelectedId = "";
     state.glossaryQuizSeed = createSeed();
     saveState(state);
-    render();
+    renderGlossarySection();
   }
 
-  function setGlossaryMode(mode) {
-    if (!["list", "flashcards", "quiz"].includes(mode)) {
+  function setGlossaryMode(mode, options = {}) {
+    const settings = Object.assign({ focusTab: false }, options);
+
+    if (!glossaryModeIds.includes(mode)) {
       return;
     }
 
+    if (state.glossaryMode === mode) {
+      if (settings.focusTab) {
+        focusTab("glossary-mode", mode);
+      }
+      return;
+    }
+
+    cancelGlossarySearchRender();
     state.glossaryMode = mode;
     state.glossaryCardFace = "front";
     state.glossaryCardSeed = createSeed();
@@ -424,11 +637,16 @@ function init() {
     state.glossaryQuizSeed = createSeed();
     state.glossaryQuizIndex = 0;
     saveState(state);
-    render();
+    renderGlossarySection();
+
+    if (settings.focusTab) {
+      focusTab("glossary-mode", mode);
+    }
   }
 
   function moveGlossaryCard(offset) {
     const entries = getVisibleGlossaryEntries();
+
     if (!entries.length) {
       return;
     }
@@ -437,13 +655,13 @@ function init() {
     state.glossaryCardIndex = (nextIndex + entries.length) % entries.length;
     state.glossaryCardFace = "front";
     saveState(state);
-    render();
+    renderGlossarySection();
   }
 
   function flipGlossaryCard() {
     state.glossaryCardFace = state.glossaryCardFace === "front" ? "back" : "front";
     saveState(state);
-    render();
+    renderGlossarySection();
   }
 
   function shuffleGlossaryCards() {
@@ -451,7 +669,7 @@ function init() {
     state.glossaryCardIndex = 0;
     state.glossaryCardFace = "front";
     saveState(state);
-    render();
+    renderGlossarySection();
   }
 
   function markGlossaryEntry(entryId, known) {
@@ -460,6 +678,7 @@ function init() {
     }
 
     const knownSet = new Set(state.glossaryKnownIds);
+
     if (known) {
       knownSet.add(entryId);
     } else {
@@ -468,7 +687,7 @@ function init() {
 
     state.glossaryKnownIds = Array.from(knownSet);
     saveState(state);
-    render();
+    renderGlossarySection();
   }
 
   function selectGlossaryQuizAnswer(optionId) {
@@ -478,11 +697,12 @@ function init() {
 
     state.glossaryQuizSelectedId = optionId;
     saveState(state);
-    render();
+    renderGlossarySection();
   }
 
   function nextGlossaryQuizQuestion() {
     const entries = getVisibleGlossaryEntries();
+
     if (!entries.length) {
       return;
     }
@@ -496,7 +716,7 @@ function init() {
 
     state.glossaryQuizSelectedId = "";
     saveState(state);
-    render();
+    renderGlossarySection();
   }
 
   function isTypingTarget(target) {
@@ -509,75 +729,51 @@ function init() {
     );
   }
 
-  function render() {
-    const visibleChapters = getVisibleChapters();
-    const currentChapter = getCurrentChapter();
-    const doneSet = completedSet();
-    const visibleGlossaryEntries = getVisibleGlossaryEntries();
+  function handleTabKeydown(event) {
+    const target = event.target.closest("[role=\"tab\"][data-tab-group][data-tab-value]");
 
-    syncGlossaryState(state, visibleGlossaryEntries);
-
-    elements.searchInput.value = state.search;
-
-    renderFilters(elements.levelFilters, levelOptions, state.level);
-    renderSidebar(elements.chapterNav, elements.visibleCount, {
-      chapters,
-      visibleChapters,
-      currentChapterId: currentChapter ? currentChapter.id : "",
-      doneSet
-    });
-    renderHero(elements.hero, {
-      assistantAvailable: typeof window.sendPrompt === "function",
-      chapters,
-      completedCount: doneSet.size,
-      courseMeta,
-      currentChapter,
-      search: state.search,
-      level: state.level,
-      progress: getCompletionRatio(),
-      nextChapter: firstIncompleteChapter(),
-      visibleCount: visibleChapters.length
-    });
-    renderChapterPanel(elements.chapterPanel, {
-      assistantAvailable: typeof window.sendPrompt === "function",
-      chapter: currentChapter,
-      doneSet,
-      tab: state.tab,
-      tabLabels,
-      visibleChapters
-    });
-    highlightCodeBlocks(elements.chapterPanel);
-
-    const glossarySearchWasFocused = document.activeElement && document.activeElement.id === "glossarySearch";
-    const glossarySearchCursor = glossarySearchWasFocused ? document.activeElement.selectionStart : null;
-
-    renderGlossary(elements.glossaryPanel, {
-      entries: visibleGlossaryEntries,
-      state
-    });
-    highlightCodeBlocks(elements.glossaryPanel);
-
-    if (glossarySearchWasFocused) {
-      const restored = elements.glossaryPanel.querySelector("#glossarySearch");
-      if (restored) {
-        restored.focus();
-        if (glossarySearchCursor !== null) {
-          restored.setSelectionRange(glossarySearchCursor, glossarySearchCursor);
-        }
-      }
+    if (!target) {
+      return false;
     }
 
-    renderAssistantPanel();
-    updateProgressBar();
-    saveState(state);
-  }
+    const tabGroup = target.dataset.tabGroup;
+    const tabValue = target.dataset.tabValue;
+    const values = tabGroup === "course" ? courseTabIds : glossaryModeIds;
+    const currentIndex = values.indexOf(tabValue);
 
-  elements.searchInput.value = state.search;
+    if (currentIndex === -1) {
+      return false;
+    }
+
+    let nextValue = "";
+
+    if (event.key === "ArrowLeft") {
+      nextValue = values[(currentIndex - 1 + values.length) % values.length];
+    } else if (event.key === "ArrowRight") {
+      nextValue = values[(currentIndex + 1) % values.length];
+    } else if (event.key === "Home") {
+      nextValue = values[0];
+    } else if (event.key === "End") {
+      nextValue = values[values.length - 1];
+    } else {
+      return false;
+    }
+
+    event.preventDefault();
+
+    if (tabGroup === "course") {
+      activateCourseTab(nextValue, { focusTab: true });
+    } else {
+      setGlossaryMode(nextValue, { focusTab: true });
+    }
+
+    return true;
+  }
 
   document.addEventListener("input", (event) => {
     if (event.target === elements.searchInput) {
       state.search = event.target.value;
-      render();
+      scheduleCourseSearchRender();
       return;
     }
 
@@ -589,7 +785,7 @@ function init() {
       state.glossaryQuizIndex = 0;
       state.glossaryQuizSelectedId = "";
       state.glossaryQuizSeed = createSeed();
-      render();
+      scheduleGlossarySearchRender();
     }
   });
 
@@ -602,8 +798,11 @@ function init() {
   document.addEventListener("click", (event) => {
     const levelFilter = event.target.closest("[data-level-filter]");
     if (levelFilter) {
+      cancelCourseSearchRender();
       state.level = levelFilter.dataset.levelFilter;
-      render();
+      syncCurrentChapterSelection();
+      saveState(state);
+      renderCourseSections();
       return;
     }
 
@@ -615,8 +814,7 @@ function init() {
 
     const tabTrigger = event.target.closest("[data-tab-id]");
     if (tabTrigger) {
-      state.tab = tabTrigger.dataset.tabId;
-      render();
+      activateCourseTab(tabTrigger.dataset.tabId);
       return;
     }
 
@@ -718,6 +916,7 @@ function init() {
             : "La copie automatique a échoué. Tu peux sélectionner le texte affiché ci-dessus.";
           renderAssistantPanel();
         });
+        return;
       }
     }
 
@@ -755,6 +954,10 @@ function init() {
   });
 
   document.addEventListener("keydown", (event) => {
+    if (handleTabKeydown(event)) {
+      return;
+    }
+
     if (event.key === "/" && !isTypingTarget(event.target)) {
       event.preventDefault();
       elements.searchInput.focus();
@@ -763,8 +966,8 @@ function init() {
     }
 
     if (event.key === "Escape") {
-      if (document.activeElement === elements.searchInput) {
-        elements.searchInput.blur();
+      if (document.activeElement === elements.searchInput || document.activeElement?.id === "glossarySearch") {
+        document.activeElement.blur();
       }
 
       if (assistantPrompt) {
@@ -773,16 +976,20 @@ function init() {
     }
   });
 
-  window.addEventListener("hashchange", () => {
+  globalScope.addEventListener("hashchange", () => {
     const chapterId = getHashChapterId(validChapterIds);
+
     if (chapterId && chapterId !== state.currentChapterId) {
+      cancelCourseSearchRender();
       state.currentChapterId = chapterId;
       state.tab = "cours";
-      render();
+      syncCurrentChapterSelection();
+      saveState(state);
+      renderCourseSections();
     }
   });
 
-  render();
+  renderInitialState();
 }
 
 if (globalScope.COURSE_DATA) {

@@ -1,5 +1,14 @@
 (function initialiseCourseAppCourseView(globalScope) {
 const { escapeHtml } = globalScope.CourseAppStrings || {};
+const COURSE_TAB_GROUP = "course";
+
+function courseTabId(tabId) {
+  return `course-tab-${tabId}`;
+}
+
+function courseTabPanelId(tabId) {
+  return `course-tabpanel-${tabId}`;
+}
 
 function levelChipClass(level) {
   if (level === "Fondations") {
@@ -288,20 +297,32 @@ function renderExercisesTab(chapter, assistantAvailable) {
   `;
 }
 
-function renderActiveTab(chapter, activeTab, assistantAvailable) {
+function renderActiveTabPanel(chapter, activeTab, assistantAvailable) {
+  let content = `<div class="tab-panel">${chapter.body}</div>`;
+
   if (activeTab === "checklist") {
-    return renderChecklistTab(chapter);
+    content = renderChecklistTab(chapter);
   }
 
   if (activeTab === "quiz") {
-    return renderQuizTab(chapter);
+    content = renderQuizTab(chapter);
   }
 
   if (activeTab === "exercises") {
-    return renderExercisesTab(chapter, assistantAvailable);
+    content = renderExercisesTab(chapter, assistantAvailable);
   }
 
-  return `<div class="tab-panel">${chapter.body}</div>`;
+  return `
+    <section
+      id="${courseTabPanelId(activeTab)}"
+      class="course-tabpanel"
+      role="tabpanel"
+      aria-labelledby="${courseTabId(activeTab)}"
+      tabindex="0"
+    >
+      ${content}
+    </section>
+  `;
 }
 
 function renderChapterPanel(container, {
@@ -391,15 +412,21 @@ function renderChapterPanel(container, {
         .join("")}
     </div>
 
-    <div class="course-tabbar">
+    <div class="course-tabbar" role="tablist" aria-label="Sections du chapitre">
       ${Object.entries(tabLabels)
         .map(
           ([tabId, label]) => `
             <button
               class="tab-button ${tab === tabId ? "is-active" : ""}"
               type="button"
+              id="${courseTabId(tabId)}"
               data-tab-id="${tabId}"
-              aria-pressed="${tab === tabId ? "true" : "false"}"
+              data-tab-group="${COURSE_TAB_GROUP}"
+              data-tab-value="${tabId}"
+              role="tab"
+              aria-selected="${tab === tabId ? "true" : "false"}"
+              aria-controls="${courseTabPanelId(tabId)}"
+              tabindex="${tab === tabId ? "0" : "-1"}"
             >
               ${label}
             </button>
@@ -408,7 +435,7 @@ function renderChapterPanel(container, {
         .join("")}
     </div>
 
-    ${renderActiveTab(chapter, tab, assistantAvailable)}
+    ${renderActiveTabPanel(chapter, tab, assistantAvailable)}
   `;
 }
 

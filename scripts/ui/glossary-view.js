@@ -1,5 +1,14 @@
 (function initialiseCourseAppGlossaryView(globalScope) {
 const { escapeAttribute, escapeHtml, normalise } = globalScope.CourseAppStrings || {};
+const GLOSSARY_TAB_GROUP = "glossary-mode";
+
+function glossaryModeTabId(mode) {
+  return `glossary-mode-tab-${mode}`;
+}
+
+function glossaryModePanelId(mode) {
+  return `glossary-mode-panel-${mode}`;
+}
 
 const QUIZ_CATEGORIES = [
   { id: "build", label: "Compilation & linkage" },
@@ -499,6 +508,7 @@ function syncGlossaryState(state, visibleEntries) {
 function renderGlossary(container, { entries, state }) {
   const knownSet = new Set(state.glossaryKnownIds);
   const knownCount = entries.filter((entry) => knownSet.has(entry.id)).length;
+  const glossarySearchId = "glossarySearch";
 
   let content = "";
 
@@ -520,6 +530,18 @@ function renderGlossary(container, { entries, state }) {
     content = renderListMode(entries, knownSet);
   }
 
+  content = `
+    <section
+      id="${glossaryModePanelId(state.glossaryMode)}"
+      class="glossary-mode-panel"
+      role="tabpanel"
+      aria-labelledby="${glossaryModeTabId(state.glossaryMode)}"
+      tabindex="0"
+    >
+      ${content}
+    </section>
+  `;
+
   container.innerHTML = `
     <div class="glossary-head">
       <div>
@@ -536,8 +558,11 @@ function renderGlossary(container, { entries, state }) {
     </div>
 
     <div class="glossary-topbar">
+      <label class="field-label field-label--inline" for="${glossarySearchId}">
+        Recherche dans le glossaire
+      </label>
       <input
-        id="glossarySearch"
+        id="${glossarySearchId}"
         class="glossary-search"
         type="search"
         placeholder="Rechercher un terme du glossaire"
@@ -558,9 +583,15 @@ function renderGlossary(container, { entries, state }) {
         <button
           class="tab-button ${state.glossaryMode === mode ? "is-active" : ""}"
           type="button"
+          id="${glossaryModeTabId(mode)}"
           data-action="set-glossary-mode"
           data-glossary-mode="${mode}"
-          aria-pressed="${state.glossaryMode === mode ? "true" : "false"}"
+          data-tab-group="${GLOSSARY_TAB_GROUP}"
+          data-tab-value="${mode}"
+          role="tab"
+          aria-selected="${state.glossaryMode === mode ? "true" : "false"}"
+          aria-controls="${glossaryModePanelId(mode)}"
+          tabindex="${state.glossaryMode === mode ? "0" : "-1"}"
         >
           ${label}
         </button>

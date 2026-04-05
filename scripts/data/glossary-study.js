@@ -20,11 +20,11 @@ auto nbPairs = std::count_if(valeurs.begin(), valeurs.end(), [](int v) {
       `, "Compter avec la STL")
     },
     "Allocation dynamique": {
-      example: "On réserve ici une zone mémoire dont la durée de vie dépasse le scope courant.",
+      example: "On réserve ici une zone mémoire sur le tas, mais le chapitre insiste justement sur le fait qu'un std::vector exprimerait souvent mieux l'intention.",
       codeExample: snippet("cpp", `
 int* notes = new int[3]{12, 15, 18};
 delete[] notes;
-      `, "Allocation manuelle")
+      `, "Allocation manuelle explicite")
     },
     "Bibliothèque dynamique": {
       example: "Le programme est lié à une bibliothèque partagée qui doit être présente au lancement.",
@@ -71,16 +71,17 @@ public:
       `, "Interface abstraite")
     },
     "Constructeur": {
-      example: "Le constructeur initialise l'objet au moment même où il est créé.",
+      example: "Le constructeur doit produire un objet immédiatement valide, pas un objet 'à finir plus tard'.",
       codeExample: snippet("cpp", `
-class Point {
+class Session {
 public:
-    Point(int x, int y) : x_{x}, y_{y} {}
+    Session(std::string utilisateur, int id)
+        : utilisateur_{std::move(utilisateur)}, id_{id} {}
 private:
-    int x_;
-    int y_;
+    std::string utilisateur_;
+    const int id_;
 };
-      `, "Initialisation d'objet")
+      `, "Construction d'un objet déjà valide")
     },
     "Copy constructor": {
       example: "Le constructeur de copie fabrique un nouvel objet à partir d'un objet existant du même type.",
@@ -94,15 +95,33 @@ private:
       `, "Copier un objet")
     },
     "Destructeur": {
-      example: "Le destructeur nettoie les ressources quand l'objet sort de vie.",
+      example: "Le destructeur intervient automatiquement en fin de vie pour nettoyer ce que l'objet possède réellement.",
       codeExample: snippet("cpp", `
-class Journal {
+class Connexion {
 public:
-    ~Journal() {
-        std::cout << "Fermeture du journal\\n";
+    ~Connexion() {
+        fermer();  // nettoyage de la ressource possédée
     }
 };
-      `, "Nettoyage automatique")
+      `, "Nettoyage en fin de vie")
+    },
+    Encapsulation: {
+      example: "L'objet protège ici son état interne et n'autorise la modification qu'à travers une opération métier.",
+      codeExample: snippet("cpp", `
+class Compte {
+public:
+    void crediter(double montant) {
+        if (montant > 0.0) {
+            solde_ += montant;
+        }
+    }
+
+    double solde() const { return solde_; }
+
+private:
+    double solde_{0.0};
+};
+      `, "État privé, API publique")
     },
     "Espace de noms (namespace)": {
       example: "Le namespace évite les collisions entre noms identiques venant de bibliothèques différentes.",
@@ -243,19 +262,29 @@ void lancer() {
       `, "Relancer plus haut")
     },
     RAII: {
-      example: "La ressource est acquise dans l'objet puis libérée automatiquement à la sortie du scope.",
+      example: "La ressource est confiée à un objet local ; quand le scope se termine, le nettoyage se fait sans appel manuel supplémentaire.",
       codeExample: snippet("cpp", `
 std::ifstream input{"notes.txt"};
 // Le fichier sera fermé automatiquement en sortie de portée.
       `, "Resource Acquisition Is Initialization")
     },
     "Référence (&)": {
-      example: "La référence est ici un alias lisible vers une variable existante.",
+      example: "La référence exprime ici un lien obligatoire avec une variable existante, sans passer par un pointeur optionnel.",
       codeExample: snippet("cpp", `
+void incrementer(int& note) {
+    ++note;
+}
+
 int note = 12;
-int& alias = note;
-alias = 15;
-      `, "Alias de variable")
+incrementer(note); // note vaut maintenant 13
+      `, "Modifier via une référence")
+    },
+    Ownership: {
+      example: "Ici, le type choisi répond explicitement à la question 'qui est responsable de détruire la ressource ?'.",
+      codeExample: snippet("cpp", `
+auto rapport = std::make_unique<std::string>("valide");
+// rapport est l'unique propriétaire de la ressource
+      `, "Possession explicite")
     },
     Slicing: {
       example: "La copie par valeur dans le type de base perd la partie dérivée et donc son comportement dynamique.",
@@ -318,7 +347,7 @@ auto it = std::find_if(v.begin(), v.end(), [seuil](int x) {
       `, "Lambda avec capture")
     },
     "unique_ptr": {
-      example: "Un unique_ptr garantit qu'un seul propriétaire gère la ressource ; la transférer efface le source.",
+      example: "Un unique_ptr dit clairement qu'il n'y a qu'un seul propriétaire à la fois ; le transfert rend cette décision visible.",
       codeExample: snippet("cpp", `
 auto p1 = std::make_unique<std::string>("hello");
 // auto p2 = p1;            // ❌ copie interdite
@@ -327,7 +356,7 @@ p2.reset();                 // libère la ressource
       `, "unique_ptr : création et transfert")
     },
     "shared_ptr": {
-      example: "Plusieurs parties du code partagent la même ressource ; elle ne sera libérée qu'à la mort du dernier propriétaire.",
+      example: "Plusieurs objets copropriètent ici la même ressource ; elle ne sera détruite qu'au départ du dernier propriétaire.",
       codeExample: snippet("cpp", `
 auto p1 = std::make_shared<int>(42);
 auto p2 = p1;   // compteur passe à 2
@@ -337,7 +366,7 @@ p2.reset();     // compteur redescend à 1
       `, "shared_ptr et compteur de références")
     },
     "weak_ptr": {
-      example: "Un nœud observe son parent sans en prolonger la durée de vie, évitant ainsi un cycle de shared_ptr.",
+      example: "Ici, on observe une ressource partagée sans la copropriéter, ce qui évite de la garder en vie artificiellement.",
       codeExample: snippet("cpp", `
 auto propriétaire = std::make_shared<int>(100);
 std::weak_ptr<int> obs = propriétaire;
@@ -350,7 +379,7 @@ std::cout << obs.expired() << '\\n'; // 1 (true)
       `, "weak_ptr : observer sans posséder")
     },
     "nullptr": {
-      example: "Initialiser un pointeur à nullptr rend sa nullité explicite et évite les ambiguïtés de surcharge avec NULL.",
+      example: "nullptr indique clairement qu'un pointeur ne vise rien pour l'instant, sans ambiguïté de type.",
       codeExample: snippet("cpp", `
 int* p = nullptr;        // pointeur nul explicitement typé
 
@@ -473,7 +502,7 @@ TEST_CASE("Fraction : dénominateur nul interdit") {
       `, "Tests Catch2")
     },
     "Dangling pointer": {
-      example: "Le pointeur désigne une zone mémoire libérée ou une variable sortie de portée.",
+      example: "Le pointeur garde ici une adresse, mais la variable visée a déjà disparu : l'adresse existe encore, la cible non.",
       codeExample: snippet("cpp", `
 int* p = nullptr;
 {
