@@ -14,13 +14,14 @@ const {
   callout,
   code,
   table,
+  withChapterTheme,
   videoLesson,
   playlistVideo
 } = registry.helpers;
 
 registry.registerChapterBundle({
   order: 10,
-  chapter:   {
+  chapter: withChapterTheme("heritage-polymorphisme", () => ({
     id: "heritage-polymorphisme",
     shortTitle: "Héritage et polymorphisme",
     title: "Héritage, polymorphisme et interfaces abstraites",
@@ -28,11 +29,11 @@ registry.registerChapterBundle({
     duration: "60 min",
     track: "SE4",
     summary:
-      "Le polymorphisme n'est pas seulement un mécanisme de dispatch ; c'est une façon de concevoir des contrats extensibles. Ce chapitre montre aussi où se cachent les pièges classiques.",
+      "L'héritage sert quand un type est vraiment une version spécialisée d'un autre. Le polymorphisme permet ensuite d'appeler le bon comportement via un pointeur ou une référence vers la base. Ce chapitre montre aussi les pièges qui cassent vite une hiérarchie.",
     goals: [
-      "utiliser l'héritage pour modéliser une relation est-un",
-      "comprendre le dispatch dynamique via <code>virtual</code> et <code>override</code>",
-      "choisir entre composition, classe abstraite et hiérarchie réelle"
+      "utiliser l'héritage seulement quand la relation <em>est-un</em> tient vraiment",
+      "comprendre quand <code>virtual</code> et <code>override</code> font choisir la bonne méthode à l'exécution",
+      "choisir entre composition, classe abstraite et vraie hiérarchie sans sur-complexifier le design"
     ],
     highlights: ["virtual", "override", "abstract class", "protected"],
     body: [
@@ -320,7 +321,7 @@ void afficher(const Shape& shape) {
       }
     ],
     keywords: ["heritage", "polymorphisme", "virtual", "override", "slicing", "abstract class", "protected", "destructeur virtuel", "heritage multiple", "composition"]
-  },
+  })),
   deepDives: [
     {
       focus: "L'héritage n'est justifié que s'il porte une vraie relation de substitution. Le critère le plus simple reste linguistique et métier : la dérivée doit être une sorte crédible de la base, pas seulement une classe 'qui lui ressemble'.",

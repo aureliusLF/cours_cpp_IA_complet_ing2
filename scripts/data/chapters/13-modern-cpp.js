@@ -14,13 +14,14 @@ const {
   callout,
   code,
   table,
+  withChapterTheme,
   videoLesson,
   playlistVideo
 } = registry.helpers;
 
 registry.registerChapterBundle({
   order: 13,
-  chapter:   {
+  chapter: withChapterTheme("modern-cpp", () => ({
     id: "modern-cpp",
     shortTitle: "Modern C++",
     title: "Réflexes de C++ moderne : auto, range-for, optional et plus",
@@ -28,11 +29,11 @@ registry.registerChapterBundle({
     duration: "40 min",
     track: "Extension",
     summary:
-      "Le C++ moderne n'est pas juste une liste de nouveautés. C'est une manière de réduire la friction, mieux exprimer l'intention et s'appuyer davantage sur la bibliothèque standard.",
+      "Le C++ moderne n'est pas une collection de mots-clés à la mode. C'est surtout une manière d'écrire moins de bruit, d'exprimer l'intention plus vite et de s'appuyer davantage sur la bibliothèque standard.",
     goals: [
-      "utiliser <code>auto</code> avec discernement",
-      "connaître quelques outils modernes très rentables",
-      "éviter le modernisme décoratif sans gain de clarté"
+      "utiliser <code>auto</code> quand il aide vraiment la lecture, pas quand il cache l'information utile",
+      "connaître quelques outils modernes très rentables pour écrire moins de code répétitif",
+      "éviter le modernisme décoratif quand il n'apporte ni clarté ni sécurité"
     ],
     highlights: ["auto", "optional", "structured bindings"],
     body: [
@@ -150,7 +151,7 @@ for (const auto& [nom, note] : notesParEtudiant) {
       }
     ],
     keywords: ["auto", "optional", "structured bindings", "modern cpp", "string_view", "nodiscard"]
-  },
+  })),
   deepDives: [
     {
       focus: "auto est un excellent outil quand il réduit le bruit sans cacher le sens. Il ne doit pas transformer le code en devinette : on l'utilise pour mieux lire, pas pour écrire moins au hasard.",

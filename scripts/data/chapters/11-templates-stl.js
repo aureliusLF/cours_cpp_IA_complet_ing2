@@ -14,13 +14,14 @@ const {
   callout,
   code,
   table,
+  withChapterTheme,
   videoLesson,
   playlistVideo
 } = registry.helpers;
 
 registry.registerChapterBundle({
   order: 11,
-  chapter:   {
+  chapter: withChapterTheme("templates-stl", () => ({
     id: "templates-stl",
     shortTitle: "Templates et STL",
     title: "Templates, conteneurs STL, itérateurs et algorithmes",
@@ -28,11 +29,11 @@ registry.registerChapterBundle({
     duration: "75 min",
     track: "SE7",
     summary:
-      "Les templates changent l'échelle du code C++ : on écrit des abstractions génériques sans sacrifier la performance. La STL rend ensuite ces abstractions immédiatement utiles.",
+      "Les templates permettent d'écrire une seule fois un outil qui marche pour plusieurs types. La STL apporte ensuite des conteneurs et des algorithmes prêts à l'emploi pour éviter de réécrire les mêmes boucles.",
     goals: [
-      "comprendre l'idée d'instanciation de template et son impact sur l'organisation du code",
-      "choisir un conteneur STL adapté au besoin",
-      "combiner algorithmes, itérateurs, foncteurs et lambdas"
+      "comprendre comment un template devient un vrai code concret pour un type donné",
+      "choisir un conteneur STL adapté au besoin au lieu de recréer sa propre structure à la main",
+      "combiner algorithmes, itérateurs, foncteurs et lambdas dans des exemples lisibles"
     ],
     highlights: ["template", "vector", "iterator", "algorithm"],
     body: [
@@ -358,7 +359,7 @@ std::sort(dest.begin(), dest.end());
       }
     ],
     keywords: ["template", "stl", "vector", "map", "unordered_map", "algorithm", "lambda", "iterateur", "foncteur", "predicat", "stack", "queue", "copy", "transform", "lifo", "fifo"]
-  },
+  })),
   deepDives: [
     {
       focus: "Un template n'est pas du code directement exécutable mais un modèle que le compilateur instancie pour des types concrets. Comprendre cette idée explique à la fois la puissance du mécanisme et l'obligation fréquente de placer les définitions dans les headers.",

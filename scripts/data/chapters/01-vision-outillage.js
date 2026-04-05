@@ -14,13 +14,14 @@ const {
   callout,
   code,
   table,
+  withChapterTheme,
   videoLesson,
   playlistVideo
 } = registry.helpers;
 
 registry.registerChapterBundle({
   order: 1,
-  chapter:   {
+  chapter: withChapterTheme("vision-outillage", () => ({
     id: "vision-outillage",
     shortTitle: "Vision et outillage",
     title: "Vision d'ensemble, compilation et environnement de travail",
@@ -134,6 +135,7 @@ target_compile_options(app PRIVATE -Wall -Wextra -pedantic)
       videoLesson(
         "Si tu veux une vue d'ensemble plus orale avant d'entrer dans les détails du cours écrit, cette sélection de la playlist colle bien à ce chapitre d'ouverture.",
         [
+          playlistVideo("broCodeIntro", "bonne vue d'ensemble si tu veux d'abord entendre tout le parcours C++ en version débutant"),
           playlistVideo("howCppWorks", "bonne porte d'entrée pour visualiser le rôle du compilateur, du linker et de la structure globale d'un programme"),
           playlistVideo("headerFiles", "utile pour faire le lien entre fichiers d'interface, unités de traduction et organisation multi-fichiers")
         ]
@@ -200,7 +202,7 @@ target_compile_options(app PRIVATE -Wall -Wextra -pedantic)
       }
     ],
     keywords: ["compilation", "linkage", "cmake", "g++", "header", "source", "projet", "bibliotheque statique", "bibliotheque dynamique", "shared library", "static library"]
-  },
+  })),
   deepDives: [
     {
       focus: "Cette leçon pose la bonne posture pour tout le semestre : en C++, on ne sépare jamais complètement le code, son coût d'exécution et l'organisation du projet. Comprendre le langage, c'est aussi comprendre les contraintes de compilation, de lisibilité et de maintenance.",

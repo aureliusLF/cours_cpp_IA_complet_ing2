@@ -14,13 +14,14 @@ const {
   callout,
   code,
   table,
+  withChapterTheme,
   videoLesson,
   playlistVideo
 } = registry.helpers;
 
 registry.registerChapterBundle({
   order: 12,
-  chapter:   {
+  chapter: withChapterTheme("exceptions-io", () => ({
     id: "exceptions-io",
     shortTitle: "Exceptions et I/O",
     title: "Exceptions, assertions et gestion des entrées/sorties",
@@ -28,11 +29,11 @@ registry.registerChapterBundle({
     duration: "75 min",
     track: "SE5/SE6",
     summary:
-      "Un programme solide n'ignore ni l'échec ni la donnée imparfaite. Le C++ fournit des flux, des exceptions et des assertions ; encore faut-il savoir les combiner intelligemment.",
+      "Un programme solide doit savoir lire des données imparfaites et réagir proprement quand quelque chose échoue. Le C++ fournit des flux, des exceptions et des assertions, mais il faut encore savoir quand utiliser chaque outil.",
     goals: [
-      "distinguer erreur de programmation, cas métier et erreur système",
-      "utiliser <code>try</code>/<code>catch</code> avec modération et propagation claire",
-      "lire et écrire des fichiers texte de manière robuste"
+      "distinguer une erreur de programmation, un cas métier attendu et une vraie erreur système",
+      "utiliser <code>try</code>/<code>catch</code> sans masquer le chemin normal ni brouiller la propagation",
+      "lire et écrire des fichiers texte de manière robuste et vérifiable"
     ],
     highlights: ["try/catch", "ifstream", "getline", "std::exception"],
     body: [
@@ -407,7 +408,7 @@ std::cout << std::fixed << std::setprecision(2) << pi << "\\n"; // 3.14
       }
     ],
     keywords: ["exception", "assert", "ifstream", "ofstream", "runtime_error", "parsing", "getline", "cerr", "seekg", "tellg", "noexcept", "std::exception", "argc", "argv", "iomanip", "setw", "setfill", "setprecision"]
-  },
+  })),
   deepDives: [
     {
       focus: "Les flux donnent une grammaire commune à l'entrée-sortie en C++. Comprendre cout, cin, cerr et la hiérarchie des streams aide à voir que la console et les fichiers ne sont pas deux mondes séparés, mais deux usages d'une même abstraction.",

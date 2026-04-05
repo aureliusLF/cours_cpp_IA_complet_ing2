@@ -14,13 +14,14 @@ const {
   callout,
   code,
   table,
+  withChapterTheme,
   videoLesson,
   playlistVideo
 } = registry.helpers;
 
 registry.registerChapterBundle({
   order: 3,
-  chapter:   {
+  chapter: withChapterTheme("pointeurs-memoire", () => ({
     id: "pointeurs-memoire",
     shortTitle: "Pointeurs et mémoire",
     title: "Pointeurs, adresses mémoire et allocation dynamique",
@@ -169,9 +170,9 @@ void afficherNote(const int* note) {
         "Ces vidéos sont les plus directement alignées avec la partie mémoire bas niveau de ce chapitre.",
         [
           playlistVideo("pointers", "très bonne explication du modèle adresse -> pointeur -> déréférencement"),
+          playlistVideo("broCodePointers", "explication très simple si tu veux revoir le geste mental valeur / adresse / pointeur"),
           playlistVideo("revaninioPointers", "alternative francophone très orientée intuition mémoire"),
           playlistVideo("newKeyword", "utile pour la transition vers l'allocation dynamique et ses responsabilités"),
-          playlistVideo("arrowOperator", "parfait pour relier pointeurs d'objet et accès membre"),
           playlistVideo("objectLifetime", "renforce l'intuition sur la durée de vie et les pointeurs suspendus")
         ]
       )
@@ -269,7 +270,7 @@ void afficherNote(const int* note) {
       }
     ],
     keywords: ["pointeur", "adresse", "dereferencement", "nullptr", "new", "delete", "delete[]", "arithmetique pointeur", "tableau", "const pointeur", "fleche", "dangling pointer", "fuite memoire"]
-  },
+  })),
   deepDives: [
     {
       focus: "Un pointeur n'est pas un concept mystérieux réservé aux experts : c'est une variable ordinaire dont la valeur est une adresse. Tout le reste — arithmétique, tableaux, allocation dynamique — découle de cette idée simple. Bien la comprendre déverrouille une grande partie de la mécanique interne du C++.",

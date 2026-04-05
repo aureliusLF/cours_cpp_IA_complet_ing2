@@ -14,13 +14,14 @@ const {
   callout,
   code,
   table,
+  withChapterTheme,
   videoLesson,
   playlistVideo
 } = registry.helpers;
 
 registry.registerChapterBundle({
   order: 6,
-  chapter:   {
+  chapter: withChapterTheme("constructeurs-raii", () => ({
     id: "constructeurs-raii",
     shortTitle: "Cycle de vie et RAII",
     title: "Constructeurs, destructeurs et pensée RAII",
@@ -148,10 +149,10 @@ private:
         "Pour fixer RAII et le cycle de vie d'un objet, ces vidéos sont les plus pertinentes de la playlist.",
         [
           playlistVideo("constructors", "repose bien ce qu'un constructeur garantit vraiment"),
+          playlistVideo("broCodeConstructors", "bonne variante plus pas à pas si tu veux revoir la création d'objet tranquillement"),
           playlistVideo("revaninioConstructors", "alternative francophone centrée sur l'instanciation pas à pas"),
           playlistVideo("destructors", "utile pour comprendre le nettoyage et la fin de vie"),
-          playlistVideo("initializerLists", "complète directement la partie liste d'initialisation"),
-          playlistVideo("objectLifetime", "renforce l'intuition temporelle derrière RAII")
+          playlistVideo("initializerLists", "complète directement la partie liste d'initialisation")
         ]
       )
     ].join(""),
@@ -230,7 +231,7 @@ private:
       }
     ],
     keywords: ["constructeur", "destructeur", "raii", "lifetime", "init list", "resource", "scope", "ownership"]
-  },
+  })),
   deepDives: [
     {
       focus: "Le cycle de vie n'est pas un détail technique ajouté après coup : il fait partie du design de la classe. Si la création et la destruction ne sont pas pensées correctement, les invariants deviennent fragiles.",

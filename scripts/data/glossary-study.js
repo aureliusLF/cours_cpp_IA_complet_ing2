@@ -907,12 +907,13 @@ std::cout << valeur << '\\n';
       const codeExample = override?.codeExample || fallback.codeExample;
 
       return Object.assign({}, entry, {
-        id: slugify(entry.term),
+        id: entry.id || slugify(entry.term),
         example,
         codeExample,
         searchText: normalise([
           entry.term,
           entry.text,
+          Array.isArray(entry.aliases) ? entry.aliases.join(" ") : "",
           entry.tags.join(" "),
           example,
           codeExample?.source || ""

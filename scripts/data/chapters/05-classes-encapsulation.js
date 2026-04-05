@@ -14,13 +14,14 @@ const {
   callout,
   code,
   table,
+  withChapterTheme,
   videoLesson,
   playlistVideo
 } = registry.helpers;
 
 registry.registerChapterBundle({
   order: 5,
-  chapter:   {
+  chapter: withChapterTheme("classes-encapsulation", () => ({
     id: "classes-encapsulation",
     shortTitle: "Classes et encapsulation",
     title: "Classes, encapsulation et conception d'interface",
@@ -161,8 +162,8 @@ private:
         "Cette courte sélection aide bien à passer de l'idée de structure de données à celle de vraie classe métier.",
         [
           playlistVideo("classes", "pose les bases de la syntaxe et de la frontière publique / privée"),
+          playlistVideo("broCodeOop", "bonne introduction simple aux objets, aux classes et aux premières méthodes"),
           playlistVideo("revaninioClasses", "version francophone si tu préfères une introduction POO plus progressive"),
-          playlistVideo("classesVsStructs", "utile pour clarifier ce que l'encapsulation change vraiment"),
           playlistVideo("writeClass", "fait le lien entre invariant, méthodes et interface")
         ]
       )
@@ -242,7 +243,7 @@ private:
       }
     ],
     keywords: ["classe", "encapsulation", "const", "this", "invariant", "interface", "private", "api", "design"]
-  },
+  })),
   deepDives: [
     {
       focus: "Une classe utile protège un état valide et propose des opérations qui ont du sens. Si elle ne fait que regrouper des champs publics, elle ne joue pas encore vraiment son rôle d'abstraction.",

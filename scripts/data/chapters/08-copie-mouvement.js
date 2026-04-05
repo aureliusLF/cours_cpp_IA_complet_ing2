@@ -14,13 +14,14 @@ const {
   callout,
   code,
   table,
+  withChapterTheme,
   videoLesson,
   playlistVideo
 } = registry.helpers;
 
 registry.registerChapterBundle({
   order: 8,
-  chapter:   {
+  chapter: withChapterTheme("copie-mouvement", () => ({
     id: "copie-mouvement",
     shortTitle: "Copie et mouvement",
     title: "Copie, affectation, mouvement et règle de 0/3/5",
@@ -28,11 +29,11 @@ registry.registerChapterBundle({
     duration: "50 min",
     track: "SE3",
     summary:
-      "Dès qu'une classe possède une ressource, la copie et l'affectation deviennent des sujets de conception. Le C++ moderne ajoute le mouvement pour transférer efficacement des ressources temporaires.",
+      "Quand une classe garde une ressource, copier l'objet n'est plus un détail. Il faut savoir si l'on duplique la ressource, si l'on la transfère, ou si l'on laisse le compilateur gérer. C'est là que copie, affectation et move deviennent concrets.",
     goals: [
-      "distinguer construction par copie et affectation",
-      "comprendre pourquoi la copie superficielle casse les classes propriétaires",
-      "savoir quand viser la règle de 0 plutôt que la règle de 5"
+      "distinguer clairement construction par copie et affectation sur un objet déjà existant",
+      "repérer pourquoi une copie superficielle casse une classe qui possède vraiment une ressource",
+      "savoir quand il vaut mieux viser la règle de 0 plutôt que réécrire toutes les opérations spéciales"
     ],
     highlights: ["deep copy", "move", "rule of 0"],
     body: [
@@ -182,7 +183,7 @@ private:
       }
     ],
     keywords: ["copy", "move", "rule of 0", "rule of 5", "assignment", "deep copy"]
-  },
+  })),
   deepDives: [
     {
       focus: "La copie superficielle devient dangereuse dès qu'un objet gère une ressource exclusive. Deux objets qui pensent posséder la même ressource finissent presque toujours par produire des doubles libérations ou des alias inattendus.",

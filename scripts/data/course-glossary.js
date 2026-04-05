@@ -10,6 +10,7 @@ registry.setGlossary([
   {
     term: "Algorithme (STL)",
     text: "Fonction template capable de s'appliquer à une collection d'éléments en naviguant via des itérateurs.",
+    aliases: ["algorithmes STL", "algorithme STL"],
     tags: ["stl", "algorithmes"]
   },
   {
@@ -45,6 +46,7 @@ registry.setGlossary([
   {
     term: "Classe abstraite",
     text: "Classe contenant au moins une fonction virtuelle pure, ce qui empêche son instanciation.",
+    aliases: ["classes abstraites"],
     tags: ["poo", "polymorphisme"]
   },
   {
@@ -55,6 +57,7 @@ registry.setGlossary([
   {
     term: "Constructeur",
     text: "Fonction membre spéciale appelée à la création de l'objet. Son rôle n'est pas seulement de remplir des champs, mais de produire un objet immédiatement valide.",
+    aliases: ["constructeurs"],
     tags: ["poo", "cycle de vie"]
   },
   {
@@ -75,6 +78,7 @@ registry.setGlossary([
   {
     term: "Destructeur",
     text: "Fonction membre spéciale appelée automatiquement en fin de vie d'un objet pour libérer les ressources qu'il possède réellement.",
+    aliases: ["destructeurs"],
     tags: ["poo", "cycle de vie", "raii"]
   },
   {
@@ -85,6 +89,7 @@ registry.setGlossary([
   {
     term: "Espace de noms (namespace)",
     text: "Mécanisme de regroupement logique qui évite les collisions de noms et signale qu'un type ou une fonction appartient à un domaine précis.",
+    aliases: ["namespace", "espaces de noms"],
     tags: ["compilation", "organisation"]
   },
   {
@@ -105,11 +110,13 @@ registry.setGlossary([
   {
     term: "Fonction virtuelle",
     text: "Fonction permettant l'héritage d'interface et d'implémentation par défaut, avec choix dynamique de la méthode selon le type de l'objet.",
+    aliases: ["fonctions virtuelles"],
     tags: ["poo", "polymorphisme"]
   },
   {
     term: "Fonction virtuelle pure",
     text: "Méthode déclarée avec = 0 qui impose aux classes dérivées concrètes de fournir son implémentation.",
+    aliases: ["fonctions virtuelles pures"],
     tags: ["poo", "polymorphisme"]
   },
   {
@@ -125,6 +132,7 @@ registry.setGlossary([
   {
     term: "Héritage",
     text: "Déclaration d'une classe dérivée à partir d'une classe de base pour hériter de ses membres, réutiliser le code et ajouter des fonctionnalités.",
+    aliases: ["heritage public"],
     tags: ["poo", "polymorphisme"]
   },
   {
@@ -155,6 +163,7 @@ registry.setGlossary([
   {
     term: "Iterator",
     text: "Abstraction de parcours utilisée par les conteneurs et les algorithmes de la STL.",
+    aliases: ["itérateur", "itérateurs", "iterateur", "iterateurs"],
     tags: ["stl", "iterateurs"]
   },
   {
@@ -170,16 +179,19 @@ registry.setGlossary([
   {
     term: "Move semantics",
     text: "Mécanisme permettant de transférer une ressource au lieu de la recopier.",
+    aliases: ["move", "deplacement", "déplacement", "move semantics"],
     tags: ["performance", "ownership"]
   },
   {
     term: "Optional",
     text: "Type standard exprimant qu'une valeur peut être présente ou absente.",
+    aliases: ["optional", "std::optional"],
     tags: ["modern cpp", "std"]
   },
   {
     term: "Ownership",
     text: "Relation qui désigne qui est responsable de la durée de vie d'une ressource et donc de sa libération. C'est l'idée centrale derrière RAII, <code>unique_ptr</code> et <code>shared_ptr</code>.",
+    aliases: ["proprietaire", "propriétaire", "propriete", "propriété"],
     tags: ["memoire", "ressources"]
   },
   {
@@ -195,6 +207,7 @@ registry.setGlossary([
   {
     term: "Polymorphisme",
     text: "Capacité à manipuler des objets de types différents via une interface commune.",
+    aliases: ["polymorphisme dynamique"],
     tags: ["objet", "poo"]
   },
   {
@@ -210,6 +223,7 @@ registry.setGlossary([
   {
     term: "RAII",
     text: "Principe qui confie une ressource à un objet dès sa construction et la libère automatiquement à sa destruction. Cela évite d'éparpiller des <code>open()</code>, <code>close()</code>, <code>new</code> et <code>delete</code> dans le code appelant.",
+    aliases: ["resource acquisition is initialization"],
     tags: ["lifetime", "resource", "raii"]
   },
   {
@@ -220,6 +234,7 @@ registry.setGlossary([
   {
     term: "Référence (&)",
     text: "Alias sur un objet existant. Une référence exprime un lien obligatoire avec une cible valide, ce qui la rend souvent plus lisible qu'un pointeur pour les paramètres non optionnels.",
+    aliases: ["référence", "références", "reference", "references", "reference (&)"],
     tags: ["syntaxe", "parametres"]
   },
   {
@@ -235,6 +250,7 @@ registry.setGlossary([
   {
     term: "STL",
     text: "Bibliothèque standard regroupant des algorithmes et des structures de données fondamentales testées et optimisées.",
+    aliases: ["standard template library"],
     tags: ["stl", "standard library"]
   },
   {
@@ -250,6 +266,7 @@ registry.setGlossary([
   {
     term: "Template",
     text: "Mécanisme de programmation générique permettant à une fonction ou une classe d'utiliser différents types tout en conservant un typage strict.",
+    aliases: ["templates"],
     tags: ["template", "genericite"]
   },
   {
@@ -275,16 +292,19 @@ registry.setGlossary([
   {
     term: "unique_ptr",
     text: "Smart pointer à possession exclusive. Il dit clairement : 'un seul propriétaire gère cette ressource'. Il n'est pas copiable, mais sa possession peut être transférée avec <code>std::move</code>.",
+    aliases: ["std::unique_ptr"],
     tags: ["memoire", "ownership", "modern cpp"]
   },
   {
     term: "shared_ptr",
     text: "Smart pointer à possession partagée. Plusieurs objets peuvent copropriéter la même ressource, détruite quand le dernier propriétaire disparaît. À utiliser seulement quand cette copropriété est réelle et justifiée.",
+    aliases: ["std::shared_ptr"],
     tags: ["memoire", "ownership", "modern cpp"]
   },
   {
     term: "weak_ptr",
     text: "Observateur non propriétaire d'une ressource gérée par <code>shared_ptr</code>. Il ne prolonge pas la durée de vie de l'objet et sert notamment à casser les cycles de références.",
+    aliases: ["std::weak_ptr"],
     tags: ["memoire", "ownership", "modern cpp"]
   },
   {
@@ -295,6 +315,7 @@ registry.setGlossary([
   {
     term: "override",
     text: "Mot-clé placé après la signature d'une méthode dérivée pour demander au compilateur de vérifier qu'elle redéfinit bien une méthode virtuelle de la base.",
+    aliases: ["override()"],
     tags: ["poo", "heritage", "polymorphisme"]
   },
   {
@@ -375,6 +396,7 @@ registry.setGlossary([
   {
     term: "std::move",
     text: "Fonction utilitaire qui convertit une expression en rvalue, autorisant le transfert de ressources plutôt que leur copie. N'effectue aucun déplacement par elle-même.",
+    aliases: ["move", "deplacer", "déplacer"],
     tags: ["copie", "modern cpp", "performance"]
   },
   {

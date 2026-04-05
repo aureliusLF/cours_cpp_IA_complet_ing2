@@ -14,13 +14,14 @@ const {
   callout,
   code,
   table,
+  withChapterTheme,
   videoLesson,
   playlistVideo
 } = registry.helpers;
 
 registry.registerChapterBundle({
   order: 15,
-  chapter: {
+  chapter: withChapterTheme("tests-qualite", () => ({
     id: "tests-qualite",
     shortTitle: "Tests et qualité",
     title: "Tests unitaires, TDD et qualité du code C++",
@@ -28,11 +29,11 @@ registry.registerChapterBundle({
     duration: "45 min",
     track: "Extension",
     summary:
-      "Un code non testé est un code dont on ignore le comportement réel. Ce chapitre introduit les principes de vérification automatique, l'outillage pratique avec Catch2 et la discipline TDD pour écrire du C++ fiable.",
+      "Un code non testé est un code dont on ne connaît pas vraiment le comportement. Ce chapitre introduit la vérification automatique, l'outillage pratique avec Catch2 et la logique TDD pour écrire du C++ plus fiable.",
     goals: [
-      "distinguer tests unitaires, tests d'intégration et tests de système",
+      "distinguer tests unitaires, tests d'intégration et tests de système sans mélanger leurs rôles",
       "écrire des cas de test lisibles avec Catch2 et les macros <code>REQUIRE</code> / <code>CHECK</code>",
-      "comprendre et appliquer le cycle TDD rouge-vert-refactoring"
+      "comprendre et appliquer le cycle TDD rouge-vert-refactoring sur un petit exemple réel"
     ],
     highlights: ["REQUIRE", "Catch2", "TDD"],
     body: [
@@ -202,7 +203,7 @@ private:
       }
     ],
     keywords: ["tests", "catch2", "tdd", "assert", "REQUIRE", "unitaire", "integration", "regression", "qualite", "test case", "rouge vert"]
-  },
+  })),
   deepDives: [
     {
       focus: "Tester n'est pas une étape facultative pour 'être sûr' : c'est un outil de conception. Un test bien écrit force à clarifier ce que doit faire une fonction avant de l'implémenter, ce qui conduit souvent à une meilleure interface et à un code plus simple.",

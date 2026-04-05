@@ -14,13 +14,14 @@ const {
   callout,
   code,
   table,
+  withChapterTheme,
   videoLesson,
   playlistVideo
 } = registry.helpers;
 
 registry.registerChapterBundle({
   order: 9,
-  chapter:   {
+  chapter: withChapterTheme("surcharge-operateurs", () => ({
     id: "surcharge-operateurs",
     shortTitle: "Surcharge d'opérateurs",
     title: "Surcharge d'opérateurs avec une vraie sémantique",
@@ -28,11 +29,11 @@ registry.registerChapterBundle({
     duration: "50 min",
     track: "SE3",
     summary:
-      "Surcharger un opérateur n'est utile que si cela rend l'objet plus naturel à manipuler. Ce chapitre insiste sur la cohérence sémantique plutôt que sur la simple prouesse syntaxique.",
+      "On surcharge un opérateur seulement si cela rend l'objet plus simple à lire et à utiliser. Le but n'est pas de montrer une astuce de syntaxe, mais de respecter l'intuition du lecteur.",
     goals: [
-      "choisir entre opérateur membre et fonction libre",
-      "respecter les attentes naturelles des opérateurs",
-      "gérer correctement les flux et les comparaisons"
+      "choisir entre opérateur membre et fonction libre selon le contrat visé",
+      "respecter les attentes naturelles derrière +, ==, << et les autres opérateurs courants",
+      "gérer proprement les flux et les comparaisons sans comportement surprenant"
     ],
     highlights: ["friend", "operator<<", "cohérence"],
     body: [
@@ -210,7 +211,7 @@ public:
       }
     ],
     keywords: ["operator overloading", "friend", "ostream", "istream", "comparaison", "plus égale", "operator>>", "extraction"]
-  },
+  })),
   deepDives: [
     {
       focus: "Une surcharge d'opérateur n'est bonne que si elle reste naturelle pour le lecteur. L'objectif n'est pas d'être 'malin', mais de rendre l'objet plus facile à manipuler lorsqu'il ressemble vraiment à la notion mathématique ou métier visée.",

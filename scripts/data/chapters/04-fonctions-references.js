@@ -14,13 +14,14 @@ const {
   callout,
   code,
   table,
+  withChapterTheme,
   videoLesson,
   playlistVideo
 } = registry.helpers;
 
 registry.registerChapterBundle({
   order: 4,
-  chapter:   {
+  chapter: withChapterTheme("fonctions-references", () => ({
     id: "fonctions-references",
     shortTitle: "Fonctions et références",
     title: "Fonctions, surcharge, références et espaces de noms",
@@ -162,6 +163,7 @@ private:
         "Si tu veux entendre plusieurs fois la logique des signatures, de la référence et des fichiers d'interface, cette sélection complète bien la lecture du chapitre.",
         [
           playlistVideo("functions", "repose les bases du contrat d'appel et des paramètres"),
+          playlistVideo("broCodeFunctions", "bon complément pour revoir la structure d'une fonction et son appel"),
           playlistVideo("references", "vidéo très utile pour distinguer clairement référence, copie et adresse"),
           playlistVideo("namespaces", "prolonge naturellement la partie organisation d'API"),
           playlistVideo("headerFiles", "renforce la partie header propre et séparation interface / implémentation")
@@ -249,7 +251,7 @@ private:
       }
     ],
     keywords: ["fonctions", "surcharge", "reference", "const ref", "namespace", "header", "signature", "contrat", "api"]
-  },
+  })),
   deepDives: [
     {
       focus: "Une fonction propre commence par une sémantique d'appel claire. Avant d'écrire le corps, il faut savoir si l'argument est lu, modifié, consommé ou simplement observé.",

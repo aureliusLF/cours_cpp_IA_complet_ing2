@@ -14,13 +14,14 @@ const {
   callout,
   code,
   table,
+  withChapterTheme,
   videoLesson,
   playlistVideo
 } = registry.helpers;
 
 registry.registerChapterBundle({
   order: 7,
-  chapter:   {
+  chapter: withChapterTheme("memoire-smart-pointers", () => ({
     id: "memoire-smart-pointers",
     shortTitle: "Mémoire et ownership",
     title: "Mémoire dynamique, ownership et smart pointers",
@@ -246,7 +247,7 @@ auto destination = std::move(source); // transfert de possession
       }
     ],
     keywords: ["memory", "ownership", "vector", "unique_ptr", "shared_ptr", "weak_ptr", "heap", "make_unique", "make_shared", "reference counting", "cycle", "observer", "release", "reset"]
-  },
+  })),
   deepDives: [
     {
       focus: "La vraie question n'est pas 'pile ou tas ?' mais 'qui possède quoi, et combien de temps ?'. Le modèle mémoire devient bien plus simple dès qu'on raisonne en ownership plutôt qu'en adresses isolées.",

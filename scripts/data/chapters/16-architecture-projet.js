@@ -14,13 +14,14 @@ const {
   callout,
   code,
   table,
+  withChapterTheme,
   videoLesson,
   playlistVideo
 } = registry.helpers;
 
 registry.registerChapterBundle({
   order: 16,
-  chapter:   {
+  chapter: withChapterTheme("architecture-projet", () => ({
     id: "architecture-projet",
     shortTitle: "Architecture projet",
     title: "Méthodologie de projet C++ : architecture, debug et mini-projet final",
@@ -28,11 +29,11 @@ registry.registerChapterBundle({
     duration: "45 min",
     track: "Synthèse",
     summary:
-      "Ce dernier chapitre rassemble les briques techniques pour en faire une démarche d'ingénieur : structurer, tester, déboguer et découper un mini-projet réaliste.",
+      "Ce dernier chapitre rassemble les briques vues avant pour en faire une vraie démarche d'ingénieur: structurer, tester, déboguer et découper un mini-projet réaliste sans se perdre dans l'organisation.",
     goals: [
-      "organiser un projet C++ en modules cohérents",
-      "installer des réflexes de debug et de vérification",
-      "transformer le cours en feuille de route de mini-projet"
+      "organiser un projet C++ en modules cohérents et faciles à relire",
+      "installer des réflexes simples de debug et de vérification avant d'ajouter du code",
+      "transformer le cours en feuille de route concrète pour un mini-projet"
     ],
     highlights: ["sanitizers", "tests", "mini-projet"],
     body: [
@@ -153,7 +154,7 @@ g++ -std=c++20 -Wall -Wextra -pedantic \
       }
     ],
     keywords: ["architecture", "debug", "sanitizer", "tests", "mini project", "cmake"]
-  },
+  })),
   deepDives: [
     {
       focus: "Une architecture minimale crédible ne cherche pas à imiter un grand framework. Elle sert à rendre visibles les responsabilités, à limiter le couplage et à permettre des évolutions sans réécriture totale.",

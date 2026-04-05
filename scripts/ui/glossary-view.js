@@ -317,7 +317,12 @@ function renderListMode(entries, knownSet) {
       ${entries.map((entry) => {
         const isKnown = knownSet.has(entry.id);
         return `
-          <article class="glossary-card glossary-card--study ${isKnown ? "is-known" : ""}">
+          <article
+            id="glossary-entry-${escapeAttribute(entry.id)}"
+            class="glossary-card glossary-card--study ${isKnown ? "is-known" : ""}"
+            data-glossary-entry-id="${escapeAttribute(entry.id)}"
+            tabindex="-1"
+          >
             <div class="glossary-card__head">
               <h3>${entry.term}</h3>
               <span class="meta-chip ${isKnown ? "meta-chip--success" : "meta-chip--gold"}">

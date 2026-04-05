@@ -14,13 +14,14 @@ const {
   callout,
   code,
   table,
+  withChapterTheme,
   videoLesson,
   playlistVideo
 } = registry.helpers;
 
 registry.registerChapterBundle({
   order: 2,
-  chapter:   {
+  chapter: withChapterTheme("fondamentaux-syntaxe", () => ({
     id: "fondamentaux-syntaxe",
     shortTitle: "Syntaxe de base",
     title: "Fondamentaux du langage : syntaxe, types, entrées/sorties et contrôle",
@@ -180,12 +181,12 @@ std::cout << *adresseNote << '\n'; // 12 : même donnée, autre chemin d'accès
       videoLesson(
         "Pour revoir les bases sous un angle plus visuel, ces vidéos de la playlist reprennent presque exactement les briques de ce chapitre.",
         [
+          playlistVideo("broCodeVariables", "version très directe pour revoir variables, types et premières déclarations"),
           playlistVideo("variables", "reprend le rôle des types simples et de l'initialisation"),
           playlistVideo("revaninioVariables", "version francophone, plus lente et très accessible pour revoir les bases"),
-          playlistVideo("functions", "complète bien la lecture de <code>main</code> et la logique d'appel"),
-          playlistVideo("conditions", "très utile pour ancrer les tests et branches"),
-          playlistVideo("loops", "bon renfort sur <code>for</code> et <code>while</code>"),
-          playlistVideo("enums", "prolonge directement la partie <code>enum class</code>"),
+          playlistVideo("broCodeUserInput", "utile si tu veux revoir <code>cin</code>, <code>getline</code> et la saisie pas à pas"),
+          playlistVideo("broCodeIfStatements", "renforce la logique de <code>if / else</code> avec un exemple très lisible"),
+          playlistVideo("broCodeForLoops", "très bon complément pour relire la syntaxe complète du <code>for</code>"),
           playlistVideo("constKeyword", "utile pour consolider le sens de <code>const</code> très tôt")
         ]
       )
@@ -277,7 +278,7 @@ std::cout << *adresseNote << '\n'; // 12 : même donnée, autre chemin d'accès
       }
     ],
     keywords: ["syntaxe", "main", "cout", "cin", "types", "string", "initialisation", "const", "constexpr", "enum class", "conditions", "boucles", "if", "for", "while", "scope"]
-  },
+  })),
   deepDives: [
     {
       focus: "Cette première leçon doit être lue comme un vrai point de départ. Avant de penser objets, templates ou STL, il faut savoir reconnaître la forme d'un programme C++ : ce qui importe au compilateur, ce qui sera exécuté par la machine et ce qui relève simplement de l'organisation du fichier.",

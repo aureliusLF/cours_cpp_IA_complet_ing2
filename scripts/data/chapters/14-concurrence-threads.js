@@ -14,13 +14,14 @@ const {
   callout,
   code,
   table,
+  withChapterTheme,
   videoLesson,
   playlistVideo
 } = registry.helpers;
 
 registry.registerChapterBundle({
   order: 14,
-  chapter:   {
+  chapter: withChapterTheme("concurrence-threads", () => ({
     id: "concurrence-threads",
     shortTitle: "Concurrence",
     title: "Threads, synchronisation et programmation concurrente",
@@ -28,11 +29,11 @@ registry.registerChapterBundle({
     duration: "55 min",
     track: "Extension",
     summary:
-      "Le C++11 a intégré un modèle de threads portable dans la bibliothèque standard. Ce chapitre pose les bases de la concurrence : créer des threads, protéger des données partagées et exprimer des tâches asynchrones de façon sûre.",
+      "Le C++ standard permet de lancer plusieurs fils d'exécution sans dépendre d'une bibliothèque externe. Ce chapitre pose les bases: lancer un thread, protéger une donnée partagée et récupérer proprement le résultat d'une tâche asynchrone.",
     goals: [
-      "créer et synchroniser des <code>std::thread</code> avec <code>join()</code>",
+      "créer et synchroniser des <code>std::thread</code> sans oublier leur fin de vie",
       "protéger une ressource partagée avec <code>std::mutex</code> et <code>std::lock_guard</code>",
-      "déléguer une tâche asynchrone avec <code>std::async</code> et récupérer son résultat via <code>std::future</code>"
+      "déléguer une tâche asynchrone avec <code>std::async</code> puis récupérer son résultat via <code>std::future</code>"
     ],
     highlights: ["thread", "mutex", "async", "future"],
     body: [
@@ -244,7 +245,7 @@ int main() {
       }
     ],
     keywords: ["thread", "mutex", "lock_guard", "async", "future", "concurrence", "parallelisme", "synchronisation", "data race", "join", "detach"]
-  },
+  })),
   deepDives: [
     {
       focus: "La concurrence n'est pas juste une question de performance ; c'est d'abord une question de correction. Un programme concurrent mal synchronisé peut sembler fonctionner pendant des heures, puis se comporter de façon imprévisible sous charge. Comprendre le data race avant d'écrire du code concurrent est le vrai point de départ.",

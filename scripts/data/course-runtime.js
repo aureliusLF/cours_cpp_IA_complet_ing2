@@ -1,10 +1,15 @@
 (function initialiseCourseDataRuntime(globalScope) {
 const sharedStrings = window.CourseAppStrings || {};
+const documentRef = globalScope.document || null;
 
 const escapeHtml = sharedStrings.escapeHtml || ((value) => String(value)
   .replace(/&/g, "&amp;")
   .replace(/</g, "&lt;")
-  .replace(/>/g, "&gt;"));
+  .replace(/>/g, "&gt;")
+  .replace(/"/g, "&quot;")
+  .replace(/'/g, "&#39;"));
+
+const escapeAttribute = sharedStrings.escapeAttribute || escapeHtml;
 
 const stripHtml = (value) => value.replace(/<[^>]+>/g, " ");
 
@@ -12,6 +17,502 @@ const normaliseForSearch = sharedStrings.normalise || ((value) => String(value)
   .normalize("NFD")
   .replace(/[\u0300-\u036f]/g, "")
   .toLowerCase());
+
+const slugify = sharedStrings.slugify || ((value) => normaliseForSearch(value)
+  .replace(/[^a-z0-9]+/g, "-")
+  .replace(/^-+|-+$/g, ""));
+
+const proseLinkSelectors = "p, li, td, th, blockquote, dd, dt";
+const skippedGlossaryTags = new Set(["A", "BUTTON", "CODE", "PRE", "SCRIPT", "STYLE", "H1", "H2", "H3", "H4", "H5", "H6"]);
+const blockLikeTags = new Set(["P", "LI", "TD", "TH", "BLOCKQUOTE", "DD", "DT"]);
+
+const chapterLore = {
+  "vision-outillage": {
+    scene: "A Poudlard, on prépare la malle avant de lancer le moindre sort.",
+    focus: "Repère les outils, le point d'entrée et le trajet global du programme."
+  },
+  "fondamentaux-syntaxe": {
+    scene: "Un sorcier lit une consigne simple, choisit une maison et affiche un message clair.",
+    focus: "Lis le code du haut vers le bas : on déclare, on décide, puis on affiche."
+  },
+  "pointeurs-memoire": {
+    scene: "Un grimoire et son étagère servent à distinguer la valeur et l'adresse.",
+    focus: "Observe toujours qui possède la valeur et qui ne fait que la viser."
+  },
+  "fonctions-references": {
+    scene: "Une chouette transporte un message sans recopier tout le parchemin.",
+    focus: "Regarde ce que la fonction reçoit, ce qu'elle promet et ce qu'elle modifie."
+  },
+  "classes-encapsulation": {
+    scene: "Chaque sorcier garde son grimoire derrière des règles d'accès précises.",
+    focus: "La classe protège son invariant avant d'exposer des opérations utiles."
+  },
+  "constructeurs-raii": {
+    scene: "Un grimoire magique doit être ouvert correctement puis refermé automatiquement.",
+    focus: "La construction prépare la ressource ; la destruction la nettoie sans oubli."
+  },
+  "memoire-smart-pointers": {
+    scene: "Un patronus surveille la ressource pour éviter les oublis et les doubles gardiens.",
+    focus: "Demande-toi toujours qui possède réellement l'objet et combien de propriétaires existent."
+  },
+  "copie-mouvement": {
+    scene: "Transférer un coffre magique coûte moins cher que le recopier page par page.",
+    focus: "Compare la copie complète avec le simple transfert de possession."
+  },
+  "surcharge-operateurs": {
+    scene: "Une potion bien conçue réagit comme un objet naturel, sans surprise pour le lecteur.",
+    focus: "La surcharge doit rendre le code plus lisible, pas plus mystérieux."
+  },
+  "heritage-polymorphisme": {
+    scene: "Plusieurs sorciers partagent un même rôle, mais chacun lance son propre sort.",
+    focus: "Lis la base comme un contrat commun et la dérivée comme une spécialisation concrète."
+  },
+  "templates-stl": {
+    scene: "Le même sort s'applique à plusieurs créatures tant que le contrat reste le même.",
+    focus: "Repère le modèle générique, puis imagine ses instanciations concrètes."
+  },
+  "exceptions-io": {
+    scene: "Quand une potion tourne mal, on doit signaler l'erreur sans laisser le laboratoire en désordre.",
+    focus: "Sépare le chemin nominal, le signal d'erreur et le nettoyage."
+  },
+  "modern-cpp": {
+    scene: "Le cours de magie moderne cherche moins de bruit et plus d'intention.",
+    focus: "Observe les outils qui réduisent le code répétitif tout en gardant le contrat lisible."
+  },
+  "concurrence-threads": {
+    scene: "Plusieurs chouettes travaillent en même temps sur la même salle des hiboux.",
+    focus: "Repère ce qui s'exécute en parallèle et ce qui doit être protégé."
+  },
+  "tests-qualite": {
+    scene: "Avant le duel, chaque sort est testé dans une salle d'entraînement contrôlée.",
+    focus: "Le test décrit le comportement attendu avant de parler d'implémentation."
+  },
+  "architecture-projet": {
+    scene: "Le château reste lisible parce que chaque aile a un rôle net et peu de passages cachés.",
+    focus: "Lis l'organisation comme une carte : responsabilité, dépendances et points d'entrée."
+  }
+};
+
+const autoCommentRules = [
+  {
+    id: "include",
+    pattern: /^\s*#include\s+/,
+    comment: "ajoute un en-tete utilise plus bas dans l'exemple"
+  },
+  {
+    id: "main",
+    pattern: /^\s*int\s+main\s*\(/,
+    comment: "point d'entree : l'execution du programme commence ici"
+  },
+  {
+    id: "brace-init",
+    pattern: /^\s*(?:const\s+)?(?:bool|int|double|float|char|auto|std::string|std::vector<[^>]+>|std::unique_ptr<[^>]+>|std::shared_ptr<[^>]+>|std::weak_ptr<[^>]+>|[A-Za-z_][\w:<>]*)\s+[A-Za-z_]\w*\s*\{.*\};\s*$/,
+    comment: "initialisation avec accolades : la variable recoit sa premiere valeur ici"
+  },
+  {
+    id: "cin",
+    pattern: /^\s*std::cin\s*>>/,
+    comment: "lit une valeur et la range dans la variable cible"
+  },
+  {
+    id: "cout",
+    pattern: /^\s*std::cout\s*<</,
+    comment: "affiche un message ou une valeur dans la console"
+  },
+  {
+    id: "if",
+    pattern: /^\s*if\s*\(/,
+    comment: "ce bloc s'execute seulement si la condition vaut true"
+  },
+  {
+    id: "else",
+    pattern: /^\s*else\b/,
+    comment: "chemin alternatif quand la condition precedente est fausse"
+  },
+  {
+    id: "for",
+    pattern: /^\s*for\s*\(/,
+    comment: "syntaxe du for : initialisation ; condition ; mise a jour"
+  },
+  {
+    id: "while",
+    pattern: /^\s*while\s*\(/,
+    comment: "la boucle recommence tant que la condition reste vraie"
+  },
+  {
+    id: "class",
+    pattern: /^\s*class\s+\w+/,
+    comment: "declare un nouveau type et son contrat"
+  },
+  {
+    id: "public",
+    pattern: /^\s*public:\s*$/,
+    comment: "interface accessible depuis l'exterieur"
+  },
+  {
+    id: "private",
+    pattern: /^\s*private:\s*$/,
+    comment: "etat interne reserve a l'implementation"
+  },
+  {
+    id: "move",
+    pattern: /std::move\s*\(/,
+    comment: "autorise un transfert de ressource au lieu d'une copie"
+  },
+  {
+    id: "smart-pointer",
+    pattern: /std::unique_ptr|std::shared_ptr|std::weak_ptr/,
+    comment: "le type choisi exprime qui possede la ressource"
+  },
+  {
+    id: "mutex",
+    pattern: /std::mutex|std::lock_guard/,
+    comment: "sert a proteger une zone critique partagee"
+  },
+  {
+    id: "virtual",
+    pattern: /\bvirtual\b|\boverride\b/,
+    comment: "sert au polymorphisme et fait verifier la redéfinition par le compilateur"
+  },
+  {
+    id: "try",
+    pattern: /^\s*try\s*\{/,
+    comment: "le code surveille ici une operation qui peut echouer"
+  },
+  {
+    id: "catch",
+    pattern: /^\s*catch\s*\(/,
+    comment: "on traite ici l'exception qui s'est propagee"
+  },
+  {
+    id: "return",
+    pattern: /^\s*return\b/,
+    comment: "termine la fonction et renvoie la valeur attendue"
+  }
+];
+
+const chapterThemeState = {
+  currentChapterId: ""
+};
+
+function withChapterTheme(chapterId, build) {
+  const previousChapterId = chapterThemeState.currentChapterId;
+  chapterThemeState.currentChapterId = chapterId;
+
+  try {
+    return build();
+  } finally {
+    chapterThemeState.currentChapterId = previousChapterId;
+  }
+}
+
+function getActiveChapterTheme() {
+  return chapterLore[chapterThemeState.currentChapterId] || null;
+}
+
+function detectCommentPrefix(languageId) {
+  if (languageId === "bash" || languageId === "shell") {
+    return "#";
+  }
+
+  return "//";
+}
+
+function addAutoComments(source, languageId, label) {
+  const trimmedSource = String(source || "").trim();
+
+  if (!trimmedSource) {
+    return trimmedSource;
+  }
+
+  const commentPrefix = detectCommentPrefix(languageId);
+  const lines = trimmedSource.split("\n");
+  const usedRules = new Set();
+
+  return lines.map((line) => {
+    const trimmedLine = line.trim();
+
+    if (!trimmedLine) {
+      return line;
+    }
+
+    if (languageId === "bash" || languageId === "shell") {
+      return line;
+    }
+
+    if (trimmedLine.startsWith("//")) {
+      return line;
+    }
+
+    if (trimmedLine.includes("//")) {
+      return line;
+    }
+
+    const matchingRule = autoCommentRules.find((rule) => !usedRules.has(rule.id) && rule.pattern.test(line));
+
+    if (!matchingRule) {
+      return line;
+    }
+
+    usedRules.add(matchingRule.id);
+    return `${line} ${commentPrefix} ${matchingRule.comment}`;
+  }).join("\n");
+}
+
+function deriveAliases(term) {
+  const baseTerm = String(term || "").trim();
+  const aliases = [];
+
+  if (baseTerm.startsWith("std::")) {
+    aliases.push(baseTerm.replace(/^std::/, ""));
+  }
+
+  if (baseTerm.includes(" / ")) {
+    aliases.push(...baseTerm.split(" / ").map((item) => item.trim()));
+  }
+
+  return aliases.filter(Boolean);
+}
+
+function uniqueValues(items) {
+  return Array.from(new Set(items.filter(Boolean)));
+}
+
+function prepareGlossaryEntry(entry) {
+  if (!entry || !entry.term) {
+    return null;
+  }
+
+  const aliases = uniqueValues([...(Array.isArray(entry.aliases) ? entry.aliases : []), ...deriveAliases(entry.term)]);
+  return Object.assign({}, entry, {
+    id: entry.id || slugify(entry.term),
+    aliases
+  });
+}
+
+function prepareGlossaryEntries(entries) {
+  return (Array.isArray(entries) ? entries : [])
+    .map((entry) => prepareGlossaryEntry(entry))
+    .filter(Boolean);
+}
+
+function createGlossaryLinkIndex(glossaryEntries) {
+  return glossaryEntries
+    .flatMap((entry) => uniqueValues([entry.term, ...(entry.aliases || [])]).map((phrase) => ({
+      entryId: entry.id,
+      phrase,
+      normalisedPhrase: normaliseForSearch(phrase)
+    })))
+    .filter((candidate) => candidate.normalisedPhrase.length > 1)
+    .sort((left, right) => {
+      if (right.normalisedPhrase.length !== left.normalisedPhrase.length) {
+        return right.normalisedPhrase.length - left.normalisedPhrase.length;
+      }
+
+      return left.phrase.localeCompare(right.phrase, "fr", { sensitivity: "base" });
+    });
+}
+
+function isWordBoundaryCharacter(character) {
+  return !/[a-z0-9_]/i.test(character || "");
+}
+
+function buildNormalisedTextMap(text) {
+  const sourceText = String(text || "");
+  let normalisedText = "";
+  const normalisedBoundaries = [0];
+  let originalIndex = 0;
+
+  for (const character of sourceText) {
+    const characterLength = character.length;
+    const normalisedCharacter = normaliseForSearch(character);
+
+    normalisedText += normalisedCharacter;
+    originalIndex += characterLength;
+
+    const repeatCount = Math.max(normalisedCharacter.length, 1);
+    for (let index = 0; index < repeatCount; index += 1) {
+      normalisedBoundaries.push(originalIndex);
+    }
+  }
+
+  return {
+    sourceText,
+    normalisedText,
+    normalisedBoundaries
+  };
+}
+
+function findFirstGlossaryMatch(textMap, candidates, seenEntryIds) {
+  const { normalisedText, normalisedBoundaries } = textMap;
+  let bestMatch = null;
+
+  candidates.forEach((candidate) => {
+    if (seenEntryIds.has(candidate.entryId)) {
+      return;
+    }
+
+    let position = normalisedText.indexOf(candidate.normalisedPhrase);
+
+    while (position !== -1) {
+      const before = normalisedText[position - 1] || "";
+      const after = normalisedText[position + candidate.normalisedPhrase.length] || "";
+
+      if (isWordBoundaryCharacter(before) && isWordBoundaryCharacter(after)) {
+        if (
+          !bestMatch ||
+          position < bestMatch.position ||
+          (position === bestMatch.position && candidate.normalisedPhrase.length > bestMatch.candidate.normalisedPhrase.length)
+        ) {
+          bestMatch = {
+            candidate,
+            position,
+            originalStart: normalisedBoundaries[position] ?? position,
+            originalEnd: normalisedBoundaries[position + candidate.normalisedPhrase.length] ?? (position + candidate.normalisedPhrase.length)
+          };
+        }
+        return;
+      }
+
+      position = normalisedText.indexOf(candidate.normalisedPhrase, position + 1);
+    }
+  });
+
+  return bestMatch;
+}
+
+function createGlossaryLinkNode(entryId, text) {
+  const link = documentRef.createElement("button");
+  link.type = "button";
+  link.className = "glossary-link";
+  link.setAttribute("data-glossary-link", entryId);
+  link.setAttribute("aria-label", `Voir la définition de ${text} dans le glossaire`);
+  link.textContent = text;
+  return link;
+}
+
+function linkTextNode(node, glossaryIndex, seenEntryIds) {
+  const sourceText = node.textContent || "";
+
+  if (!sourceText.trim()) {
+    return false;
+  }
+
+  let remainder = sourceText;
+  const fragment = documentRef.createDocumentFragment();
+  let didReplace = false;
+
+  while (remainder) {
+    const remainderMap = buildNormalisedTextMap(remainder);
+    const match = findFirstGlossaryMatch(remainderMap, glossaryIndex, seenEntryIds);
+
+    if (!match) {
+      fragment.appendChild(documentRef.createTextNode(remainder));
+      break;
+    }
+
+    const { candidate, originalStart, originalEnd } = match;
+    const matchedText = remainder.slice(originalStart, originalEnd);
+    const before = remainder.slice(0, originalStart);
+    const after = remainder.slice(originalEnd);
+
+    if (before) {
+      fragment.appendChild(documentRef.createTextNode(before));
+    }
+
+    fragment.appendChild(createGlossaryLinkNode(candidate.entryId, matchedText));
+    seenEntryIds.add(candidate.entryId);
+    remainder = after;
+    didReplace = true;
+  }
+
+  if (!didReplace) {
+    return false;
+  }
+
+  node.replaceWith(fragment);
+  return true;
+}
+
+function annotateGlossaryLinks(root, glossaryEntries, sharedSeenEntryIds = null) {
+  if (!documentRef || !root || !glossaryEntries.length) {
+    return root;
+  }
+
+  const glossaryIndex = createGlossaryLinkIndex(glossaryEntries);
+  const seenEntryIds = sharedSeenEntryIds || new Set();
+  const collectedBlocks = [];
+
+  if (typeof root.matches === "function" && root.matches(proseLinkSelectors)) {
+    collectedBlocks.push(root);
+  }
+
+  if (typeof root.querySelectorAll === "function") {
+    collectedBlocks.push(...root.querySelectorAll(proseLinkSelectors));
+  }
+
+  if (!collectedBlocks.length && root.firstElementChild && !skippedGlossaryTags.has(root.firstElementChild.tagName)) {
+    collectedBlocks.push(root.firstElementChild);
+  }
+
+  const blockNodes = Array.from(new Set(collectedBlocks.filter((node) => !node.closest("a, button, code, pre"))));
+
+  blockNodes.forEach((block) => {
+    const walker = documentRef.createTreeWalker(block, NodeFilter.SHOW_TEXT);
+    const textNodes = [];
+
+    while (walker.nextNode()) {
+      const currentNode = walker.currentNode;
+      const parentElement = currentNode.parentElement;
+
+      if (!parentElement) {
+        continue;
+      }
+
+      if (parentElement.closest("a, button, code, pre")) {
+        continue;
+      }
+
+      if (skippedGlossaryTags.has(parentElement.tagName)) {
+        continue;
+      }
+
+      textNodes.push(currentNode);
+    }
+
+    textNodes.forEach((textNode) => {
+      linkTextNode(textNode, glossaryIndex, seenEntryIds);
+    });
+  });
+
+  return root;
+}
+
+function linkGlossaryInHtml(html, glossaryEntries, sharedSeenEntryIds = null) {
+  if (!documentRef || !html) {
+    return html;
+  }
+
+  const template = documentRef.createElement("template");
+  template.innerHTML = html;
+  annotateGlossaryLinks(template.content, glossaryEntries, sharedSeenEntryIds);
+  return template.innerHTML;
+}
+
+function linkGlossaryInSnippet(html, glossaryEntries, sharedSeenEntryIds = null) {
+  if (!documentRef || !html) {
+    return html;
+  }
+
+  const wrapper = documentRef.createElement("div");
+  wrapper.innerHTML = `<span>${html}</span>`;
+  annotateGlossaryLinks(wrapper, glossaryEntries, sharedSeenEntryIds);
+  return wrapper.firstElementChild ? wrapper.firstElementChild.innerHTML : html;
+}
+
+function themeExercisePrompt(chapterId, prompt) {
+  return prompt;
+}
 
 const lesson = (title, ...parts) => {
   return `
@@ -54,6 +555,7 @@ const code = (language, source, label = "Exemple") => {
     sh: "bash",
     plaintext: "text"
   }[rawLanguage] || rawLanguage;
+  const enrichedSource = addAutoComments(source, languageId, label);
 
   return `
     <div class="code-block code-block--${languageId}">
@@ -61,7 +563,7 @@ const code = (language, source, label = "Exemple") => {
         <span>${label}</span>
         <span>${language}</span>
       </div>
-      <pre><code class="code-block__code language-${languageId}" data-language="${languageId}">${escapeHtml(source.trim())}</code></pre>
+      <pre><code class="code-block__code language-${languageId}" data-language="${languageId}">${escapeHtml(enrichedSource)}</code></pre>
     </div>
   `;
 };
@@ -79,6 +581,7 @@ const table = (headers, rows) => `
 
 const chernoPlaylistUrl = "https://www.youtube.com/playlist?list=PLlrATfBNZ98dudnM48yfGUldqGD0S4FFb";
 const revaninioPlaylistUrl = "https://www.youtube.com/playlist?list=PL0ibd6OZI4XKMwaPS1xHU9N_smy3AkcUr";
+const broCodePlaylistUrl = "https://www.youtube.com/playlist?list=PLZPZq0r_RZOMHoXIcxze_lP97j2Ase2on";
 
 const externalLink = (href, label) => `
   <a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)}</a>
@@ -98,6 +601,15 @@ const getYoutubeThumbnailUrl = (url) => {
 const playlistVideos = {
   howCppWorks: { title: "How C++ Works", url: "https://www.youtube.com/watch?v=SfGuIVzE_Os" },
   headerFiles: { title: "C++ Header Files", url: "https://www.youtube.com/watch?v=9RJTQmK0YPI" },
+  broCodeIntro: { title: "C++ tutorial for beginners", url: "https://www.youtube.com/watch?v=hDaKit2IM0E" },
+  broCodeVariables: { title: "C++ variables & data types (#3)", url: "https://www.youtube.com/watch?v=QANQHxx9I8Y" },
+  broCodeUserInput: { title: "C++ how to accept user input (#4)", url: "https://www.youtube.com/watch?v=zmrJnHKZQC0" },
+  broCodeIfStatements: { title: "C++ if statements (#6)", url: "https://www.youtube.com/watch?v=ljEZlKU5XT4" },
+  broCodeForLoops: { title: "C++ for loops (#12)", url: "https://www.youtube.com/watch?v=TK7fjq28ma8" },
+  broCodeFunctions: { title: "C++ user defined functions (#15)", url: "https://www.youtube.com/watch?v=vKTYM-DJDiw" },
+  broCodePointers: { title: "C++ pointers (#18)", url: "https://www.youtube.com/watch?v=Nq_1BMS2iOw" },
+  broCodeOop: { title: "C++ object oriented programming (#21)", url: "https://www.youtube.com/watch?v=VHOH6CQJ-2g" },
+  broCodeConstructors: { title: "C++ constructors (#22)", url: "https://www.youtube.com/watch?v=i96FsK-00ro" },
   variables: { title: "Variables in C++", url: "https://www.youtube.com/watch?v=zB9RI8_wExo" },
   functions: { title: "Functions in C++", url: "https://www.youtube.com/watch?v=V9zuox47zr0" },
   conditions: { title: "CONDITIONS and BRANCHES in C++", url: "https://www.youtube.com/watch?v=qEgCT87KOfc" },
@@ -168,7 +680,7 @@ const videoCards = (items) => `
 const videoLesson = (intro, items) => lesson(
   "Vidéos associées",
   paragraphs(
-    `${intro} Tu peux aussi parcourir ${externalLink(chernoPlaylistUrl, "la playlist complète de The Cherno")} ou ${externalLink(revaninioPlaylistUrl, "la playlist francophone de RevaninioComputing")} si tu veux varier le style d'explication.`,
+    `${intro} Tu peux aussi parcourir ${externalLink(chernoPlaylistUrl, "la playlist complète de The Cherno")}, ${externalLink(revaninioPlaylistUrl, "la playlist francophone de RevaninioComputing")} ou ${externalLink(broCodePlaylistUrl, "la playlist C++ de Bro Code")} si tu veux varier le style d'explication.`,
     "Le plus rentable est souvent de lire d'abord le chapitre, puis de regarder une ou deux vidéos ciblées pour fixer le modèle mental, le vocabulaire et les pièges."
   ),
   videoCards(items)
@@ -270,9 +782,11 @@ function getChapterBundles() {
 
 globalScope.CourseDataRegistry = {
   helpers: {
+    escapeAttribute,
     escapeHtml,
     stripHtml,
     normaliseForSearch,
+    slugify,
     lesson,
     paragraphs,
     bullets,
@@ -281,10 +795,15 @@ globalScope.CourseDataRegistry = {
     code,
     table,
     externalLink,
+    withChapterTheme,
     videoLesson,
     playlistVideo
   },
   injectLessonDeepDives,
+  linkGlossaryInHtml,
+  linkGlossaryInSnippet,
+  prepareGlossaryEntries,
+  themeExercisePrompt,
   setCourseMeta,
   setRoadmap,
   setGlossary,

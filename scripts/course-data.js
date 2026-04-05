@@ -9,7 +9,7 @@ if (!registry) {
 const { stripHtml, normaliseForSearch } = registry.helpers;
 const courseMeta = registry.getCourseMeta();
 const roadmap = registry.getRoadmap();
-const glossary = registry.getGlossary();
+const glossary = registry.prepareGlossaryEntries(registry.getGlossary());
 const bundles = registry.getChapterBundles();
 
 const chapters = bundles

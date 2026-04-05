@@ -117,57 +117,50 @@ function renderHero(container, {
   container.innerHTML = `
     <div class="hero__layout">
       <div class="hero__copy">
-        <p class="eyebrow">Studio de révision</p>
         <h2 class="hero__title">${courseMeta.title}</h2>
         <p class="hero__lead">${courseMeta.description}</p>
-
-        <div class="hero__spotlight">
-          <span class="hero__spotlight-label">Chapitre courant</span>
-          <strong>${currentChapter ? `${currentChapter.order}. ${currentChapter.title}` : "Parcours masqué par les filtres"}</strong>
-          <p>${currentSummary}</p>
-        </div>
-
-        <div class="hero__meta">
-          <span class="meta-chip meta-chip--teal">${filterLabel}</span>
-          ${search
-            ? `<span class="meta-chip">Recherche : ${escapeHtml(search)}</span>`
-            : `<span class="meta-chip">${courseStat}</span>`}
-        </div>
-
-        <div class="hero-actions">
-          <button class="action-button action-button--primary" type="button" data-action="resume">
-            ${completedCount === chapters.length ? "Revoir un chapitre" : "Continuer le parcours"}
-          </button>
-          <button class="action-button action-button--outline" type="button" data-action="ask-more">
-            ${assistantAvailable ? "Créer une série d'exercices" : "Préparer un prompt d'exercices"}
-          </button>
-        </div>
       </div>
 
-      <aside class="hero-focus">
-        <p class="eyebrow">Cap du moment</p>
-        <div class="hero-focus__lead">
-          <span class="hero-focus__label">Prochaine étape</span>
-          <strong>${nextStepLabel}</strong>
-          <p>${nextStepText}</p>
+      <aside class="hero-focus hero-focus--terminal">
+        <div class="terminal-header">
+          <span class="term-dot term-dot--red"></span>
+          <span class="term-dot term-dot--yellow"></span>
+          <span class="term-dot term-dot--green"></span>
         </div>
+        <div class="terminal-body">
+<pre><code><span class="token-keyword">#include</span> <span class="token-string">&lt;ingenieur&gt;</span>
+<span class="token-keyword">#include</span> <span class="token-string">&lt;cplusplus&gt;</span>
 
-        <div class="hero-facts">
-          ${heroFacts
-            .map(
-              (fact) => `
-                <article class="hero-fact">
-                  <span>${fact.label}</span>
-                  <strong>${fact.value}</strong>
-                </article>
-              `
-            )
-            .join("")}
+<span class="token-keyword">int</span> <span class="token-function">main</span>() {
+  <span class="token-comment">// Etape :</span>
+  target.<span class="token-function">set</span>(<span class="token-string">"${nextStepLabel}"</span>);
+
+  <span class="token-comment">// Progression</span>
+  course.<span class="token-function">logStatus</span>({
+    completion: <span class="token-number">${progress}</span>,
+    validated:  <span class="token-number">${completedCount}</span>,
+    visible:    <span class="token-number">${visibleCount}</span>,
+    mode:       <span class="token-string">"${assistantAvailable ? 'Assistant' : 'Autonome'}"</span>
+  });
+
+  <span class="token-keyword">return</span> course.<span class="token-function">execute</span>();
+}</code></pre>
+
+          <div class="terminal-actions">
+            <div class="term-command">
+              <span class="token-prompt">~/course $</span>
+              <button class="terminal-btn terminal-btn--primary" type="button" data-action="resume">
+                ./run --mode=${completedCount === chapters.length ? 'review' : 'continue'}
+              </button>
+            </div>
+            <div class="term-command">
+              <span class="token-prompt">~/course $</span>
+              <button class="terminal-btn terminal-btn--secondary" type="button" data-action="ask-more">
+                ./generate --type=${assistantAvailable ? 'exercises' : 'prompt'}
+              </button>
+            </div>
+          </div>
         </div>
-
-        <p class="hero-focus__note">
-          ${assistantAvailable ? "Assistant connecté" : "Mode autonome"} · ${currentChapter ? currentChapter.duration : "Rythme libre"}
-        </p>
       </aside>
     </div>
   `;
