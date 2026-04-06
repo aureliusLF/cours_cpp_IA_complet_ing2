@@ -1,34 +1,59 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Favicon Atlas C++">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Favicon C++ Neon Course">
   <defs>
-    <linearGradient id="panel" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#fffaf2"/>
-      <stop offset="100%" stop-color="#f0e6d7"/>
+    <!-- Deep space background -->
+    <linearGradient id="bgGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
     </linearGradient>
-    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#c96d4a"/>
-      <stop offset="100%" stop-color="#8f3f24"/>
+
+    <!-- Neon gradient for the C text -->
+    <linearGradient id="neonGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
     </linearGradient>
+
+    <!-- Neon glow filter -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
   </defs>
 
-  <rect width="64" height="64" rx="16" fill="#1f2733"/>
-  <rect x="6" y="6" width="52" height="52" rx="14" fill="url(#panel)"/>
-  <rect x="10" y="10" width="8" height="44" rx="4" fill="url(#accent)"/>
+  <!-- Background Squircle -->
+  <rect width="128" height="128" rx="32" fill="url(#bgGlow)"/>
 
-  <path
-    d="M39 19c-7-4-16-1-20 7c-4 7-1 16 7 20c4 2 9 2 13 0"
-    fill="none"
-    stroke="#c78f2d"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-    stroke-width="6"
+  <!-- Subtle grid pattern in the background for developer aesthetic -->
+  <path d="M0 32h128 M0 64h128 M0 96h128 M32 0v128 M64 0v128 M96 0v128" stroke="rgba(255,255,255,0.03)" stroke-width="2"/>
+
+  <!-- The "C" (Modern Geometric Rounded Square) -->
+  <path 
+    d="M 56 36 L 36 36 A 16 16 0 0 0 20 52 L 20 76 A 16 16 0 0 0 36 92 L 56 92" 
+    fill="none" 
+    stroke="url(#neonGradient)" 
+    stroke-width="14" 
+    stroke-linecap="round" 
+    filter="url(#glow)" 
   />
 
-  <g stroke="#0f6c70" stroke-linecap="round" stroke-width="4">
-    <path d="M45 20v12"/>
-    <path d="M39 26h12"/>
-    <path d="M51 28v12"/>
-    <path d="M45 34h12"/>
-  </g>
+  <!-- First Plus (Staggered up) -->
+  <path d="M 76 46 L 76 70 M 64 58 L 88 58" 
+    fill="none" 
+    stroke="#38bdf8"
+    stroke-width="11" 
+    stroke-linecap="round" 
+    filter="url(#glow)" 
+  />
 
-  <circle cx="16" cy="16" r="2" fill="#fff8ef" opacity="0.75"/>
+  <!-- Second Plus (Staggered down) -->
+  <path d="M 104 62 L 104 86 M 92 74 L 116 74" 
+    fill="none" 
+    stroke="#c084fc"
+    stroke-width="11" 
+    stroke-linecap="round" 
+    filter="url(#glow)" 
+  />
 </svg>

@@ -1,64 +1,70 @@
 # Cours C++ complet ING2
 
-Ce dossier contient désormais une version autonome du support de cours sous forme de mini-projet web statique.
+Support interactif de C++ pensé pour un parcours d'ING2 : progressif, autonome, dense sur le fond, mais plus lisible qu'un polycopié classique.
 
-## Point d'entrée
+L'objectif n'est pas seulement de couvrir la syntaxe. Le support cherche à faire comprendre le raisonnement attendu en C++ moderne : types, fonctions, mémoire, objets, STL, robustesse, architecture, tests et mini-projet final.
 
-- `index.html` : page principale à ouvrir dans le navigateur
-- l'application se charge via des scripts `defer` classiques, donc elle reste ouvrable directement sans serveur local
+## Ce que propose le support
 
-## Structure
+- 16 chapitres progressifs, des bases jusqu'à la synthèse projet
+- des leçons détaillées, avec exemples, tableaux, rappels et approfondissements
+- une checklist de maîtrise pour chaque chapitre
+- des quiz de révision immédiate
+- des exercices guidés, avec génération de prompts plus ciblés pour aller plus loin
+- un glossaire interactif avec liste, flashcards et quiz
+- une progression conservée localement pour reprendre facilement là où l'on s'est arrêté
 
-- `index.html` : structure de la page et points d'ancrage de l'application
-- `styles/main.css` : identité visuelle, layout responsive et composants
-- `scripts/course-data.js` : bootstrap final qui assemble et publie `window.COURSE_DATA`
-- `scripts/app.js` : orchestrateur principal de l'application
-- `scripts/data/course-runtime.js` : helpers de contenu et registre global des données du cours
-- `scripts/data/course-meta.js` : métadonnées du parcours
-- `scripts/data/course-roadmap.js` : feuille de route du cours
-- `scripts/data/course-glossary.js` : glossaire principal
-- `scripts/data/course-study-profiles.js` : attendus pédagogiques par chapitre et contexte de génération des prompts
-- `scripts/data/chapters/` : un fichier par chapitre, avec son contenu et ses deep dives
-- `scripts/data/glossary-study.js` : enrichissement du glossaire pour la révision interactive
-- `scripts/lib/` : utilitaires de texte et coloration syntaxique
-- `scripts/state/storage.js` : persistance de la progression et de l'état de révision
-- `scripts/ui/course-view.js` : rendu du parcours, des chapitres et de la navigation
-- `scripts/ui/glossary-view.js` : rendu du glossaire en liste, cartes mémoire et quiz
+## Promesse pédagogique
 
-## Notes
+Ce cours a été conçu pour répondre vraiment au titre de chaque chapitre.
 
-- aucun build n'est nécessaire
-- aucun serveur local n'est nécessaire pour l'usage courant
-- l'ouverture directe de `index.html` reste le mode nominal
-- la progression et les recherches sont conservées dans le `localStorage`
-- le glossaire propose désormais trois modes : liste enrichie, flashcards et quiz
-- les quiz de chapitre conservent désormais les réponses choisies pour nourrir la révision
-- les prompts d'exercices reprennent maintenant les objectifs, pièges et erreurs de quiz du chapitre courant
-- les prompts d'exercices restent utilisables même sans intégration externe: ils sont affichés et copiables
-- les recherches du cours et du glossaire sont débouncées pour garder une saisie fluide
+Cela signifie notamment :
 
-## Accessibilité
+- des fondamentaux qui repartent réellement de zéro quand c'est nécessaire
+- des chapitres intermédiaires qui explicitent les contrats, les invariants et les pièges réels
+- des chapitres avancés qui restent lisibles au lieu d'empiler de la technicité brute
+- une révision qui ne se limite pas à relire le texte, mais qui pousse à reformuler, tester et appliquer
 
-- un titre principal `h1` est présent dans la sidebar pour améliorer la hiérarchie du document
-- les sections du chapitre et les modes du glossaire suivent désormais un vrai pattern d'onglets ARIA
-- navigation clavier disponible sur les onglets: `Tab`, `Shift+Tab`, `ArrowLeft`, `ArrowRight`, `Home`, `End`
-- raccourci `/` pour placer le focus dans la recherche principale
-- `Escape` ferme le panneau de prompt et retire le focus des champs de recherche actifs
-- la préférence système `prefers-reduced-motion` désactive les scrolls lissés et réduit les transitions
+## Expérience d'utilisation
 
-## Vérification manuelle
+Le support se lit directement dans le navigateur, sans installation lourde ni étape de build.
 
-- ouvrir `index.html` directement dans le navigateur et vérifier que l'application démarre sans serveur
-- changer de chapitre via la sidebar et vérifier que le hash suit bien le chapitre courant
-- taper dans la recherche principale puis dans celle du glossaire et vérifier que la saisie reste fluide
-- naviguer au clavier dans les onglets du chapitre et du glossaire
-- valider un chapitre, recharger la page et vérifier que la progression est restaurée
-- tester le glossaire en modes liste, cartes et quiz puis recharger la page pour vérifier la persistance
-- activer la réduction des animations au niveau système et vérifier l'absence de défilement lissé
+On peut :
 
-## Idées d'extension
+- naviguer chapitre par chapitre
+- suivre sa progression
+- filtrer et retrouver rapidement une notion
+- passer du cours à la checklist, puis au quiz, puis aux exercices
+- utiliser le glossaire comme outil de révision séparé
+- générer des prompts d'exercices plus intelligents, nourris par le contexte du chapitre et les erreurs de quiz déjà commises
 
-- ajouter d'autres chapitres dans `scripts/data/chapters/`
-- enrichir le glossaire et les quiz
-- brancher une vraie impression PDF ou une génération de fiches de révision
-- ajouter une section de corrigés détaillés ou d'annales
+## Utilisation
+
+Ouvrir simplement `index.html` dans un navigateur moderne.
+
+Le mode d'usage nominal est volontairement simple :
+
+- ouvrir le support
+- choisir un chapitre
+- lire le cours
+- passer à la checklist
+- vérifier les acquis avec le quiz
+- prolonger avec les exercices
+
+## Pour qui
+
+Ce support est particulièrement adapté :
+
+- à un étudiant d'ING2 qui veut un parcours complet et progressif
+- à quelqu'un qui a besoin de revenir proprement sur les bases avant d'aller vers RAII, STL ou le polymorphisme
+- à un profil autonome qui veut réviser de façon plus active qu'avec un simple PDF
+
+## Points forts
+
+- plus de volume pédagogique que la version initiale
+- une progression plus cohérente entre les chapitres
+- une révision mieux guidée, avec attentes et pièges par chapitre
+- des prompts d'exercices désormais contextualisés au lieu d'être génériques
+- une approche orientée compréhension, pas simple récitation
+
+## Auteur : Aurélien Le Fichoux
