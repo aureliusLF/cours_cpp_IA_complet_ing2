@@ -17,6 +17,7 @@ Ce dossier contient désormais une version autonome du support de cours sous for
 - `scripts/data/course-meta.js` : métadonnées du parcours
 - `scripts/data/course-roadmap.js` : feuille de route du cours
 - `scripts/data/course-glossary.js` : glossaire principal
+- `scripts/data/course-study-profiles.js` : attendus pédagogiques par chapitre et contexte de génération des prompts
 - `scripts/data/chapters/` : un fichier par chapitre, avec son contenu et ses deep dives
 - `scripts/data/glossary-study.js` : enrichissement du glossaire pour la révision interactive
 - `scripts/lib/` : utilitaires de texte et coloration syntaxique
@@ -31,6 +32,8 @@ Ce dossier contient désormais une version autonome du support de cours sous for
 - l'ouverture directe de `index.html` reste le mode nominal
 - la progression et les recherches sont conservées dans le `localStorage`
 - le glossaire propose désormais trois modes : liste enrichie, flashcards et quiz
+- les quiz de chapitre conservent désormais les réponses choisies pour nourrir la révision
+- les prompts d'exercices reprennent maintenant les objectifs, pièges et erreurs de quiz du chapitre courant
 - les prompts d'exercices restent utilisables même sans intégration externe: ils sont affichés et copiables
 - les recherches du cours et du glossaire sont débouncées pour garder une saisie fluide
 

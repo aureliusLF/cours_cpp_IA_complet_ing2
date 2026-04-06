@@ -1383,6 +1383,11 @@ kbd {
   margin-top: 10px;
 }
 
+.review-question {
+  font-weight: 600;
+  color: var(--ink);
+}
+
 .glossary-link {
   display: inline;
   padding: 0;
@@ -1646,6 +1651,14 @@ kbd {
 .exercise-grid,
 .glossary-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.quiz-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .quiz-card,

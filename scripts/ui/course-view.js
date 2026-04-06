@@ -174,7 +174,28 @@ function checklistMarkup(items) {
   `;
 }
 
+function buildChapterReview(chapter) {
+  const review = chapter.review || {};
+
+  return {
+    expectations: Array.isArray(review.expectations) && review.expectations.length
+      ? review.expectations
+      : (Array.isArray(chapter.goals) ? chapter.goals : []),
+    commonMistakes: Array.isArray(review.commonMistakes) && review.commonMistakes.length
+      ? review.commonMistakes
+      : [
+        "Réciter la syntaxe sans la relier au contrat, à la durée de vie ou au coût.",
+        "Répondre avec un exemple appris par cœur sans vérifier s'il correspond vraiment au cas demandé.",
+        "Confondre ce que le compilateur accepte avec ce que la conception justifie réellement."
+      ],
+    oralCheck: review.oralCheck
+      || "Prends un mini-exemple du chapitre et explique à voix haute ce que tu choisis, pourquoi tu le choisis et quel bug ce choix évite."
+  };
+}
+
 function renderChecklistTab(chapter) {
+  const review = buildChapterReview(chapter);
+
   return `
     <div class="tab-panel">
       <article class="lesson-section">
@@ -188,21 +209,26 @@ function renderChecklistTab(chapter) {
       </article>
 
       <article class="lesson-section">
-        <h3>Ce qu'un enseignant attend souvent</h3>
-        <p>
-          Être capable d'expliquer à voix haute le <em>pourquoi</em> derrière la syntaxe. En C++, réciter un mot-clé
-          ne suffit pas ; il faut relier la forme au contrat, à la durée de vie ou au coût.
-        </p>
-        <p>
-          Pour réviser efficacement, prends chaque point ci-dessus et cherche un mini-exemple concret où il te
-          permettrait d'éviter un bug ou de clarifier une API.
-        </p>
+        <h3>Ce qu'un enseignant attend sur ce chapitre</h3>
+        <p>Les attendus ne sont pas génériques : ils suivent la promesse exacte de ce chapitre.</p>
+        ${checklistMarkup(review.expectations)}
+      </article>
+
+      <article class="lesson-section">
+        <h3>Pièges classiques sur ce chapitre</h3>
+        <p>Ce sont les erreurs qui font souvent perdre des points même quand l'idée générale est comprise.</p>
+        ${checklistMarkup(review.commonMistakes)}
+      </article>
+
+      <article class="lesson-section">
+        <h3>Test oral express</h3>
+        <p class="review-question">${review.oralCheck}</p>
       </article>
     </div>
   `;
 }
 
-function renderQuizTab(chapter) {
+function renderQuizTab(chapter, quizAnswers) {
   if (!chapter.quiz.length) {
     return `
       <div class="empty-state">
@@ -212,35 +238,58 @@ function renderQuizTab(chapter) {
     `;
   }
 
+  const answeredCount = chapter.quiz.filter((item, index) => Number.isInteger(quizAnswers[index])).length;
+
   return `
+    <div class="quiz-summary">
+      <span class="meta-chip">${answeredCount}/${chapter.quiz.length} répondues</span>
+      ${answeredCount > 0 ? `
+        <button class="ghost-button ghost-button--compact" type="button" data-action="reset-quiz">
+          Réinitialiser le quiz
+        </button>
+      ` : ""}
+    </div>
+
     <div class="quiz-grid">
       ${chapter.quiz
-        .map(
-          (item, index) => `
+        .map((item, index) => {
+          const selectedOptionIndex = quizAnswers[index];
+          const isAnswered = Number.isInteger(selectedOptionIndex);
+
+          return `
             <article class="quiz-card" data-quiz-card="${index}">
               <h3>Question ${index + 1}</h3>
               <p>${item.question}</p>
               <div class="quiz-option-list">
                 ${item.options
-                  .map(
-                    (option, optionIndex) => `
+                  .map((option, optionIndex) => {
+                    const isCorrect = optionIndex === item.answer;
+                    const isSelected = optionIndex === selectedOptionIndex;
+                    const classes = [
+                      "quiz-option",
+                      isAnswered && isCorrect ? "is-correct" : "",
+                      isAnswered && isSelected && !isCorrect ? "is-wrong" : ""
+                    ].filter(Boolean).join(" ");
+
+                    return `
                       <button
-                        class="quiz-option"
+                        class="${classes}"
                         type="button"
                         data-quiz-index="${index}"
                         data-option-index="${optionIndex}"
-                        data-is-correct="${optionIndex === item.answer ? "true" : "false"}"
+                        data-is-correct="${isCorrect ? "true" : "false"}"
+                        ${isAnswered ? "disabled" : ""}
                       >
                         ${option}
                       </button>
                     `
-                  )
+                  })
                   .join("")}
               </div>
-              <div class="quiz-feedback" hidden>${item.explanation}</div>
+              <div class="quiz-feedback" ${isAnswered ? "" : "hidden"}>${item.explanation}</div>
             </article>
           `
-        )
+        })
         .join("")}
     </div>
   `;
@@ -290,7 +339,7 @@ function renderExercisesTab(chapter, assistantAvailable) {
   `;
 }
 
-function renderActiveTabPanel(chapter, activeTab, assistantAvailable) {
+function renderActiveTabPanel(chapter, activeTab, assistantAvailable, quizAnswers) {
   let content = `<div class="tab-panel">${chapter.body}</div>`;
 
   if (activeTab === "checklist") {
@@ -298,7 +347,7 @@ function renderActiveTabPanel(chapter, activeTab, assistantAvailable) {
   }
 
   if (activeTab === "quiz") {
-    content = renderQuizTab(chapter);
+    content = renderQuizTab(chapter, quizAnswers);
   }
 
   if (activeTab === "exercises") {
@@ -322,6 +371,7 @@ function renderChapterPanel(container, {
   assistantAvailable,
   chapter,
   doneSet,
+  quizAnswers,
   tab,
   tabLabels,
   visibleChapters
@@ -428,7 +478,7 @@ function renderChapterPanel(container, {
         .join("")}
     </div>
 
-    ${renderActiveTabPanel(chapter, tab, assistantAvailable)}
+    ${renderActiveTabPanel(chapter, tab, assistantAvailable, quizAnswers)}
   `;
 }
 

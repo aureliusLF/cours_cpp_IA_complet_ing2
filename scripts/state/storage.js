@@ -32,6 +32,7 @@
           glossaryQuizIndex: state.glossaryQuizIndex,
           glossaryQuizSelectedId: state.glossaryQuizSelectedId,
           glossaryQuizSeed: state.glossaryQuizSeed,
+          chapterQuizAnswers: state.chapterQuizAnswers,
           level: state.level,
           tab: state.tab
         })
@@ -55,9 +56,31 @@
       glossaryQuizIndex: 0,
       glossaryQuizSelectedId: "",
       glossaryQuizSeed: createSeed(),
+      chapterQuizAnswers: {},
       level: "all",
       tab: "cours"
     };
+  }
+
+  function sanitiseChapterQuizAnswers(rawValue, validChapterIds) {
+    if (!rawValue || typeof rawValue !== "object" || Array.isArray(rawValue)) {
+      return {};
+    }
+
+    return Object.fromEntries(
+      Object.entries(rawValue)
+        .filter(([chapterId, answers]) => {
+          return validChapterIds.has(chapterId) && answers && typeof answers === "object" && !Array.isArray(answers);
+        })
+        .map(([chapterId, answers]) => [
+          chapterId,
+          Object.fromEntries(
+            Object.entries(answers)
+              .filter(([quizIndex, optionIndex]) => /^\d+$/.test(quizIndex) && Number.isInteger(optionIndex) && optionIndex >= 0)
+              .map(([quizIndex, optionIndex]) => [quizIndex, optionIndex])
+          )
+        ])
+    );
   }
 
   function sanitiseState(rawState, {
@@ -74,6 +97,8 @@
     const glossaryKnownIds = Array.isArray(rawState.glossaryKnownIds)
       ? Array.from(new Set(rawState.glossaryKnownIds.filter((id) => validGlossaryIds.has(id))))
       : [];
+
+    const chapterQuizAnswers = sanitiseChapterQuizAnswers(rawState.chapterQuizAnswers, validChapterIds);
 
     return {
       currentChapterId: validChapterIds.has(rawState.currentChapterId)
@@ -102,6 +127,7 @@
       glossaryQuizSeed: Number.isInteger(rawState.glossaryQuizSeed) && rawState.glossaryQuizSeed >= 0
         ? rawState.glossaryQuizSeed
         : defaultState.glossaryQuizSeed,
+      chapterQuizAnswers,
       level: validLevelIds.has(rawState.level) ? rawState.level : defaultState.level,
       tab: validTabIds.has(rawState.tab) ? rawState.tab : defaultState.tab
     };

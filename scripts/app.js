@@ -180,6 +180,134 @@ function init() {
     return new Set(state.completedIds);
   }
 
+  function getChapterQuizAnswers(chapterId) {
+    const rawAnswers = state.chapterQuizAnswers && typeof state.chapterQuizAnswers === "object"
+      ? state.chapterQuizAnswers[chapterId]
+      : null;
+
+    if (!rawAnswers || typeof rawAnswers !== "object" || Array.isArray(rawAnswers)) {
+      return {};
+    }
+
+    return rawAnswers;
+  }
+
+  function stripInlineHtml(value) {
+    return String(value || "")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function toPromptList(items, fallback = "- aucun") {
+    if (!Array.isArray(items) || !items.length) {
+      return fallback;
+    }
+
+    return items.map((item) => `- ${stripInlineHtml(item)}`).join("\n");
+  }
+
+  function getChapterQuizMistakes(chapter) {
+    if (!chapter || !Array.isArray(chapter.quiz) || !chapter.quiz.length) {
+      return [];
+    }
+
+    const answers = getChapterQuizAnswers(chapter.id);
+
+    return chapter.quiz
+      .map((item, index) => {
+        const selectedOptionIndex = answers[index];
+
+        if (!Number.isInteger(selectedOptionIndex) || selectedOptionIndex === item.answer) {
+          return null;
+        }
+
+        return {
+          question: stripInlineHtml(item.question),
+          expected: stripInlineHtml(item.options[item.answer] || ""),
+          explanation: stripInlineHtml(item.explanation || "")
+        };
+      })
+      .filter(Boolean);
+  }
+
+  function buildAssistantPrompt(chapter, scope) {
+    const review = chapter.review || {};
+    const assistant = chapter.assistant || {};
+    const exercise = Array.isArray(chapter.exercises)
+      ? chapter.exercises.find((item) => item.title === scope)
+      : null;
+    const quizMistakes = getChapterQuizMistakes(chapter);
+
+    const chapterContext = [
+      `- Chapitre : ${stripInlineHtml(chapter.title)}`,
+      `- Niveau : ${stripInlineHtml(chapter.level)}`,
+      `- Track : ${stripInlineHtml(chapter.track)}`,
+      `- Résumé : ${stripInlineHtml(chapter.summary)}`
+    ].join("\n");
+
+    const scopedExercise = exercise ? [
+      "Cadrage spécifique demandé",
+      `- Exercice source : ${stripInlineHtml(exercise.title)}`,
+      `- Intention de départ : ${stripInlineHtml(exercise.prompt)}`,
+      `- Livrables attendus : ${exercise.deliverables.map((item) => stripInlineHtml(item)).join(" ; ")}`
+    ].join("\n") : "";
+
+    const quizSection = quizMistakes.length
+      ? [
+        "Points faibles repérés dans le quiz",
+        ...quizMistakes.slice(0, 4).map((item) => (
+          `- ${item.question} | attendu : ${item.expected} | rappel : ${item.explanation}`
+        ))
+      ].join("\n")
+      : "Points faibles repérés dans le quiz\n- Aucun résultat enregistré pour l'instant : couvre quand même l'ensemble des objectifs du chapitre.";
+
+    return [
+      "Je prépare une séance de révision guidée pour un chapitre de C++ d'ING2.",
+      "",
+      "Contexte du chapitre",
+      chapterContext,
+      "",
+      "Objectifs à faire travailler",
+      toPromptList(chapter.goals),
+      "",
+      "Notions et mots-clés à réutiliser",
+      toPromptList(chapter.highlights),
+      "",
+      "Ce qu'un enseignant attend sur ce chapitre",
+      toPromptList(review.expectations),
+      "",
+      "Pièges classiques à faire retravailler",
+      toPromptList(review.commonMistakes),
+      "",
+      "Angle pédagogique à respecter",
+      `- ${stripInlineHtml(assistant.focus || "Faire produire des exercices progressifs, concrets et reliés au contrat exact du chapitre.")}`,
+      "",
+      "Éléments à forcer dans la génération",
+      toPromptList(assistant.mustInclude),
+      "",
+      "À éviter",
+      toPromptList(assistant.avoid),
+      "",
+      quizSection,
+      scopedExercise ? `\n${scopedExercise}\n` : "",
+      "Consignes de génération",
+      "- Réponds en français.",
+      "- Propose 4 exercices progressifs, du plus guidé au plus autonome.",
+      "- Pour chaque exercice, donne : objectif, énoncé, contraintes, pièges fréquents, indice progressif, corrigé indicatif.",
+      "- Fais explicitement retravailler les pièges listés ci-dessus.",
+      "- Si des questions de quiz ont été ratées, force au moins 2 exercices à les corriger directement.",
+      "- N'introduis pas de notions importantes hors périmètre du chapitre, sauf rappel très léger si nécessaire.",
+      "- Garde un ton exigeant mais pédagogique, comme un bon enseignant d'ING2.",
+      "",
+      "Format de sortie attendu",
+      "1. Diagnostic rapide des fragilités probables",
+      "2. Série d'exercices progressive",
+      "3. Corrigés indicatifs",
+      "4. Grille finale d'auto-vérification"
+    ].filter(Boolean).join("\n");
+  }
+
   function getVisibleChapters() {
     const query = normalise(state.search);
 
@@ -419,6 +547,7 @@ function init() {
       assistantAvailable: typeof globalScope.sendPrompt === "function",
       chapter: courseViewState.currentChapter,
       doneSet: courseViewState.doneSet,
+      quizAnswers: courseViewState.currentChapter ? getChapterQuizAnswers(courseViewState.currentChapter.id) : {},
       tab: state.tab,
       tabLabels,
       visibleChapters: courseViewState.visibleChapters
@@ -529,11 +658,18 @@ function init() {
   function askForMoreExercises(scope) {
     const courseViewState = getCourseViewState();
     const chapter = courseViewState.currentChapter;
-    const chapterTitle = scope || (chapter ? chapter.title : "C++ ING2");
-    const prompt =
-      `Je révise le chapitre "${chapterTitle}". ` +
-      "Génère-moi une série d'exercices progressifs en français avec corrigés indicatifs, " +
-      "en couvrant les pièges classiques, une version challenge et les points de vigilance à vérifier.";
+
+    if (!chapter) {
+      return;
+    }
+
+    const exercise = Array.isArray(chapter.exercises)
+      ? chapter.exercises.find((item) => item.title === scope)
+      : null;
+    const prompt = buildAssistantPrompt(chapter, scope);
+    const promptContext = exercise
+      ? `${chapter.shortTitle} -> ${exercise.title}`
+      : chapter.title;
 
     if (typeof globalScope.sendPrompt === "function") {
       globalScope.sendPrompt(prompt);
@@ -545,8 +681,42 @@ function init() {
       assistantFeedback = copied
         ? "Le prompt a été copié dans le presse-papiers et reste affiché ici si tu veux le relire."
         : "Le prompt est affiché ci-dessous. Si la copie automatique a échoué, tu peux le copier manuellement.";
-      showAssistantPrompt(prompt, chapterTitle);
+      showAssistantPrompt(prompt, promptContext);
     });
+  }
+
+  function resetCurrentChapterQuiz() {
+    const courseViewState = getCourseViewState();
+    const chapter = courseViewState.currentChapter;
+
+    if (!chapter) {
+      return;
+    }
+
+    const nextAnswers = Object.assign({}, state.chapterQuizAnswers);
+    delete nextAnswers[chapter.id];
+    state.chapterQuizAnswers = nextAnswers;
+    saveState(state);
+    renderCourseSections({ chrome: false, hero: false });
+  }
+
+  function recordQuizAnswer(chapterId, quizIndex, optionIndex) {
+    if (!validChapterIds.has(chapterId)) {
+      return;
+    }
+
+    const previousAnswers = getChapterQuizAnswers(chapterId);
+
+    if (Number.isInteger(previousAnswers[quizIndex])) {
+      return;
+    }
+
+    state.chapterQuizAnswers = Object.assign({}, state.chapterQuizAnswers, {
+      [chapterId]: Object.assign({}, previousAnswers, {
+        [quizIndex]: optionIndex
+      })
+    });
+    saveState(state);
   }
 
   function goToChapter(chapterId, shouldScroll = true) {
@@ -1014,6 +1184,11 @@ function init() {
         });
         return;
       }
+
+      if (action === "reset-quiz") {
+        resetCurrentChapterQuiz();
+        return;
+      }
     }
 
     const exerciseTrigger = event.target.closest("[data-exercise-title]");
@@ -1025,10 +1200,21 @@ function init() {
     const quizButton = event.target.closest(".quiz-option");
     if (quizButton && !quizButton.hasAttribute("data-action")) {
       const card = quizButton.closest(".quiz-card");
-      if (!card || card.dataset.answered === "true") {
+      const courseViewState = getCourseViewState();
+      const chapter = courseViewState.currentChapter;
+
+      if (!card || !chapter || card.dataset.answered === "true") {
         return;
       }
 
+      const quizIndex = Number.parseInt(quizButton.dataset.quizIndex || "", 10);
+      const optionIndex = Number.parseInt(quizButton.dataset.optionIndex || "", 10);
+
+      if (!Number.isInteger(quizIndex) || !Number.isInteger(optionIndex)) {
+        return;
+      }
+
+      recordQuizAnswer(chapter.id, quizIndex, optionIndex);
       card.dataset.answered = "true";
       const allOptions = card.querySelectorAll(".quiz-option");
       allOptions.forEach((option) => {
