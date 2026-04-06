@@ -135,6 +135,8 @@ function init() {
   let assistantFeedback = "";
   let courseSearchTimer = 0;
   let glossarySearchTimer = 0;
+  let glossaryReturnTarget = null;
+  let glossaryFocusedEntryId = "";
 
   syncHash(state.currentChapterId);
   syncCurrentChapterSelection();
@@ -247,6 +249,31 @@ function init() {
 
   function scrollToChapterPanel() {
     elements.chapterPanel.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
+  }
+
+  function focusGlossaryEntryCard(entryId) {
+    if (!entryId) {
+      return;
+    }
+
+    const safeEntryId = typeof CSS !== "undefined" && typeof CSS.escape === "function"
+      ? CSS.escape(entryId)
+      : entryId;
+    const targetCard = elements.glossaryPanel.querySelector(`#glossary-entry-${safeEntryId}`);
+
+    if (!targetCard) {
+      return;
+    }
+
+    targetCard.scrollIntoView({ behavior: scrollBehavior(), block: "center" });
+
+    if (typeof targetCard.focus === "function") {
+      try {
+        targetCard.focus({ preventScroll: true });
+      } catch {
+        targetCard.focus();
+      }
+    }
   }
 
   function focusTab(tabGroup, tabValue) {
@@ -431,7 +458,11 @@ function init() {
     syncGlossaryState(state, visibleGlossaryEntries);
     renderGlossary(elements.glossaryPanel, {
       entries: visibleGlossaryEntries,
-      state
+      state,
+      context: {
+        showReturnButton: Boolean(glossaryReturnTarget),
+        targetEntryId: glossaryFocusedEntryId
+      }
     });
     highlightCodeBlocks(elements.glossaryPanel);
 
@@ -444,6 +475,10 @@ function init() {
           restored.setSelectionRange(glossarySearchCursor, glossarySearchCursor);
         }
       }
+    }
+
+    if (state.glossaryMode === "list" && glossaryFocusedEntryId) {
+      focusGlossaryEntryCard(glossaryFocusedEntryId);
     }
   }
 
@@ -603,6 +638,8 @@ function init() {
 
   function resetGlossaryView() {
     cancelGlossarySearchRender();
+    glossaryReturnTarget = null;
+    glossaryFocusedEntryId = "";
     state.glossarySearch = "";
     state.glossaryCardIndex = 0;
     state.glossaryCardFace = "front";
@@ -629,6 +666,10 @@ function init() {
     }
 
     cancelGlossarySearchRender();
+    if (!settings.keepReturnTarget) {
+      glossaryReturnTarget = null;
+      glossaryFocusedEntryId = "";
+    }
     state.glossaryMode = mode;
     state.glossaryCardFace = "front";
     state.glossaryCardSeed = createSeed();
@@ -654,12 +695,16 @@ function init() {
     const nextIndex = state.glossaryCardIndex + offset;
     state.glossaryCardIndex = (nextIndex + entries.length) % entries.length;
     state.glossaryCardFace = "front";
+    glossaryReturnTarget = null;
+    glossaryFocusedEntryId = "";
     saveState(state);
     renderGlossarySection();
   }
 
   function flipGlossaryCard() {
     state.glossaryCardFace = state.glossaryCardFace === "front" ? "back" : "front";
+    glossaryReturnTarget = null;
+    glossaryFocusedEntryId = "";
     saveState(state);
     renderGlossarySection();
   }
@@ -668,6 +713,8 @@ function init() {
     state.glossaryCardSeed = createSeed();
     state.glossaryCardIndex = 0;
     state.glossaryCardFace = "front";
+    glossaryReturnTarget = null;
+    glossaryFocusedEntryId = "";
     saveState(state);
     renderGlossarySection();
   }
@@ -715,8 +762,45 @@ function init() {
     }
 
     state.glossaryQuizSelectedId = "";
+    glossaryReturnTarget = null;
+    glossaryFocusedEntryId = "";
     saveState(state);
     renderGlossarySection();
+  }
+
+  function openGlossaryEntry(entryId, originElement = null) {
+    if (!validGlossaryIds.has(entryId)) {
+      return;
+    }
+
+    cancelGlossarySearchRender();
+    glossaryReturnTarget = originElement;
+    glossaryFocusedEntryId = entryId;
+    state.glossaryMode = "list";
+    state.glossarySearch = "";
+    state.glossaryCardIndex = 0;
+    state.glossaryCardFace = "front";
+    state.glossaryCardSeed = createSeed();
+    state.glossaryQuizIndex = 0;
+    state.glossaryQuizSelectedId = "";
+    state.glossaryQuizSeed = createSeed();
+    saveState(state);
+    renderGlossarySection({ preserveFocus: false });
+  }
+
+  function returnFromGlossary() {
+    const target = glossaryReturnTarget;
+    glossaryReturnTarget = null;
+    glossaryFocusedEntryId = "";
+    renderGlossarySection({ preserveFocus: false });
+
+    if (target && document.contains(target)) {
+      target.scrollIntoView({ behavior: scrollBehavior(), block: "center" });
+      target.focus();
+      return;
+    }
+
+    scrollToChapterPanel();
   }
 
   function isTypingTarget(target) {
@@ -796,6 +880,13 @@ function init() {
   }
 
   document.addEventListener("click", (event) => {
+    const glossaryLink = event.target.closest("[data-glossary-link]");
+    if (glossaryLink) {
+      event.preventDefault();
+      openGlossaryEntry(glossaryLink.dataset.glossaryLink, glossaryLink);
+      return;
+    }
+
     const levelFilter = event.target.closest("[data-level-filter]");
     if (levelFilter) {
       cancelCourseSearchRender();
@@ -854,6 +945,11 @@ function init() {
 
       if (action === "reset-glossary") {
         resetGlossaryView();
+        return;
+      }
+
+      if (action === "return-from-glossary") {
+        returnFromGlossary();
         return;
       }
 

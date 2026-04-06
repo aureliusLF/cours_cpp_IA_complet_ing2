@@ -26,16 +26,16 @@ registry.registerChapterBundle({
     shortTitle: "Mémoire et ownership",
     title: "Mémoire dynamique, ownership et smart pointers",
     level: "Intermédiaire",
-    duration: "45 min",
+    duration: "1 h 15",
     track: "SE2",
     summary:
-      "Ce chapitre ne te demande pas d'aimer <code>new</code> et <code>delete</code>. Il t'apprend surtout à poser la bonne question : qui possède cette ressource, qui la libère et quel type standard exprime le mieux cette responsabilité ?",
+      "Ce chapitre ne te demande pas d'aimer <code>new</code> et <code>delete</code>. Il t'apprend surtout à poser la bonne question : qui possède cette ressource, qui la libère et quel type standard exprime le mieux cette responsabilité ? Il développe aussi les opérations pratiques des smart pointers et les critères pour préférer la valeur simple, <code>vector</code>, <code>unique_ptr</code>, <code>shared_ptr</code> ou <code>weak_ptr</code>.",
     goals: [
       "distinguer pile, tas et durée de vie, mais surtout relier ces notions à un choix d'ownership",
       "préférer une abstraction standard comme <code>std::vector</code> ou <code>std::unique_ptr</code> quand elle exprime déjà correctement la possession",
-      "expliquer la différence entre possession exclusive, copropriété, observation et cycle de références"
+      "expliquer la différence entre possession exclusive, copropriété, observation et cycle de références, puis utiliser correctement <code>get()</code>, <code>release()</code>, <code>reset()</code> et <code>lock()</code>"
     ],
-    highlights: ["ownership", "std::vector", "unique_ptr", "shared_ptr", "weak_ptr"],
+    highlights: ["ownership", "std::vector", "unique_ptr", "shared_ptr", "weak_ptr", "get/reset/release"],
     body: [
       lesson(
         "Modèle mental : le vrai sujet n'est pas le tas, c'est la responsabilité",
@@ -54,6 +54,28 @@ registry.registerChapterBundle({
           ]
         ),
         callout("info", "Question centrale", "Ne demande pas d'abord 'est-ce que c'est sur le heap ?'. Demande d'abord 'qui est responsable de la destruction ?'")
+      ),
+      lesson(
+        "Valeur locale d'abord, allocation ensuite seulement si le besoin est réel",
+        paragraphs(
+          "Beaucoup de problèmes de mémoire disparaissent avant même de commencer si l'on garde un réflexe simple : préfère la valeur locale ou le conteneur standard tant que cela suffit. Tous les objets n'ont pas besoin d'être alloués dynamiquement. Une allocation doit répondre à un besoin réel de durée de vie flexible, de taille dynamique ou de polymorphisme par indirection.",
+          "Ce réflexe est capital, car il évite d'introduire de l'ownership là où il n'y en a pas besoin. Un <code>std::string</code>, un <code>std::vector</code> ou un objet métier local sont déjà capables de gérer proprement leurs ressources sans t'obliger à penser à <code>delete</code>."
+        ),
+        code(
+          "cpp",
+          `
+Rapport rapport{"semestre 4"};                 // valeur simple
+std::vector<int> notes{12, 15, 9};            // collection dynamique auto-geree
+auto cache = std::make_unique<CacheMemoire>(); // ownership exclusif justifie
+          `,
+          "Ne pas allouer dynamiquement sans raison precise"
+        ),
+        bullets([
+          "La valeur locale est souvent le choix le plus simple et le plus sûr.",
+          "<code>std::vector</code> exprime déjà une allocation dynamique propriétaire.",
+          "<code>unique_ptr</code> intervient quand la ressource doit rester indirecte et clairement possédée."
+        ]),
+        callout("success", "Bon ordre de réflexion", "Commence par te demander si un objet local ou un conteneur standard suffit. Choisis un smart pointer seulement si la relation de propriété l'exige vraiment.")
       ),
       lesson(
         "Exemple minimal : éviter <code>new</code> dès que la bibliothèque sait déjà mieux faire",
@@ -78,6 +100,38 @@ std::cout << *rapport << '\n';
           "Aucun <code>delete</code> manuel n'apparaît dans le code appelant."
         ]),
         callout("success", "Exemple minimal avant les variantes", "Quand un type standard exprime déjà la bonne propriété, choisis-le avant d'inventer une gestion mémoire manuelle.")
+      ),
+      lesson(
+        "API pratique des smart pointers : <code>get()</code>, <code>release()</code>, <code>reset()</code> et <code>lock()</code>",
+        paragraphs(
+          "Les smart pointers ne sont pas seulement des noms de types ; ils viennent avec un petit vocabulaire d'opérations qu'il faut comprendre précisément. <code>get()</code> observe le pointeur brut sans céder la propriété. <code>release()</code> abandonne la propriété d'un <code>unique_ptr</code>. <code>reset()</code> remplace ou libère la ressource gérée. <code>lock()</code>, côté <code>weak_ptr</code>, tente d'obtenir temporairement un <code>shared_ptr</code> valide.",
+          "Ces opérations sont puissantes, mais elles ne sont pas interchangeables. Les confondre revient à brouiller le contrat d'ownership. La bonne pratique est de rester dans le monde RAII tant qu'aucune interopération avec une API bas niveau ne t'oblige à sortir temporairement de ce cadre."
+        ),
+        code(
+          "cpp",
+          `
+auto fichier = std::make_unique<Fichier>();
+Fichier* observateur = fichier.get(); // observation temporaire
+
+fichier.reset(); // detruit la ressource geree
+
+std::weak_ptr<Session> vue = sessionPartagee;
+if (auto session = vue.lock()) {
+    session->rafraichir();
+}
+          `,
+          "Chaque operation modifie ou non le contrat de possession"
+        ),
+        table(
+          ["Opération", "Effet principal", "Risque à surveiller"],
+          [
+            ["<code>get()</code>", "Expose une observation brute sans céder la propriété", "Conserver trop longtemps le pointeur brut après la destruction du smart pointer"],
+            ["<code>release()</code>", "Abandonne la propriété sans détruire", "Fuite mémoire si personne ne reprend clairement la destruction"],
+            ["<code>reset()</code>", "Libère ou remplace la ressource gérée", "Perdre une ressource si l'on oublie ce qui était encore utilisé ailleurs"],
+            ["<code>lock()</code>", "Tente d'obtenir une possession temporaire depuis un <code>weak_ptr</code>", "Supposer que la cible existe toujours sans vérifier le résultat"]
+          ]
+        ),
+        callout("info", "Règle pratique", "Si tu n'as pas une bonne raison d'utiliser <code>release()</code>, c'est probablement que tu n'en as pas besoin. La plupart du temps, <code>get()</code> pour observer ou rien du tout suffisent.")
       ),
       lesson(
         "Piège classique : on peut fuir ou sur-partager une ressource en croyant simplifier",
@@ -119,7 +173,8 @@ struct Noeud {
             ["<code>unique_ptr</code>", "Possession exclusive", "Sortir de RAII avec <code>release()</code> sans reprise explicite."],
             ["<code>shared_ptr</code>", "Copropriété", "Créer des cycles ou sur-utiliser le partage."],
             ["<code>weak_ptr</code>", "Observation sans prolonger la durée de vie", "Oublier de vérifier avec <code>lock()</code>."],
-            ["<code>T*</code> brut", "Observation ou interopération bas niveau", "L'utiliser comme propriétaire sans contrat clair."]
+            ["<code>T*</code> brut", "Observation ou interopération bas niveau", "L'utiliser comme propriétaire sans contrat clair."],
+            ["<code>get()/reset()/release()</code>", "Opérations fines sur l'ownership d'un smart pointer", "Brouiller le contrat si l'on confond observation, destruction et abandon de propriété."]
           ]
         ),
         code(
@@ -166,9 +221,11 @@ auto destination = std::move(source); // transfert de possession
     ].join(""),
     checklist: [
       "Je peux expliquer ce que signifie posséder une ressource et pourquoi cette notion est plus importante que le simple mot 'heap'.",
+      "Je peux expliquer pourquoi la valeur locale ou <code>std::vector</code> doivent être envisagés avant une allocation dynamique explicite.",
       "Je peux justifier l'usage de <code>std::vector</code> pour une collection dynamique au lieu d'un tableau géré à la main.",
       "Je peux créer un <code>unique_ptr</code> avec <code>make_unique</code> et expliquer pourquoi il n'est pas copiable.",
       "Je peux décrire ce que <code>std::move</code> change dans un transfert de possession.",
+      "Je peux distinguer précisément <code>get()</code>, <code>release()</code>, <code>reset()</code> et <code>lock()</code>.",
       "Je peux expliquer les risques de <code>release()</code>, <code>get()</code> et <code>shared_ptr</code> utilisé par confort.",
       "Je peux expliquer pourquoi un cycle de <code>shared_ptr</code> fuit et comment <code>weak_ptr</code> le casse.",
       "Je peux distinguer un pointeur brut observateur d'un propriétaire réel."
@@ -191,6 +248,16 @@ auto destination = std::move(source); // transfert de possession
         explanation: "Le point important n'est pas la syntaxe de <code>std::move</code>, mais le contrat qui change : la source n'est plus propriétaire. Le transfert est donc explicite et visible."
       },
       {
+        question: "Quel réflexe de conception est le plus sain avant d'introduire un smart pointer ?",
+        options: [
+          "Vérifier d'abord si une valeur locale ou un conteneur standard suffit",
+          "Allouer dynamiquement tout objet pour être plus flexible",
+          "Choisir automatiquement <code>shared_ptr</code> pour éviter les questions"
+        ],
+        answer: 0,
+        explanation: "Le but n'est pas de remplacer systématiquement les valeurs par des pointeurs intelligents. Le meilleur code est souvent celui qui n'a pas besoin d'ownership complexe."
+      },
+      {
         question: "Pourquoi un cycle de <code>shared_ptr</code> crée-t-il une fuite mémoire ?",
         options: [
           "Parce que <code>shared_ptr</code> ne gère pas les destructions",
@@ -209,6 +276,16 @@ auto destination = std::move(source); // transfert de possession
         ],
         answer: 1,
         explanation: "<code>get()</code> laisse RAII intact. <code>release()</code>, au contraire, sort volontairement du cadre automatique : tu récupères le pointeur brut et la responsabilité de penser à sa destruction."
+      },
+      {
+        question: "À quoi sert principalement <code>lock()</code> sur un <code>weak_ptr</code> ?",
+        options: [
+          "À reprendre définitivement la propriété exclusive de la ressource",
+          "À obtenir temporairement un <code>shared_ptr</code> valide si la ressource existe encore",
+          "À libérer immédiatement la ressource observée"
+        ],
+        answer: 1,
+        explanation: "<code>weak_ptr</code> n'est pas propriétaire. <code>lock()</code> permet donc de vérifier si la ressource existe encore avant d'en obtenir une possession partagée temporaire."
       }
     ],
     exercises: [
@@ -244,9 +321,20 @@ auto destination = std::move(source); // transfert de possession
           "une seconde version corrigée avec <code>weak_ptr</code>",
           "une explication de ce que signifie ici 'observer sans posséder'"
         ]
+      },
+      {
+        title: "Choisir le bon ownership",
+        difficulty: "Intermédiaire",
+        time: "25 min",
+        prompt: "Pour six situations concrètes de ton choix, décide si la bonne réponse est valeur locale, <code>std::vector</code>, <code>unique_ptr</code>, <code>shared_ptr</code>, <code>weak_ptr</code> ou pointeur brut observateur. L'objectif est d'apprendre à justifier le choix, pas juste à réciter les types.",
+        deliverables: [
+          "les six situations décrites en une phrase chacune",
+          "le type choisi avec une justification d'ownership",
+          "au moins un cas où tu expliques pourquoi <code>shared_ptr</code> serait une mauvaise idée"
+        ]
       }
     ],
-    keywords: ["memory", "ownership", "vector", "unique_ptr", "shared_ptr", "weak_ptr", "heap", "make_unique", "make_shared", "reference counting", "cycle", "observer", "release", "reset"]
+    keywords: ["memory", "ownership", "vector", "unique_ptr", "shared_ptr", "weak_ptr", "heap", "make_unique", "make_shared", "reference counting", "cycle", "observer", "get", "release", "reset", "lock"]
   })),
   deepDives: [
     {
@@ -265,6 +353,23 @@ auto destination = std::move(source); // transfert de possession
         "Associe ensuite chaque allocation à un propriétaire clair et unique ou partagé."
       ],
       check: "Quand choisis-tu le tas pour une bonne raison, et quand n'est-ce qu'une complication inutile ?"
+    },
+    {
+      focus: "Le meilleur smart pointer reste souvent... l'absence de smart pointer. Une valeur locale, un vector ou un string bien placés évitent d'introduire une couche d'indirection, de propriété et de complexité qui n'apporte rien au problème métier.",
+      retenir: [
+        "Un objet local ou un conteneur standard suffit dans une énorme partie des cas.",
+        "Introduire un pointeur sans besoin réel complique la lecture du code et la gestion de durée de vie."
+      ],
+      pitfalls: [
+        "Allouer dynamiquement par réflexe dès qu'un objet existe.",
+        "Confondre 'objet non trivial' et 'objet qui doit vivre sur le heap'."
+      ],
+      method: [
+        "Commence par essayer une valeur locale.",
+        "Si une séquence dynamique est nécessaire, essaie ensuite un conteneur standard.",
+        "N'introduis un smart pointer que lorsqu'une relation de propriété l'exige clairement."
+      ],
+      check: "Pour un objet donné, peux-tu justifier pourquoi une simple valeur locale ne suffirait pas ?"
     },
     {
       focus: "Éviter new/delete en première intention, c'est éviter une grande partie des bugs de durée de vie. Les conteneurs et smart pointers standard rendent les responsabilités plus explicites et beaucoup moins fragiles.",
@@ -299,6 +404,23 @@ auto destination = std::move(source); // transfert de possession
         "Vérifie toujours que la durée de vie de la cible dépasse celle de l'usage."
       ],
       check: "Dans une signature, saurais-tu distinguer immédiatement un pointeur d'observation d'un mécanisme de propriété ?"
+    },
+    {
+      focus: "Les opérations des smart pointers sont de petits changements de contrat. <code>get()</code> expose une vue, <code>reset()</code> modifie la ressource possédée, <code>release()</code> abandonne la possession, et <code>lock()</code> tente de reprendre temporairement une vue propriétaire depuis un <code>weak_ptr</code>.",
+      retenir: [
+        "Chaque appel modifie ou non la responsabilité de destruction.",
+        "Rester dans RAII est la stratégie normale ; en sortir doit être rare et conscient."
+      ],
+      pitfalls: [
+        "Conserver un pointeur issu de <code>get()</code> plus longtemps que le smart pointer source.",
+        "Utiliser <code>release()</code> comme raccourci quotidien au lieu d'une interopération ponctuelle et contrôlée."
+      ],
+      method: [
+        "Demande-toi si tu observes la ressource, si tu la remplaces, ou si tu abandonnes volontairement sa destruction.",
+        "Choisis l'opération qui correspond exactement à ce besoin et à aucun autre.",
+        "Si le besoin reste flou, n'utilise aucune de ces opérations avancées et reste dans le flux RAII normal."
+      ],
+      check: "Peux-tu expliquer, pour un exemple concret, pourquoi <code>get()</code> n'est pas équivalent à <code>release()</code> ?"
     },
     {
       focus: "unique_ptr est l'outil de propriété par défaut. Il exprime sans ambiguïté 'une seule entité est responsable de cette ressource'. Comprendre ses opérations — move, release, reset, custom deleter — permet de couvrir l'immense majorité des besoins de gestion manuelle tout en restant sûr.",

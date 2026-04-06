@@ -91,24 +91,22 @@ function renderCodeBlock(codeExample) {
 
 function renderStudyButtons(entryId, isKnown) {
   return `
-    <div class="glossary-card__actions">
-      <button
-        class="ghost-button ghost-button--compact"
-        type="button"
-        data-action="glossary-mark-review"
-        data-glossary-entry-id="${entryId}"
-      >
-        À revoir
-      </button>
-      <button
-        class="action-button ${isKnown ? "action-button--outline" : "action-button--primary"}"
-        type="button"
-        data-action="glossary-mark-known"
-        data-glossary-entry-id="${entryId}"
-      >
-        ${isKnown ? "Connu" : "Je connais"}
-      </button>
-    </div>
+    <button
+      class="ghost-button ghost-button--compact"
+      type="button"
+      data-action="glossary-mark-review"
+      data-glossary-entry-id="${entryId}"
+    >
+      À revoir
+    </button>
+    <button
+      class="action-button ${isKnown ? "action-button--outline" : "action-button--primary"}"
+      type="button"
+      data-action="glossary-mark-known"
+      data-glossary-entry-id="${entryId}"
+    >
+      ${isKnown ? "Connu" : "Je connais"}
+    </button>
   `;
 }
 
@@ -311,15 +309,16 @@ function buildQuizQuestion(entries, state) {
   );
 }
 
-function renderListMode(entries, knownSet) {
+function renderListMode(entries, knownSet, context = {}) {
   return `
     <div class="glossary-grid glossary-grid--study">
       ${entries.map((entry) => {
         const isKnown = knownSet.has(entry.id);
+        const isTargeted = context.targetEntryId === entry.id;
         return `
           <article
             id="glossary-entry-${escapeAttribute(entry.id)}"
-            class="glossary-card glossary-card--study ${isKnown ? "is-known" : ""}"
+            class="glossary-card glossary-card--study ${isKnown ? "is-known" : ""} ${isTargeted ? "is-targeted" : ""}"
             data-glossary-entry-id="${escapeAttribute(entry.id)}"
             tabindex="-1"
           >
@@ -335,7 +334,18 @@ function renderListMode(entries, knownSet) {
             <div class="glossary-card__tags">
               ${entry.tags.map((tag) => `<span class="glossary-tag">${tag}</span>`).join("")}
             </div>
-            ${renderStudyButtons(entry.id, isKnown)}
+            <div class="glossary-card__actions">
+              ${isTargeted && context.showReturnButton ? `
+                <button
+                  class="ghost-button ghost-button--compact"
+                  type="button"
+                  data-action="return-from-glossary"
+                >
+                  Retour au cours
+                </button>
+              ` : ""}
+              ${renderStudyButtons(entry.id, isKnown)}
+            </div>
           </article>
         `;
       }).join("")}
@@ -394,7 +404,9 @@ function renderFlashcardsMode(entries, state, knownSet) {
         <button class="action-button action-button--primary" type="button" data-action="glossary-next">Nouvelle carte</button>
       </div>
 
-      ${renderStudyButtons(current.id, isKnown)}
+      <div class="glossary-card__actions">
+        ${renderStudyButtons(current.id, isKnown)}
+      </div>
     </div>
   `;
 }
@@ -510,7 +522,7 @@ function syncGlossaryState(state, visibleEntries) {
   state.glossaryQuizIndex = Math.min(state.glossaryQuizIndex, visibleEntries.length - 1);
 }
 
-function renderGlossary(container, { entries, state }) {
+function renderGlossary(container, { entries, state, context = {} }) {
   const knownSet = new Set(state.glossaryKnownIds);
   const knownCount = entries.filter((entry) => knownSet.has(entry.id)).length;
   const glossarySearchId = "glossarySearch";
@@ -532,7 +544,7 @@ function renderGlossary(container, { entries, state }) {
   } else if (state.glossaryMode === "quiz") {
     content = renderQuizMode(entries, state, knownSet);
   } else {
-    content = renderListMode(entries, knownSet);
+    content = renderListMode(entries, knownSet, context);
   }
 
   content = `

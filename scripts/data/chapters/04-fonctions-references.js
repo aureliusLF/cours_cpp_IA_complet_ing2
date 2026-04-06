@@ -26,16 +26,16 @@ registry.registerChapterBundle({
     shortTitle: "Fonctions et références",
     title: "Fonctions, surcharge, références et espaces de noms",
     level: "Fondations",
-    duration: "35 min",
+    duration: "1 h 10",
     track: "SE1",
     summary:
-      "Une grande partie de la qualité d'un code C++ se joue dans ses signatures. Ce chapitre apprend à exprimer clairement copie, lecture, modification et absence possible, sans supposer de pratique préalable des pointeurs du C.",
+      "Une grande partie de la qualité d'un code C++ se joue dans ses signatures. Ce chapitre apprend à exprimer clairement copie, lecture, modification et absence possible, mais aussi à lire la forme complète d'une fonction, ses paramètres, sa valeur de retour, ses déclarations et son découpage entre header et source.",
     goals: [
       "choisir entre passage par valeur, <code>const T&amp;</code>, <code>T&amp;</code> et <code>T*</code> en fonction de l'intention",
-      "utiliser surcharge et paramètres par défaut sans fabriquer d'ambiguïté inutile",
-      "organiser une petite API avec namespace, header propre et signatures lisibles"
+      "lire une déclaration de fonction complète, distinguer prototype, définition, retour par valeur ou par référence, et éviter les erreurs de durée de vie",
+      "utiliser surcharge et paramètres par défaut sans fabriquer d'ambiguïté inutile, puis organiser une petite API avec namespace, header propre et signatures lisibles"
     ],
-    highlights: ["const&", "T&", "namespace", "header", "API"],
+    highlights: ["const&", "T&", "prototype", "return", "namespace", "header", "API"],
     body: [
       lesson(
         "Modèle mental : une signature est un contrat",
@@ -53,6 +53,41 @@ registry.registerChapterBundle({
           ]
         ),
         callout("info", "Question directrice", "Quand tu écris une signature, ne commence pas par la syntaxe. Commence par la phrase métier : je lis, je modifie, je copie ou j'accepte qu'il n'y ait rien.")
+      ),
+      lesson(
+        "Anatomie complète d'une fonction : nom, paramètres, retour et prototype",
+        paragraphs(
+          "Avant même de parler de références, il faut savoir lire la forme complète d'une fonction. Le type placé avant le nom décrit ce qui est renvoyé. La liste entre parenthèses décrit ce que l'appelant doit fournir. Le prototype annonce l'existence et le contrat d'une fonction ; la définition apporte ensuite son corps.",
+          "Cette distinction devient très importante dès qu'un projet comporte plusieurs fichiers. Le header expose les prototypes utiles à d'autres fichiers. Le source contient les définitions. Comprendre cela tôt évite beaucoup de confusion sur ce qu'une fonction 'est' et ce qu'un fichier a besoin de connaître."
+        ),
+        code(
+          "cpp",
+          `
+double moyenne(const std::vector<double>& notes); // prototype
+
+double moyenne(const std::vector<double>& notes) { // definition
+    double total{0.0};
+
+    for (double note : notes) {
+        total += note;
+    }
+
+    return notes.empty() ? 0.0 : total / notes.size();
+}
+          `,
+          "Meme contrat, puis implementation concrete"
+        ),
+        table(
+          ["Élément", "Rôle"],
+          [
+            ["Type de retour", "Décrit la valeur renvoyée au code appelant."],
+            ["Nom de fonction", "Porte l'intention métier de l'opération."],
+            ["Paramètres", "Décrivent les données d'entrée et leur contrat d'usage."],
+            ["Prototype", "Annonce la fonction sans exposer son implémentation."],
+            ["Définition", "Donne le corps réellement exécuté."]
+          ]
+        ),
+        callout("success", "Réflexe de lecture", "Quand tu rencontres une fonction, lis-la dans cet ordre : qu'est-ce qu'elle renvoie, comment s'appelle-t-elle, qu'attend-elle en entrée, puis seulement comment elle s'implémente.")
       ),
       lesson(
         "Exemple minimal : même donnée, contrats différents",
@@ -77,6 +112,33 @@ void afficherNoteOptionnelle(const int* note);
           "<code>T*</code> peut exprimer qu'il n'y a peut-être pas d'objet à traiter."
         ]),
         callout("success", "Exemple minimal avant les variantes", "Si tu hésites, choisis d'abord entre <code>T</code>, <code>const T&amp;</code> et <code>T&amp;</code>. Le pointeur vient ensuite quand l'absence ou l'adresse doivent être explicites.")
+      ),
+      lesson(
+        "Valeur de retour, références de retour et durée de vie",
+        paragraphs(
+          "Le contrat d'une fonction ne s'arrête pas à ses paramètres. Il faut aussi réfléchir à ce qu'elle renvoie. Retourner par valeur est souvent le choix le plus simple et le plus sûr. Retourner une référence ou un pointeur n'est juste que si la cible renvoyée reste valide après la fin de la fonction.",
+          "C'est ici qu'apparaissent certains bugs très subtils. Une référence vers un objet local détruit n'est pas seulement 'mal stylée' : elle casse complètement le contrat de durée de vie. À l'inverse, retourner une référence vers un objet appartenant déjà à l'appelant ou à un objet durable peut être parfaitement légitime."
+        ),
+        code(
+          "cpp",
+          `
+std::string construireNom() {
+    std::string nom{"Lina"};
+    return nom; // retour par valeur : sain
+}
+
+const std::string& meilleurEtudiant(const Classement& classement) {
+    return classement.premierNom(); // reference valide si l'objet classement reste vivant
+}
+          `,
+          "Le choix du retour raconte une duree de vie"
+        ),
+        bullets([
+          "Un retour par valeur crée une donnée indépendante pour l'appelant.",
+          "Un retour par référence suppose qu'une cible existante et durable continue à vivre.",
+          "Un retour par pointeur peut exprimer une absence possible, mais il impose aussi un contrat de validité."
+        ]),
+        callout("info", "Question décisive", "Quand tu vois une référence en retour, pose immédiatement la question : vers quel objet pointe-t-elle, et jusqu'à quand cet objet existe-t-il ?")
       ),
       lesson(
         "Piège classique : une bonne idée métier peut cacher un mauvais contrat",
@@ -114,6 +176,8 @@ using namespace std;
           [
             ["Pourquoi <code>const T&amp;</code> ?", "Pour lire un objet potentiellement coûteux sans le copier ni le modifier."],
             ["Quand choisir <code>T&amp;</code> ?", "Quand la fonction doit modifier l'objet reçu."],
+            ["À quoi sert un prototype ?", "À annoncer le contrat d'une fonction sans exposer encore son implémentation."],
+            ["Quand préférer un retour par valeur ?", "Quand on veut fournir un résultat indépendant sans dépendre d'une durée de vie externe fragile."],
             ["Quand un pointeur est-il plus juste qu'une référence ?", "Quand l'absence de cible ou la manipulation explicite d'adresse fait partie du contrat."],
             ["Quand éviter une surcharge ?", "Quand il devient difficile de savoir quelle variante sera appelée ou ce que l'API veut vraiment dire."]
           ]
@@ -173,6 +237,9 @@ private:
     checklist: [
       "Je peux justifier quand passer un paramètre par valeur plutôt que par référence.",
       "Je peux expliquer la différence de contrat entre <code>const T&amp;</code>, <code>T&amp;</code> et <code>T*</code>.",
+      "Je peux lire la forme complète d'un prototype de fonction et expliquer le rôle du type de retour, du nom et des paramètres.",
+      "Je peux distinguer déclaration de fonction et définition de fonction.",
+      "Je peux justifier quand un retour par valeur est plus sain qu'un retour par référence.",
       "Je peux repérer une référence dangereuse vers un objet local détruit.",
       "Je peux expliquer pourquoi <code>using namespace std;</code> n'a pas sa place dans un header.",
       "Je peux dire quand une surcharge améliore l'API et quand elle la rend ambiguë.",
@@ -196,6 +263,16 @@ private:
         explanation: "Le problème n'est pas la syntaxe, mais la durée de vie. La référence paraît pratique, mais elle pointe ici vers un objet qui n'existe plus après le retour."
       },
       {
+        question: "Que représente principalement un prototype comme <code>double moyenne(const std::vector&lt;double&gt;&amp; notes);</code> ?",
+        options: [
+          "La déclaration du contrat de la fonction sans son implémentation",
+          "Une variable globale spéciale",
+          "Une surcharge déjà exécutée à la compilation"
+        ],
+        answer: 0,
+        explanation: "Le prototype annonce qu'une fonction existe et précise comment elle s'utilise. Il n'a pas encore besoin de montrer le corps de l'algorithme."
+      },
+      {
         question: "Pourquoi éviter <code>using namespace std;</code> dans un header ?",
         options: [
           "Parce que c'est interdit par la norme",
@@ -214,6 +291,16 @@ private:
         ],
         answer: 0,
         explanation: "La référence suppose une cible existante. Le pointeur devient intéressant quand l'absence fait partie du contrat ou quand l'adresse elle-même doit être manipulée."
+      },
+      {
+        question: "Dans quel cas un retour par valeur est-il souvent le choix le plus simple et le plus sûr ?",
+        options: [
+          "Quand la fonction doit fournir un résultat indépendant de son état interne",
+          "Jamais, car toute copie est interdite",
+          "Uniquement pour les fonctions <code>void</code>"
+        ],
+        answer: 0,
+        explanation: "Retourner par valeur clarifie souvent le contrat : l'appelant reçoit son propre résultat, sans dépendre de la durée de vie interne de la fonction."
       },
       {
         question: "Quel usage de la surcharge reste sain ?",
@@ -239,6 +326,17 @@ private:
         ]
       },
       {
+        title: "Prototype, source et durée de vie",
+        difficulty: "Intermédiaire",
+        time: "30 min",
+        prompt: "Écris un petit module avec un header et un source contenant au moins trois fonctions : une qui retourne une valeur simple, une qui modifie un objet existant, et une qui renvoie une référence légitime. Ajoute aussi un exemple volontairement faux de référence de retour et explique précisément pourquoi il est dangereux.",
+        deliverables: [
+          "un header contenant uniquement les déclarations nécessaires",
+          "un source avec les définitions correspondantes",
+          "une note expliquant le contrat de durée de vie pour chaque retour"
+        ]
+      },
+      {
         title: "Mini bibliothèque de géométrie",
         difficulty: "Intermédiaire",
         time: "30 min",
@@ -250,7 +348,7 @@ private:
         ]
       }
     ],
-    keywords: ["fonctions", "surcharge", "reference", "const ref", "namespace", "header", "signature", "contrat", "api"]
+    keywords: ["fonctions", "prototype", "definition", "surcharge", "reference", "const ref", "namespace", "header", "signature", "contrat", "api", "return", "duree de vie"]
   })),
   deepDives: [
     {
@@ -271,6 +369,23 @@ private:
       check: "Pourrais-tu justifier, paramètre par paramètre, pourquoi une fonction doit recevoir une valeur, une référence ou une référence constante ?"
     },
     {
+      focus: "La forme d'une fonction se lit comme une petite phrase technique complète : type de retour, nom, liste de paramètres, éventuellement qualification <code>const</code> pour une méthode. Maîtriser cette lecture rend beaucoup plus autonome face à une API inconnue.",
+      retenir: [
+        "Le prototype et la définition décrivent la même fonction à deux niveaux différents.",
+        "Le type de retour fait partie du contrat public, pas d'un simple détail d'implémentation."
+      ],
+      pitfalls: [
+        "Lire d'abord le corps sans avoir compris ce que la signature promet.",
+        "Confondre déclaration, définition et appel de fonction."
+      ],
+      method: [
+        "Lis d'abord le type de retour.",
+        "Identifie ensuite le nom et les paramètres.",
+        "Demande-toi enfin ce qui appartient à l'interface publique et ce qui relève du .cpp."
+      ],
+      check: "Face à un prototype isolé, peux-tu déjà expliquer ce que l'appelant doit fournir et ce qu'il recevra en retour ?"
+    },
+    {
       focus: "La surcharge est puissante lorsqu'elle exprime plusieurs usages cohérents d'une même opération. Elle devient dangereuse dès qu'elle force le lecteur à deviner quelle version sera réellement appelée.",
       retenir: [
         "Des surcharges valables partagent un sens commun, pas seulement un nom commun.",
@@ -286,6 +401,23 @@ private:
         "Teste mentalement plusieurs appels pour vérifier qu'aucune ambiguïté ne subsiste."
       ],
       check: "Si deux surcharges portent le même nom, peux-tu expliquer en quoi leur contrat reste tout de même cohérent ?"
+    },
+    {
+      focus: "Les valeurs de retour racontent aussi une durée de vie. Retourner par valeur, par référence ou par pointeur ne dit pas seulement 'comment transmettre', mais aussi 'quelle relation durable l'appelant entretient avec le résultat'.",
+      retenir: [
+        "Un retour par valeur est souvent le plus simple à raisonner.",
+        "Une référence de retour n'est saine que si la cible existe encore après le retour."
+      ],
+      pitfalls: [
+        "Retourner une référence vers une variable locale détruite.",
+        "Choisir une référence de retour uniquement pour éviter une copie supposée coûteuse, sans vérifier si le contrat reste sain."
+      ],
+      method: [
+        "Identifie d'abord la source réelle de la donnée renvoyée.",
+        "Demande-toi ensuite si cette source survit à la fin de la fonction.",
+        "Si la réponse n'est pas clairement oui, préfère un retour par valeur."
+      ],
+      check: "Quand une fonction renvoie une référence, sais-tu nommer l'objet exact auquel cette référence se rattache ?"
     },
     {
       focus: "Les namespaces et la discipline de header servent à éviter l'entropie. Plus un projet grandit, plus les collisions de noms, les dépendances croisées et les inclusions inutiles deviennent coûteuses.",

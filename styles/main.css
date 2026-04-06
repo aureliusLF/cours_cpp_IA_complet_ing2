@@ -1383,6 +1383,34 @@ kbd {
   margin-top: 10px;
 }
 
+.glossary-link {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  -webkit-appearance: none;
+  appearance: none;
+  color: var(--accent-dark);
+  font: inherit;
+  font-weight: 700;
+  line-height: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.16em;
+  cursor: pointer;
+}
+
+.glossary-link:hover {
+  color: var(--accent);
+}
+
+.glossary-link:focus-visible {
+  border-radius: 999px;
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--accent-light);
+}
+
 /* ===== DEEP DIVE ===== */
 .lesson-deep-dive {
   margin-top: 16px;
@@ -1742,6 +1770,11 @@ kbd {
 
 .glossary-card--study.is-known {
   border-color: var(--success);
+}
+
+.glossary-card--study.is-targeted {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-light), var(--shadow-hover);
 }
 
 .glossary-card__head h3 {

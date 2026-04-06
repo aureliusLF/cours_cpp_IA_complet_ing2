@@ -263,10 +263,6 @@ function deriveAliases(term) {
   const baseTerm = String(term || "").trim();
   const aliases = [];
 
-  if (baseTerm.startsWith("std::")) {
-    aliases.push(baseTerm.replace(/^std::/, ""));
-  }
-
   if (baseTerm.includes(" / ")) {
     aliases.push(...baseTerm.split(" / ").map((item) => item.trim()));
   }
@@ -296,9 +292,21 @@ function prepareGlossaryEntries(entries) {
     .filter(Boolean);
 }
 
+function getGlossaryLinkTerms(entry) {
+  if (!entry || entry.autoLink === false) {
+    return [];
+  }
+
+  if (Array.isArray(entry.linkTerms) && entry.linkTerms.length) {
+    return uniqueValues(entry.linkTerms);
+  }
+
+  return uniqueValues([entry.term, ...(entry.aliases || [])]);
+}
+
 function createGlossaryLinkIndex(glossaryEntries) {
   return glossaryEntries
-    .flatMap((entry) => uniqueValues([entry.term, ...(entry.aliases || [])]).map((phrase) => ({
+    .flatMap((entry) => getGlossaryLinkTerms(entry).map((phrase) => ({
       entryId: entry.id,
       phrase,
       normalisedPhrase: normaliseForSearch(phrase)

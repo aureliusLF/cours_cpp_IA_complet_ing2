@@ -11,6 +11,7 @@ registry.setGlossary([
     term: "Algorithme (STL)",
     text: "Fonction template capable de s'appliquer à une collection d'éléments en naviguant via des itérateurs.",
     aliases: ["algorithmes STL", "algorithme STL"],
+    autoLink: false,
     tags: ["stl", "algorithmes"]
   },
   {
@@ -58,6 +59,7 @@ registry.setGlossary([
     term: "Constructeur",
     text: "Fonction membre spéciale appelée à la création de l'objet. Son rôle n'est pas seulement de remplir des champs, mais de produire un objet immédiatement valide.",
     aliases: ["constructeurs"],
+    linkTerms: ["constructeur", "constructeurs"],
     tags: ["poo", "cycle de vie"]
   },
   {
@@ -79,6 +81,7 @@ registry.setGlossary([
     term: "Destructeur",
     text: "Fonction membre spéciale appelée automatiquement en fin de vie d'un objet pour libérer les ressources qu'il possède réellement.",
     aliases: ["destructeurs"],
+    linkTerms: ["destructeur", "destructeurs"],
     tags: ["poo", "cycle de vie", "raii"]
   },
   {
@@ -90,6 +93,7 @@ registry.setGlossary([
     term: "Espace de noms (namespace)",
     text: "Mécanisme de regroupement logique qui évite les collisions de noms et signale qu'un type ou une fonction appartient à un domaine précis.",
     aliases: ["namespace", "espaces de noms"],
+    linkTerms: ["namespace", "espace de noms", "espaces de noms"],
     tags: ["compilation", "organisation"]
   },
   {
@@ -180,6 +184,7 @@ registry.setGlossary([
     term: "Move semantics",
     text: "Mécanisme permettant de transférer une ressource au lieu de la recopier.",
     aliases: ["move", "deplacement", "déplacement", "move semantics"],
+    linkTerms: ["move semantics"],
     tags: ["performance", "ownership"]
   },
   {
@@ -192,6 +197,7 @@ registry.setGlossary([
     term: "Ownership",
     text: "Relation qui désigne qui est responsable de la durée de vie d'une ressource et donc de sa libération. C'est l'idée centrale derrière RAII, <code>unique_ptr</code> et <code>shared_ptr</code>.",
     aliases: ["proprietaire", "propriétaire", "propriete", "propriété"],
+    linkTerms: ["ownership"],
     tags: ["memoire", "ressources"]
   },
   {
@@ -224,6 +230,7 @@ registry.setGlossary([
     term: "RAII",
     text: "Principe qui confie une ressource à un objet dès sa construction et la libère automatiquement à sa destruction. Cela évite d'éparpiller des <code>open()</code>, <code>close()</code>, <code>new</code> et <code>delete</code> dans le code appelant.",
     aliases: ["resource acquisition is initialization"],
+    linkTerms: ["RAII"],
     tags: ["lifetime", "resource", "raii"]
   },
   {
@@ -235,6 +242,7 @@ registry.setGlossary([
     term: "Référence (&)",
     text: "Alias sur un objet existant. Une référence exprime un lien obligatoire avec une cible valide, ce qui la rend souvent plus lisible qu'un pointeur pour les paramètres non optionnels.",
     aliases: ["référence", "références", "reference", "references", "reference (&)"],
+    linkTerms: ["référence", "références", "reference", "references"],
     tags: ["syntaxe", "parametres"]
   },
   {
@@ -397,6 +405,7 @@ registry.setGlossary([
     term: "std::move",
     text: "Fonction utilitaire qui convertit une expression en rvalue, autorisant le transfert de ressources plutôt que leur copie. N'effectue aucun déplacement par elle-même.",
     aliases: ["move", "deplacer", "déplacer"],
+    linkTerms: ["std::move"],
     tags: ["copie", "modern cpp", "performance"]
   },
   {

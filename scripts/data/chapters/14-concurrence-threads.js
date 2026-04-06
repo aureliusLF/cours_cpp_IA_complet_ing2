@@ -26,16 +26,16 @@ registry.registerChapterBundle({
     shortTitle: "Concurrence",
     title: "Threads, synchronisation et programmation concurrente",
     level: "Avancé",
-    duration: "55 min",
+    duration: "1 h 20",
     track: "Extension",
     summary:
-      "Le C++ standard permet de lancer plusieurs fils d'exécution sans dépendre d'une bibliothèque externe. Ce chapitre pose les bases: lancer un thread, protéger une donnée partagée et récupérer proprement le résultat d'une tâche asynchrone.",
+      "Le C++ standard permet de lancer plusieurs fils d'exécution sans dépendre d'une bibliothèque externe. Ce chapitre pose les bases, puis les prolonge vers les vrais problèmes de terrain : fin de vie des threads, sections critiques, deadlocks, variables atomiques, attente coordonnée et récupération de résultats asynchrones.",
     goals: [
       "créer et synchroniser des <code>std::thread</code> sans oublier leur fin de vie",
-      "protéger une ressource partagée avec <code>std::mutex</code> et <code>std::lock_guard</code>",
-      "déléguer une tâche asynchrone avec <code>std::async</code> puis récupérer son résultat via <code>std::future</code>"
+      "protéger une ressource partagée avec <code>std::mutex</code>, <code>std::lock_guard</code> et éviter les formes classiques de deadlock",
+      "déléguer une tâche asynchrone avec <code>std::async</code>, utiliser <code>std::future</code>, et connaître les cas où <code>std::atomic</code> ou <code>std::condition_variable</code> sont plus adaptés"
     ],
-    highlights: ["thread", "mutex", "async", "future"],
+    highlights: ["thread", "mutex", "lock_guard", "deadlock", "atomic", "condition_variable", "async", "future"],
     body: [
       lesson(
         "Le modèle de concurrence du C++",
@@ -139,6 +139,72 @@ int main() {
         ])
       ),
       lesson(
+        "Deadlocks, ordre de verrouillage et stratégie de conception",
+        paragraphs(
+          "Un deadlock apparaît quand plusieurs threads s'attendent mutuellement et qu'aucun ne peut progresser. Le cas classique est celui de deux mutex acquis dans des ordres différents par deux threads distincts. Le code ne plante pas toujours ; il peut simplement se figer, ce qui rend le diagnostic très pénible si l'on n'a pas ce modèle mental.",
+          "La meilleure défense reste souvent conceptuelle : réduire le nombre de mutex, raccourcir les sections critiques et imposer un ordre de verrouillage stable. Le design concurrent se joue donc autant dans l'architecture que dans la syntaxe des verrous."
+        ),
+        code(
+          "cpp",
+          `
+std::mutex a;
+std::mutex b;
+
+void t1() {
+    std::lock_guard<std::mutex> g1{a};
+    std::lock_guard<std::mutex> g2{b};
+}
+
+void t2() {
+    std::lock_guard<std::mutex> g1{b};
+    std::lock_guard<std::mutex> g2{a}; // ordre inverse : risque de deadlock
+}
+          `,
+          "Le blocage vient souvent d'un ordre de verrouillage incoherent"
+        ),
+        bullets([
+          "Un ordre de verrouillage global réduit énormément le risque de deadlock.",
+          "Plus la section critique est petite, moins le blocage mutuel est probable.",
+          "Un besoin fréquent de plusieurs mutex est souvent un signal d'architecture à examiner."
+        ]),
+        callout("warn", "Réflexe vital", "Quand deux ressources doivent être verrouillées ensemble, impose un ordre unique partagé par tout le projet.")
+      ),
+      lesson(
+        "Atomiques et <code>condition_variable</code> : pas les mêmes problèmes, pas les mêmes outils",
+        paragraphs(
+          "Toutes les situations concurrentes ne demandent pas un mutex. Une variable simple partagée, comme un compteur ou un drapeau d'arrêt, peut souvent être modélisée plus directement avec <code>std::atomic</code>. En revanche, lorsqu'un thread doit attendre qu'une condition change, la bonne abstraction est souvent <code>std::condition_variable</code> avec un verrou et un prédicat clair.",
+          "Le point important est de choisir l'outil pour le bon type de coordination. Un atomique ne remplace pas une section critique complexe. Une condition variable ne remplace pas un protocole mal conçu. La concurrence saine dépend du bon niveau d'abstraction."
+        ),
+        code(
+          "cpp",
+          `
+std::atomic<bool> terminer{false};
+
+void travailleur() {
+    while (!terminer.load()) {
+        // travail
+    }
+}
+          `,
+          "Un drapeau d'arret simple peut relever d'un atomique"
+        ),
+        code(
+          "cpp",
+          `
+std::mutex m;
+std::condition_variable cv;
+bool pret{false};
+
+void consommateur() {
+    std::unique_lock<std::mutex> verrou{m};
+    cv.wait(verrou, [] { return pret; });
+}
+          `,
+          "Attendre un evenement avec predicat explicite"
+        ),
+        callout("info", "Choix d'outil", "Prends un atomique pour une donnée simple et isolée. Prends mutex + condition_variable quand il faut protéger un état partagé puis attendre un changement significatif de cet état.")
+      ),
+      lesson(
         "std::async et std::future : tâches asynchrones de haut niveau",
         paragraphs(
           "<code>std::async</code> lance une tâche dans un thread séparé et renvoie un <code>std::future</code>. Ce future permet de récupérer le résultat plus tard, de façon synchronisée, sans gérer soi-même les threads ni les mutex.",
@@ -184,6 +250,9 @@ int main() {
       "Je sais créer un thread, lui passer des arguments et appeler <code>join()</code>.",
       "Je protège les données partagées avec un mutex et <code>std::lock_guard</code>.",
       "Je connais la différence de sémantique entre <code>join()</code> et <code>detach()</code>.",
+      "Je peux expliquer ce qu'est un deadlock et pourquoi un ordre de verrouillage cohérent aide à l'éviter.",
+      "Je sais dans quel cas un <code>std::atomic</code> simple peut être plus juste qu'un mutex.",
+      "Je comprends le rôle d'une <code>std::condition_variable</code> et de son prédicat d'attente.",
       "Je sais utiliser <code>std::async</code> pour déléguer un calcul dans un thread.",
       "Je récupère un résultat asynchrone via <code>std::future::get()</code>.",
       "Je minimise les sections critiques pour éviter les contentions inutiles."
@@ -210,6 +279,16 @@ int main() {
         explanation: "<code>lock_guard</code> suit le principe RAII : il déverrouille le mutex dans son destructeur, quelle que soit la cause de sortie de la portée."
       },
       {
+        question: "Quel est le signal classique d'un risque de deadlock ?",
+        options: [
+          "Des mutex acquis dans des ordres différents selon les threads",
+          "Un programme qui utilise seulement un vector local",
+          "Une fonction qui retourne un int"
+        ],
+        answer: 0,
+        explanation: "Le blocage mutuel apparaît souvent quand deux threads verrouillent plusieurs ressources dans des ordres incompatibles."
+      },
+      {
         question: "Comment récupérer le résultat d'une tâche lancée avec <code>std::async</code> ?",
         options: [
           "En appelant <code>.result()</code> sur le thread",
@@ -218,6 +297,16 @@ int main() {
         ],
         answer: 1,
         explanation: "<code>std::async</code> renvoie un <code>std::future</code> ; <code>.get()</code> bloque jusqu'à disponibilité du résultat et le retourne, ou relance l'exception."
+      },
+      {
+        question: "Dans quel cas <code>std::atomic&lt;bool&gt;</code> est-il souvent un bon choix ?",
+        options: [
+          "Pour un drapeau simple partagé entre threads",
+          "Pour protéger une structure complexe entière avec plusieurs invariants",
+          "Pour remplacer toutes les variables locales"
+        ],
+        answer: 0,
+        explanation: "Un atomique convient bien à une donnée simple et isolée, comme un drapeau d'arrêt. Il ne remplace pas automatiquement la protection d'un état complexe."
       }
     ],
     exercises: [
@@ -242,9 +331,20 @@ int main() {
           "une démonstration avec deux threads qui incrémentent simultanément",
           "la vérification que le résultat final est toujours correct quel que soit l'entrelacement"
         ]
+      },
+      {
+        title: "Éviter un deadlock par design",
+        difficulty: "Avancé",
+        time: "30 min",
+        prompt: "Construit un petit scénario avec deux ressources protégées et montre d'abord un design exposé au deadlock. Corrige ensuite le problème en imposant un ordre de verrouillage stable ou en simplifiant la structure partagée.",
+        deliverables: [
+          "la version à risque avec son explication",
+          "la version corrigée",
+          "la règle de conception retenue pour éviter le blocage"
+        ]
       }
     ],
-    keywords: ["thread", "mutex", "lock_guard", "async", "future", "concurrence", "parallelisme", "synchronisation", "data race", "join", "detach"]
+    keywords: ["thread", "mutex", "lock_guard", "unique_lock", "condition_variable", "atomic", "async", "future", "concurrence", "parallelisme", "synchronisation", "data race", "deadlock", "join", "detach"]
   })),
   deepDives: [
     {
@@ -297,6 +397,40 @@ int main() {
         "Documente clairement quel mutex protège quelle donnée."
       ],
       check: "Comment détecterais-tu qu'un deadlock est possible dans un code qui acquiert deux mutex ?"
+    },
+    {
+      focus: "Les deadlocks sont des bugs d'architecture autant que de synchronisation. Dès que plusieurs verrous ou plusieurs ressources doivent être acquis ensemble, l'ordre d'acquisition devient une vraie propriété globale du système et non plus un détail local à une fonction.",
+      retenir: [
+        "Un ordre de verrouillage cohérent à l'échelle du projet réduit fortement le risque de blocage mutuel.",
+        "Moins il y a de verrous différents, plus le design concurrent est lisible."
+      ],
+      pitfalls: [
+        "Décider l'ordre de prise des mutex localement dans chaque fonction.",
+        "Ajouter des verrous au fil de l'eau sans documenter quelle donnée chacun protège."
+      ],
+      method: [
+        "Identifie les ressources susceptibles d'être verrouillées ensemble.",
+        "Impose un ordre global et respecte-le partout.",
+        "Réduis ou fusionne les protections si cet ordre devient trop difficile à tenir."
+      ],
+      check: "Si deux équipes ajoutent chacune un mutex sur des modules voisins, comment éviter que l'ordre d'acquisition diverge avec le temps ?"
+    },
+    {
+      focus: "Atomiques et condition_variable sont utiles parce qu'ils répondent à des besoins différents. L'erreur classique consiste à choisir l'outil 'le plus bas niveau' en pensant qu'il sera forcément plus puissant, alors qu'il devient souvent plus fragile si le problème ne correspond pas à son modèle.",
+      retenir: [
+        "Un atomique convient bien à une donnée simple et indépendante comme un compteur ou un drapeau.",
+        "Une condition_variable sert à attendre proprement qu'un état partagé atteigne une condition significative."
+      ],
+      pitfalls: [
+        "Utiliser un atomique pour simuler à la main un protocole complexe qui aurait mérité un mutex et une condition claire.",
+        "Oublier le prédicat de réveil sur une condition variable et se faire piéger par des réveils intempestifs."
+      ],
+      method: [
+        "Décris d'abord si tu protèges une donnée complexe ou si tu attends un évènement simple.",
+        "Choisis ensuite atomique, mutex ou condition variable selon cette description.",
+        "Teste mentalement le protocole en cas de réveil prématuré, d'arrêt ou d'accès concurrent répété."
+      ],
+      check: "Pour un drapeau d'arrêt partagé, choisirais-tu atomique ou mutex, et pour quelle raison de simplicité du contrat ?"
     },
     {
       focus: "std::async et std::future sont l'abstraction de haut niveau pour les tâches parallèles ponctuelles. Plutôt que de gérer des threads et de la synchronisation manuellement, on exprime une tâche et on récupère son résultat quand on en a besoin — le runtime se charge du reste.",

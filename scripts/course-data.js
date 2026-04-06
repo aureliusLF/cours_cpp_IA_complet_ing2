@@ -17,9 +17,14 @@ const chapters = bundles
   .sort((left, right) => left.order - right.order)
   .map((bundle, index) => {
     const chapter = bundle.chapter || {};
-    const enrichedBody = registry.injectLessonDeepDives(
-      chapter.body || "",
-      bundle.deepDives || []
+    const linkedGlossaryIds = new Set();
+    const enrichedBody = registry.linkGlossaryInHtml(
+      registry.injectLessonDeepDives(
+        chapter.body || "",
+        bundle.deepDives || []
+      ),
+      glossary,
+      linkedGlossaryIds
     );
 
     return Object.assign({}, chapter, {

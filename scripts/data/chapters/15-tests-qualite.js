@@ -26,16 +26,16 @@ registry.registerChapterBundle({
     shortTitle: "Tests et qualité",
     title: "Tests unitaires, TDD et qualité du code C++",
     level: "Projet",
-    duration: "45 min",
+    duration: "1 h 20",
     track: "Extension",
     summary:
-      "Un code non testé est un code dont on ne connaît pas vraiment le comportement. Ce chapitre introduit la vérification automatique, l'outillage pratique avec Catch2 et la logique TDD pour écrire du C++ plus fiable.",
+      "Un code non testé est un code dont on ne connaît pas vraiment le comportement. Ce chapitre introduit la vérification automatique, l'outillage pratique avec Catch2, la logique TDD, mais aussi la conception testable, les doubles de test et le lien entre tests, debug, coverage et qualité globale.",
     goals: [
       "distinguer tests unitaires, tests d'intégration et tests de système sans mélanger leurs rôles",
-      "écrire des cas de test lisibles avec Catch2 et les macros <code>REQUIRE</code> / <code>CHECK</code>",
-      "comprendre et appliquer le cycle TDD rouge-vert-refactoring sur un petit exemple réel"
+      "écrire des cas de test lisibles avec Catch2 et les macros <code>REQUIRE</code> / <code>CHECK</code>, en structurant correctement les scénarios",
+      "comprendre et appliquer le cycle TDD rouge-vert-refactoring sur un petit exemple réel, puis relier les tests à une conception plus découplée et plus vérifiable"
     ],
-    highlights: ["REQUIRE", "Catch2", "TDD"],
+    highlights: ["REQUIRE", "CHECK", "Catch2", "TDD", "fixtures", "test doubles"],
     body: [
       lesson(
         "Pourquoi tester et quelle stratégie adopter",
@@ -52,6 +52,30 @@ registry.registerChapterBundle({
           ]
         ),
         callout("success", "Bonne règle de départ", "Un test unitaire doit être rapide, déterministe et ne tester qu'une seule chose à la fois.")
+      ),
+      lesson(
+        "Écrire du code testable : découpage, dépendances et déterminisme",
+        paragraphs(
+          "Un bon chapitre sur les tests ne peut pas s'arrêter au framework. Beaucoup de difficultés de test viennent d'un design qui mélange trop de responsabilités : lecture de fichiers, horloge système, génération aléatoire, logique métier et affichage dans la même fonction. Un code difficile à tester est souvent aussi difficile à relire et à faire évoluer.",
+          "Le bon réflexe consiste à isoler le cœur métier des entrées/sorties et des dépendances volatiles. Plus une fonction est pure ou au moins clairement paramétrée, plus elle devient simple à vérifier. Les tests révèlent donc souvent des besoins de découplage plutôt qu'un simple manque d'outillage."
+        ),
+        code(
+          "cpp",
+          `
+// Moins testable : lit, calcule et affiche dans la meme fonction
+void traiterFichierEtAfficher();
+
+// Plus testable : logique pure separée de l'I/O
+double calculerMoyenne(const std::vector<double>& notes);
+          `,
+          "La testabilite commence souvent dans le design"
+        ),
+        bullets([
+          "Séparer logique métier et I/O réduit fortement le coût des tests.",
+          "Une fonction déterministe est beaucoup plus facile à vérifier qu'un bloc qui dépend de l'heure, du hasard ou du disque.",
+          "Rendre une dépendance injectable ou paramétrable aide souvent plus qu'ajouter un framework de mocking."
+        ]),
+        callout("info", "Fil directeur", "Si un morceau de code est pénible à tester, demande-toi d'abord s'il n'essaie pas de faire trop de choses à la fois.")
       ),
       lesson(
         "Premiers tests avec Catch2",
@@ -91,6 +115,41 @@ TEST_CASE("Fraction : addition de deux fractions") {
           "Couvre au minimum : cas normal, valeur limite, erreur attendue."
         ]),
         callout("info", "Intégration dans CMake", "Catch2 s'intègre facilement avec CMake via <code>FetchContent</code> ou un sous-module git, sans dépendance externe à installer manuellement.")
+      ),
+      lesson(
+        "Sections, fixtures et doubles de test",
+        paragraphs(
+          "Quand plusieurs scénarios partagent le même contexte de départ, il devient utile de factoriser l'installation du test. Catch2 propose pour cela des <em>sections</em> et permet aussi de structurer des aides communes. L'idée n'est pas d'introduire de la magie, mais d'éviter la duplication tout en gardant chaque scénario lisible.",
+          "Dans des cas plus avancés, on peut aussi introduire des doubles de test : stubs, fakes ou objets simulés. L'objectif n'est pas de tout moquer, mais d'isoler l'unité testée lorsqu'une vraie dépendance serait trop lourde, instable ou non déterministe."
+        ),
+        code(
+          "cpp",
+          `
+TEST_CASE("Compte : retraits") {
+    Compte compte{100.0};
+
+    SECTION("retrait valide") {
+        compte.retirer(20.0);
+        REQUIRE(compte.solde() == Approx(80.0));
+    }
+
+    SECTION("retrait trop grand") {
+        REQUIRE_THROWS(compte.retirer(200.0));
+    }
+}
+          `,
+          "Deux scenarios sur le meme contexte initial"
+        ),
+        table(
+          ["Technique", "Usage"],
+          [
+            ["Section", "Varier plusieurs scénarios à partir d'un même contexte de départ."],
+            ["Fixture légère", "Mutualiser une préparation répétée entre plusieurs tests."],
+            ["Stub/Fake", "Remplacer une dépendance externe coûteuse ou instable."],
+            ["Mock", "Vérifier certaines interactions quand cela a un vrai sens métier."]
+          ]
+        ),
+        callout("warn", "À utiliser avec mesure", "Les doubles de test sont utiles, mais ils ne doivent pas devenir un écran de fumée qui remplace un vrai design simple et découplé.")
       ),
       lesson(
         "TDD : rouge, vert, refactoring",
@@ -140,14 +199,34 @@ private:
           ]
         ),
         callout("warn", "Fausse sécurité", "Un taux de couverture élevé ne signifie pas que les bons cas sont testés. Quelques tests précis sur les invariants valent mieux que beaucoup de tests superficiels.")
+      ),
+      lesson(
+        "Coverage, CI et autres filets de qualité",
+        paragraphs(
+          "Les tests automatiques s'inscrivent dans un ensemble plus large de filets de qualité. La couverture de code peut aider à repérer des zones jamais exécutées, mais elle ne remplace pas la réflexion sur les scénarios utiles. Les warnings, sanitizers et l'exécution des tests en intégration continue rendent l'ensemble beaucoup plus fiable qu'un simple 'ça marche chez moi'.",
+          "Le point important est de ne pas opposer ces outils. Les tests décrivent le comportement attendu. Les sanitizers révèlent certains comportements indéfinis. La CI garantit que la vérification tourne de manière répétable. Ensemble, ils rendent les régressions plus visibles et moins coûteuses."
+        ),
+        table(
+          ["Outil", "Rôle principal"],
+          [
+            ["Tests unitaires", "Vérifier des comportements précis automatiquement."],
+            ["Coverage", "Repérer des zones peu ou jamais exécutées."],
+            ["Sanitizers", "Détecter tôt certains bugs mémoire ou UB."],
+            ["CI", "Relancer compilation et tests de manière reproductible à chaque changement."]
+          ]
+        ),
+        callout("success", "Vision d'ensemble", "La qualité n'est pas un seul outil miracle. C'est un empilement de retours rapides qui rendent les bugs visibles plus tôt.")
       )
     ].join(""),
     checklist: [
       "Je sais distinguer test unitaire, d'intégration et de système.",
       "Je peux écrire un test simple avec <code>REQUIRE</code> et <code>CHECK</code>.",
+      "Je peux expliquer pourquoi un design découplé et déterministe facilite fortement les tests.",
+      "Je sais à quoi servent les sections ou une fixture légère dans un framework de test.",
       "Je teste les cas normaux, les cas limites et les cas d'erreur.",
       "Je comprends le cycle TDD rouge-vert-refactoring.",
       "Je ne teste pas les détails d'implémentation internes.",
+      "Je peux expliquer pourquoi couverture, sanitizers et CI complètent les tests au lieu de les remplacer.",
       "Je nomme mes tests par le comportement attendu, pas par le mécanisme."
     ],
     quiz: [
@@ -172,10 +251,30 @@ private:
         explanation: "En TDD, le test est écrit en premier : il échoue d'abord (rouge) parce que le code n'existe pas encore, puis on implémente pour le faire passer (vert)."
       },
       {
+        question: "Pourquoi un code très couplé à l'I/O ou au hasard est-il souvent plus difficile à tester ?",
+        options: [
+          "Parce qu'il est moins déterministe et mélange plusieurs responsabilités",
+          "Parce que Catch2 interdit les fonctions longues",
+          "Parce que le compilateur refuse alors les tests"
+        ],
+        answer: 0,
+        explanation: "Ce n'est pas une limitation du framework : c'est un problème de conception. Plus le code dépend de l'extérieur, plus il devient coûteux à isoler et à vérifier proprement."
+      },
+      {
         question: "Quelle macro Catch2 interrompt immédiatement le test en cas d'échec ?",
         options: ["<code>CHECK</code>", "<code>REQUIRE</code>", "<code>WARN</code>"],
         answer: 1,
         explanation: "<code>REQUIRE</code> arrête le test courant à l'échec ; <code>CHECK</code> continue et rapporte tous les problèmes rencontrés dans le test."
+      },
+      {
+        question: "Quel énoncé décrit le mieux la couverture de code ?",
+        options: [
+          "Un indicateur utile, mais qui ne garantit pas que les bons comportements soient testés",
+          "Une preuve absolue qu'il n'y a plus aucun bug",
+          "Un remplacement complet des tests d'intégration"
+        ],
+        answer: 0,
+        explanation: "La couverture peut éclairer des zones oubliées, mais elle ne dit pas à elle seule si les scénarios importants ont été bien choisis."
       }
     ],
     exercises: [
@@ -200,9 +299,20 @@ private:
           "l'implémentation minimale qui fait passer les tests",
           "les cas limites couverts : pile vide, dépilement sur pile vide"
         ]
+      },
+      {
+        title: "Rendre un module testable",
+        difficulty: "Avancé",
+        time: "35 min",
+        prompt: "Choisis un module trop couplé à l'I/O, au temps ou au hasard, puis refactorise-le pour le rendre testable. L'objectif est de montrer que les tests améliorent aussi la conception, pas seulement la vérification finale.",
+        deliverables: [
+          "la version initiale avec les dépendances qui gênent les tests",
+          "la version refactorisée plus découplée",
+          "deux ou trois tests qui deviennent possibles grâce à cette refonte"
+        ]
       }
     ],
-    keywords: ["tests", "catch2", "tdd", "assert", "REQUIRE", "unitaire", "integration", "regression", "qualite", "test case", "rouge vert"]
+    keywords: ["tests", "catch2", "tdd", "assert", "REQUIRE", "CHECK", "fixture", "test doubles", "unitaire", "integration", "regression", "qualite", "coverage", "ci", "test case", "rouge vert"]
   })),
   deepDives: [
     {
@@ -240,6 +350,23 @@ private:
       check: "Pourrais-tu donner le même nom à deux TEST_CASEs distincts ? Que t'apprendrait cette situation sur la clarté de tes tests ?"
     },
     {
+      focus: "La testabilité est souvent un révélateur de design. Un code trop couplé à l'I/O, à l'heure système ou à des dépendances difficiles à contrôler devient laborieux à tester précisément. Les tests aident alors à voir où le découpage devrait être clarifié.",
+      retenir: [
+        "Un code plus déterministe est généralement plus simple à tester et à maintenir.",
+        "Séparer logique métier et infrastructure rend les tests à la fois plus rapides et plus ciblés."
+      ],
+      pitfalls: [
+        "Ajouter des frameworks de mocking pour compenser un design qui mélange trop de responsabilités.",
+        "Prendre un test difficile comme une fatalité plutôt que comme un symptôme architectural."
+      ],
+      method: [
+        "Repère les dépendances externes qui rendent le test instable ou coûteux.",
+        "Isole la logique pure ou rends la dépendance paramétrable.",
+        "Réécris ensuite les tests sur cette frontière plus claire."
+      ],
+      check: "Quand un module devient pénible à tester, penses-tu d'abord à l'outil de test ou au découpage du code ?"
+    },
+    {
       focus: "TDD change l'ordre d'écriture, pas seulement la séquence des actions. Son vrai bénéfice est de forcer à penser l'interface depuis l'usage avant l'implémentation. Quand on écrit le test en premier, on adopte naturellement le point de vue de l'appelant.",
       retenir: [
         "Rouge : test échoue (code inexistant). Vert : code minimal qui fait passer. Refactoring : améliorer sans casser.",
@@ -272,6 +399,23 @@ private:
         "Garde les tests rapides et indépendants les uns des autres."
       ],
       check: "Si tu renommes un attribut privé d'une classe, combien de tes tests devraient casser idéalement ?"
+    },
+    {
+      focus: "La qualité ne vient pas d'un seul outil. Tests, coverage, warnings, sanitizers et CI se renforcent mutuellement : les tests décrivent le comportement, les sanitizers révèlent certaines erreurs d'exécution, la CI répète le tout sans oublier et la couverture aide à repérer des zones aveugles.",
+      retenir: [
+        "La couverture est un indicateur d'exploration, pas une preuve de qualité.",
+        "La CI transforme des vérifications ponctuelles en discipline continue."
+      ],
+      pitfalls: [
+        "S'abriter derrière un pourcentage de coverage sans regarder les scénarios réellement critiques.",
+        "Faire tourner les tests uniquement localement et oublier de les automatiser dans la boucle du projet."
+      ],
+      method: [
+        "Définis d'abord les comportements critiques à protéger par des tests.",
+        "Ajoute ensuite warnings, sanitizers et CI pour compléter ce filet.",
+        "Lis la couverture comme une carte des zones peu vérifiées, pas comme une médaille en soi."
+      ],
+      check: "Si tous les tests passent mais qu'un sanitizer crie sur un comportement indéfini, considéreras-tu vraiment la qualité comme acquise ?"
     }
   ]
 });

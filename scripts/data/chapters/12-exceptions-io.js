@@ -26,16 +26,16 @@ registry.registerChapterBundle({
     shortTitle: "Exceptions et I/O",
     title: "Exceptions, assertions et gestion des entrées/sorties",
     level: "Avancé",
-    duration: "75 min",
+    duration: "1 h 35",
     track: "SE5/SE6",
     summary:
-      "Un programme solide doit savoir lire des données imparfaites et réagir proprement quand quelque chose échoue. Le C++ fournit des flux, des exceptions et des assertions, mais il faut encore savoir quand utiliser chaque outil.",
+      "Un programme solide doit savoir lire des données imparfaites et réagir proprement quand quelque chose échoue. Le C++ fournit des flux, des exceptions et des assertions, mais il faut encore savoir quand utiliser chaque outil, comment parser robustement ligne par ligne et comment distinguer texte, binaire, erreur système et erreur métier.",
     goals: [
       "distinguer une erreur de programmation, un cas métier attendu et une vraie erreur système",
       "utiliser <code>try</code>/<code>catch</code> sans masquer le chemin normal ni brouiller la propagation",
-      "lire et écrire des fichiers texte de manière robuste et vérifiable"
+      "lire et écrire des fichiers texte de manière robuste et vérifiable, puis parser localement une ligne avec <code>std::stringstream</code> ou raisonner sur un flux binaire simple"
     ],
-    highlights: ["try/catch", "ifstream", "getline", "std::exception"],
+    highlights: ["try/catch", "ifstream", "getline", "stringstream", "std::exception", "argv", "iomanip"],
     body: [
       lesson(
         "Architecture des flux en C++",
@@ -142,6 +142,44 @@ auto position = input.tellg();
         callout("warn", "Piège classique", "La condition <code>while (!flux.eof())</code> semble intuitive mais produit souvent un traitement supplémentaire après un échec de lecture.")
       ),
       lesson(
+        "Parsing robuste ligne par ligne avec <code>std::stringstream</code>",
+        paragraphs(
+          "Dans beaucoup de projets, la bonne stratégie n'est pas de lire directement tout le fichier dans des variables métiers avec <code>operator&gt;&gt;</code>. Il est souvent plus robuste de lire d'abord une ligne complète avec <code>std::getline</code>, puis de la parser localement avec un <code>std::stringstream</code>. On isole ainsi les erreurs de format ligne par ligne sans casser tout le traitement global.",
+          "Cette approche est particulièrement utile pour les formats semi-structurés du type <code>nom;note;groupe</code>. Elle permet aussi de distinguer clairement trois niveaux : lecture brute du fichier, parsing de la ligne, validation métier des champs obtenus."
+        ),
+        code(
+          "cpp",
+          `
+std::ifstream input{"etudiants.txt"};
+std::string ligne;
+
+while (std::getline(input, ligne)) {
+    std::stringstream ss{ligne};
+    std::string nom;
+    std::string noteTexte;
+    std::string groupe;
+
+    if (!std::getline(ss, nom, ';') ||
+        !std::getline(ss, noteTexte, ';') ||
+        !std::getline(ss, groupe, ';')) {
+        std::cerr << "Ligne invalide : " << ligne << '\\n';
+        continue;
+    }
+
+    double note = std::stod(noteTexte);
+    // validation metier ensuite
+}
+          `,
+          "Lire d'abord la ligne, parser ensuite localement"
+        ),
+        bullets([
+          "Le parsing local d'une ligne évite de mettre tout le flux principal dans un état d'erreur au premier champ invalide.",
+          "<code>std::stringstream</code> est un flux en mémoire : il réutilise les mêmes réflexes que <code>ifstream</code>.",
+          "Séparer lecture, parsing et validation métier rend le diagnostic beaucoup plus clair."
+        ]),
+        callout("success", "Très bon réflexe projet", "Quand le format d'entrée n'est pas trivial, lis une ligne complète puis parse-la localement. Tu gagneras en robustesse et en clarté de diagnostic.")
+      ),
+      lesson(
         "try, throw, catch et propagation",
         paragraphs(
           "Les exceptions existent pour séparer le chemin normal du traitement d'erreur lorsqu'on ne veut pas continuer silencieusement. Une division par zéro, une ressource indispensable absente ou un format impossible à interpréter sont des exemples de ruptures du flot normal.",
@@ -210,6 +248,34 @@ private:
           "Classe d'exception personnalisée"
         ),
         callout("success", "Niveau de capture", "Attrape une exception au niveau où tu peux vraiment décider quoi faire : corriger, relancer avec plus de contexte, journaliser ou arrêter proprement.")
+      ),
+      lesson(
+        "Texte, binaire et stratégie de lecture adaptée",
+        paragraphs(
+          "Les fichiers texte et les fichiers binaires ne se lisent pas avec les mêmes attentes. Un fichier texte est destiné à être interprété comme une suite de caractères et de séparateurs. Un fichier binaire transporte des octets dont le sens dépend d'un protocole précis. Ouvrir un flux avec <code>std::ios::binary</code> signifie que l'on veut préserver ces octets sans transformation liée au texte.",
+          "Dans la majorité des projets du cours, le texte suffit largement et reste beaucoup plus facile à déboguer. Mais comprendre la différence évite des erreurs de conception, par exemple quand on croit pouvoir 'imprimer' un fichier binaire ou parser un texte libre comme s'il s'agissait d'octets structurés sans protocole clair."
+        ),
+        code(
+          "cpp",
+          `
+std::ifstream texte{"notes.csv"}; // lecture texte
+
+std::ifstream image{"logo.bin", std::ios::binary};
+std::vector<char> buffer(1024);
+image.read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
+auto lus = image.gcount();
+          `,
+          "Deux modes d'entree, deux contrats de lecture"
+        ),
+        table(
+          ["Mode", "Usage naturel", "Point de vigilance"],
+          [
+            ["Texte", "Lignes, mots, nombres, séparateurs lisibles", "Le parsing dépend du format logique choisi."],
+            ["Binaire", "Octets bruts, structures sérialisées, images, protocoles", "Il faut connaître précisément la structure attendue des octets."],
+            ["<code>std::ios::binary</code>", "Désactive les transformations de texte", "N'ajoute pas de 'structure' par lui-même : il ne fait que préserver les octets."]
+          ]
+        ),
+        callout("info", "Règle simple", "Choisis le texte quand la donnée doit être lisible, diffable et facile à diagnostiquer. Choisis le binaire quand un protocole d'octets précis le justifie réellement.")
       ),
       lesson(
         "Arguments de ligne de commande : argc et argv",
@@ -302,10 +368,12 @@ std::cout << std::fixed << std::setprecision(2) << pi << "\\n"; // 3.14
       "Je connais les rôles de <code>ifstream</code>, <code>ofstream</code> et <code>fstream</code>.",
       "Je vérifie l'ouverture d'un fichier et je choisis le bon mode.",
       "Je sais utiliser <code>std::getline</code> et l'idiome <code>while (flux >> valeur)</code>.",
+      "Je peux justifier une stratégie de parsing ligne par ligne avec <code>std::stringstream</code>.",
       "Je distingue assertion et exception.",
       "Je ne traite pas les exceptions comme du contrôle de flux normal.",
       "Je capture une exception par référence constante.",
       "Je sépare parsing et logique métier.",
+      "Je peux expliquer la différence entre lecture texte et lecture binaire.",
       "Je place mes <code>catch</code> au bon niveau de responsabilité.",
       "Je sais déclarer <code>main(int argc, char* argv[])</code> et accéder aux arguments en vérifiant <code>argc</code>.",
       "Je connais les manipulateurs de base de <code>&lt;iomanip&gt;</code> pour aligner des sorties en colonnes."
@@ -352,6 +420,16 @@ std::cout << std::fixed << std::setprecision(2) << pi << "\\n"; // 3.14
         explanation: "La condition <code>while (ifs >> valeur)</code> s'arrête exactement quand la lecture échoue."
       },
       {
+        question: "Pourquoi lire une ligne complète puis la parser avec <code>std::stringstream</code> est-il souvent plus robuste ?",
+        options: [
+          "Parce qu'on peut isoler les erreurs de format ligne par ligne sans casser tout le flux principal",
+          "Parce que <code>stringstream</code> remplace toutes les exceptions",
+          "Parce que <code>getline</code> est interdit sur les fichiers"
+        ],
+        answer: 0,
+        explanation: "Cette séparation rend le diagnostic plus local et évite qu'un champ invalide mette immédiatement hors service toute la lecture globale du fichier."
+      },
+      {
         question: "Que contient <code>argv[0]</code> ?",
         options: [
           "Le premier argument passé par l'utilisateur",
@@ -360,6 +438,16 @@ std::cout << std::fixed << std::setprecision(2) << pi << "\\n"; // 3.14
         ],
         answer: 1,
         explanation: "argv[0] est le nom du programme ; les arguments utilisateur commencent à argv[1]."
+      },
+      {
+        question: "Pourquoi ouvrir un flux avec <code>std::ios::binary</code> ?",
+        options: [
+          "Pour préserver les octets sans traitement lié au texte",
+          "Pour convertir automatiquement un texte en JSON",
+          "Pour désactiver toute vérification d'erreur"
+        ],
+        answer: 0,
+        explanation: "Le mode binaire signifie qu'on veut lire ou écrire des octets bruts tels quels. Il ne définit pas de format logique à lui seul."
       },
       {
         question: "Lequel de ces manipulateurs <code>&lt;iomanip&gt;</code> n'est PAS persistant ?",
@@ -396,6 +484,17 @@ std::cout << std::fixed << std::setprecision(2) << pi << "\\n"; // 3.14
         ]
       },
       {
+        title: "Parsing local avec stringstream",
+        difficulty: "Intermédiaire",
+        time: "25 min",
+        prompt: "Lis un fichier dont chaque ligne suit le format <code>nom;age;note</code>. Parse chaque ligne avec <code>std::stringstream</code>, rejette les lignes mal formées, puis sépare clairement lecture brute, parsing et validation métier.",
+        deliverables: [
+          "la lecture des lignes avec <code>std::getline</code>",
+          "le parsing local avec <code>std::stringstream</code>",
+          "un rapport distinguant lignes valides et lignes rejetées"
+        ]
+      },
+      {
         title: "API qui sait échouer proprement",
         difficulty: "Avancé",
         time: "30 min",
@@ -407,7 +506,7 @@ std::cout << std::fixed << std::setprecision(2) << pi << "\\n"; // 3.14
         ]
       }
     ],
-    keywords: ["exception", "assert", "ifstream", "ofstream", "runtime_error", "parsing", "getline", "cerr", "seekg", "tellg", "noexcept", "std::exception", "argc", "argv", "iomanip", "setw", "setfill", "setprecision"]
+    keywords: ["exception", "assert", "ifstream", "ofstream", "runtime_error", "parsing", "getline", "stringstream", "cerr", "seekg", "tellg", "binary", "noexcept", "std::exception", "argc", "argv", "iomanip", "setw", "setfill", "setprecision"]
   })),
   deepDives: [
     {
@@ -462,6 +561,23 @@ std::cout << std::fixed << std::setprecision(2) << pi << "\\n"; // 3.14
       check: "Quand une lecture s'arrête, sais-tu vérifier si le flux a atteint la fin ou s'il a rencontré une donnée invalide ?"
     },
     {
+      focus: "Le parsing ligne par ligne avec stringstream est souvent la meilleure transition entre un fichier brut et les objets métier. Il permet de localiser une erreur à une ligne donnée, d'enregistrer un diagnostic utile et de continuer le traitement si le scénario l'autorise.",
+      retenir: [
+        "Lire la ligne complète puis parser localement isole les erreurs de format.",
+        "Le parsing brut ne doit pas être confondu avec la validation métier des valeurs obtenues."
+      ],
+      pitfalls: [
+        "Mélanger directement lecture fichier, parsing et règles métier dans une seule boucle illisible.",
+        "Arrêter tout le traitement au premier champ invalide alors qu'un diagnostic ligne par ligne serait plus utile."
+      ],
+      method: [
+        "Lis d'abord la ligne brute avec getline.",
+        "Parse-la localement avec stringstream ou un séparateur contrôlé.",
+        "Applique ensuite la validation métier et décide si la ligne doit être acceptée, rejetée ou journalisée."
+      ],
+      check: "Si une seule ligne d'un fichier est invalide, peux-tu expliquer comment traiter ce cas sans perdre tout le contexte du fichier ?"
+    },
+    {
       focus: "Les exceptions servent à signaler une rupture du flot normal lorsqu'un traitement local n'est pas raisonnable. Leur vraie valeur apparaît quand on les utilise avec parcimonie, capture précise et propagation explicite vers le niveau qui peut réellement décider quoi faire.",
       retenir: [
         "Une exception n'est pas un substitut général au contrôle de flux ordinaire.",
@@ -511,6 +627,23 @@ std::cout << std::fixed << std::setprecision(2) << pi << "\\n"; // 3.14
         "Affiche un usage clair vers std::cerr si les arguments sont invalides."
       ],
       check: "Que se passe-t-il si l'utilisateur oublie de passer le nom de fichier et que ton code accède à argv[1] sans vérification ?"
+    },
+    {
+      focus: "Texte et binaire correspondent à deux contrats d'I/O différents. Le texte favorise la lisibilité humaine et le diagnostic. Le binaire préserve les octets exacts mais exige un protocole de lecture bien défini pour rester fiable et portable.",
+      retenir: [
+        "Le mode binaire ne crée pas de structure logique ; il préserve simplement les octets.",
+        "Le texte est souvent préférable tant qu'on veut lire, déboguer et versionner facilement les données."
+      ],
+      pitfalls: [
+        "Utiliser le binaire par réflexe alors que le texte aurait suffi et facilité le diagnostic.",
+        "Croire qu'un flux binaire garantit à lui seul la portabilité d'une structure mémoire brute."
+      ],
+      method: [
+        "Demande d'abord si la donnée doit être lisible et éditable par un humain.",
+        "Si oui, pars sur un format texte explicite.",
+        "Si non, définis très clairement le protocole binaire attendu avant d'écrire la première lecture."
+      ],
+      check: "Pour une donnée de TP simple, saurais-tu justifier pourquoi un format texte lisible est souvent préférable à une sérialisation binaire improvisée ?"
     },
     {
       focus: "iomanip transforme cout en moteur de rendu simple. Le piège à retenir : setw ne s'applique qu'au prochain champ, les autres manipulateurs sont persistants — oublier cette asymétrie produit des alignements décalés.",

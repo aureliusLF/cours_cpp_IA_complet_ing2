@@ -26,16 +26,16 @@ registry.registerChapterBundle({
     shortTitle: "Surcharge d'opérateurs",
     title: "Surcharge d'opérateurs avec une vraie sémantique",
     level: "Avancé",
-    duration: "50 min",
+    duration: "1 h 15",
     track: "SE3",
     summary:
-      "On surcharge un opérateur seulement si cela rend l'objet plus simple à lire et à utiliser. Le but n'est pas de montrer une astuce de syntaxe, mais de respecter l'intuition du lecteur.",
+      "On surcharge un opérateur seulement si cela rend l'objet plus simple à lire et à utiliser. Le but n'est pas de montrer une astuce de syntaxe, mais de respecter l'intuition du lecteur, de choisir la bonne forme membre ou non-membre, et d'éviter les opérateurs qui surprennent plus qu'ils n'aident.",
     goals: [
       "choisir entre opérateur membre et fonction libre selon le contrat visé",
-      "respecter les attentes naturelles derrière +, ==, << et les autres opérateurs courants",
-      "gérer proprement les flux et les comparaisons sans comportement surprenant"
+      "respecter les attentes naturelles derrière +, ==, <<, >>, ++, [] ou les conversions éventuelles",
+      "gérer proprement les flux et les comparaisons sans comportement surprenant, puis savoir quand renoncer à une surcharge"
     ],
-    highlights: ["friend", "operator<<", "cohérence"],
+    highlights: ["friend", "operator<<", "operator>>", "comparaisons", "++", "cohérence"],
     body: [
       lesson(
         "Quand surcharger et quand s'abstenir",
@@ -44,6 +44,25 @@ registry.registerChapterBundle({
           "Le bon critère est la surprise : si l'opérateur fait autre chose que ce qu'un lecteur attend, mieux vaut une méthode nommée."
         ),
         callout("warn", "Mauvaise odeur", "Si tu dois expliquer longuement ce que fait un opérateur, c'est probablement qu'il ne fallait pas le surcharger.")
+      ),
+      lesson(
+        "Panorama utile : tous les opérateurs ne racontent pas la même chose",
+        paragraphs(
+          "Surcharger <code>+</code>, <code>==</code> ou <code>&lt;&lt;</code> est fréquent car leur sémantique est assez naturelle sur certains types. En revanche, d'autres opérateurs demandent beaucoup plus de prudence : <code>++</code> implique une notion d'incrément claire, <code>[]</code> une idée d'accès indexé, et un opérateur de conversion peut devenir très dangereux s'il déclenche des conversions implicites inattendues.",
+          "Le bon réflexe n'est donc pas 'est-ce techniquement possible ?' mais 'quelle intuition le lecteur transporte-t-il déjà avec cet opérateur ?'. Si ton type ne correspond pas à cette intuition, le gain de syntaxe ne compense pas la perte de clarté."
+        ),
+        table(
+          ["Opérateur", "Question à se poser avant surcharge"],
+          [
+            ["<code>+</code>", "Le type possède-t-il vraiment une addition naturelle et non surprenante ?"],
+            ["<code>==</code>", "Sais-tu définir clairement l'égalité logique ?"],
+            ["<code>&lt;&lt;</code> / <code>&gt;&gt;</code>", "L'objet a-t-il une représentation textuelle lisible et réversible ?"],
+            ["<code>++</code>", "L'idée d'élément suivant ou d'incrément a-t-elle un sens métier stable ?"],
+            ["<code>[]</code>", "Le type se comporte-t-il comme une collection ou un accès indexé crédible ?"],
+            ["Conversion", "Une conversion implicite risque-t-elle de brouiller le code ?"]
+          ]
+        ),
+        callout("info", "Filtre simple", "Plus l'opérateur transporte d'intuition forte chez le lecteur, plus tu dois être strict sur sa sémantique réelle.")
       ),
       lesson(
         "Membre ou non-membre ?",
@@ -90,6 +109,41 @@ bool operator==(const Fraction& left, const Fraction& right) {
           "Égalité logique"
         ),
         callout("info", "Point de méthode", "Documente ce que signifie l'égalité d'un type. C'est souvent plus important que la syntaxe de l'opérateur lui-même.")
+      ),
+      lesson(
+        "Préfixe, postfixe, conversion explicite et <code>operator[]</code>",
+        paragraphs(
+          "Certaines surcharges sont plus piégeuses parce qu'elles possèdent plusieurs formes. C'est le cas de <code>++</code> en préfixe et en postfixe, qui ne racontent pas exactement la même chose. C'est aussi le cas des opérateurs de conversion, qui peuvent rendre le code trop implicite si on oublie <code>explicit</code> là où il le faut.",
+          "L'opérateur <code>[]</code>, lui, doit préserver l'intuition d'un accès indexé. Si ton type ne représente pas une vue ou une collection cohérente, mieux vaut proposer une méthode nommée. L'objectif reste toujours le même : réduire la friction de lecture, pas montrer qu'on maîtrise la syntaxe."
+        ),
+        code(
+          "cpp",
+          `
+class Compteur {
+public:
+    Compteur& operator++() {      // prefixe
+        ++valeur_;
+        return *this;
+    }
+
+    Compteur operator++(int) {    // postfixe
+        Compteur copie{*this};
+        ++(*this);
+        return copie;
+    }
+
+private:
+    int valeur_{0};
+};
+          `,
+          "Prefixe et postfixe racontent deux contrats differents"
+        ),
+        bullets([
+          "Le préfixe renvoie généralement l'objet modifié ; le postfixe garde l'ancienne valeur en mémoire.",
+          "Une conversion implicite doit rester exceptionnelle ; <code>explicit</code> protège souvent mieux la lisibilité.",
+          "<code>operator[]</code> suppose un accès indexé cohérent et stable."
+        ]),
+        callout("warn", "Surcharges sensibles", "Les opérateurs de conversion et certaines formes comme le postfixe créent très vite des surprises. N'y touche que si la sémantique reste vraiment évidente.")
       ),
       lesson(
         "Opérateur d'extraction >> et les six comparaisons",
@@ -140,6 +194,7 @@ public:
     checklist: [
       "Je surcharge seulement quand la sémantique est naturelle.",
       "Je sais distinguer opérateur membre et non-membre.",
+      "Je peux expliquer pourquoi certains opérateurs comme <code>++</code>, <code>[]</code> ou les conversions sont plus sensibles que <code>+</code> ou <code>==</code>.",
       "Je fais retourner le flux dans <code>operator&lt;&lt;</code>.",
       "Je retourne <code>istream&amp;</code> dans <code>operator&gt;&gt;</code>.",
       "Je définis l'égalité selon un vrai contrat métier.",
@@ -165,6 +220,16 @@ public:
         explanation: "Il modifie l'objet courant et s'exprime naturellement comme comportement interne."
       },
       {
+        question: "Pourquoi le postfixe <code>operator++(int)</code> est-il souvent plus coûteux que le préfixe <code>operator++()</code> ?",
+        options: [
+          "Parce qu'il doit généralement conserver et renvoyer l'ancienne valeur",
+          "Parce qu'il ne peut pas compiler en C++",
+          "Parce qu'il interdit l'usage de <code>return</code>"
+        ],
+        answer: 0,
+        explanation: "Le postfixe a une sémantique différente : il doit représenter l'état avant incrément, ce qui implique souvent une copie temporaire."
+      },
+      {
         question: "Quelle est la signature correcte de <code>operator&gt;&gt;</code> pour lire un objet <code>Foo</code> depuis un flux ?",
         options: [
           "<code>std::ostream&amp; operator&gt;&gt;(std::ostream&amp; in, Foo&amp; f)</code>",
@@ -173,6 +238,16 @@ public:
         ],
         answer: 1,
         explanation: "operator>> prend un istream& (non-const) et l'objet destination par référence non-const, puis retourne le flux pour permettre le chaînage."
+      },
+      {
+        question: "Pourquoi faut-il être particulièrement prudent avec un opérateur de conversion implicite ?",
+        options: [
+          "Parce qu'il peut déclencher des conversions silencieuses qui brouillent la lecture du code",
+          "Parce qu'il rend toute comparaison illégale",
+          "Parce qu'il remplace automatiquement <code>operator==</code>"
+        ],
+        answer: 0,
+        explanation: "Une conversion implicite peut rendre des expressions valides mais trompeuses. L'usage de <code>explicit</code> protège souvent mieux l'intention."
       }
     ],
     exercises: [
@@ -208,9 +283,20 @@ public:
           "l'implémentation",
           "un test contre un cas limite"
         ]
+      },
+      {
+        title: "Préfixe ou postfixe ?",
+        difficulty: "Avancé",
+        time: "25 min",
+        prompt: "Sur un type qui possède un vrai sens d'incrément, implémente <code>operator++()</code> et <code>operator++(int)</code>, puis explique la différence de sémantique, de retour et de coût. Ajoute aussi une courte justification si tu décides finalement que ce type ne devrait pas surcharger <code>++</code>.",
+        deliverables: [
+          "les deux surcharges ou la justification argumentée de leur absence",
+          "un exemple montrant la différence prefixe/postfixe",
+          "une note sur la lisibilité du choix retenu"
+        ]
       }
     ],
-    keywords: ["operator overloading", "friend", "ostream", "istream", "comparaison", "plus égale", "operator>>", "extraction"]
+    keywords: ["operator overloading", "friend", "ostream", "istream", "comparaison", "plus égale", "operator>>", "operator<<", "prefixe", "postfixe", "conversion", "operator[]", "extraction"]
   })),
   deepDives: [
     {
@@ -229,6 +315,23 @@ public:
         "Abandonne la surcharge si le sens métier reste trop artificiel."
       ],
       check: "Si tu lis `a + b` sur ton type, le résultat attendu est-il évident sans documentation externe ?"
+    },
+    {
+      focus: "Tous les opérateurs ne se valent pas. Certains, comme <code>+</code> ou <code>==</code>, sont souvent lisibles. D'autres, comme les conversions implicites, <code>++</code> postfixe ou <code>[]</code>, transportent des attentes plus fortes et peuvent rendre l'API trompeuse en un instant.",
+      retenir: [
+        "Plus l'opérateur est chargé d'intuition, plus sa surcharge doit être défendable.",
+        "Le mot-clé <code>explicit</code> protège souvent mieux la lisibilité que des conversions automatiques."
+      ],
+      pitfalls: [
+        "Ajouter un opérateur parce qu'il 'serait pratique' sans vérifier sa sémantique exacte.",
+        "Rendre implicite une conversion qui change silencieusement la lecture d'une expression."
+      ],
+      method: [
+        "Liste les opérateurs envisageables pour le type.",
+        "Écarte d'abord ceux dont la sémantique serait ambiguë ou surprenante.",
+        "Pour les conversions, pars du principe qu'elles doivent être explicites jusqu'à preuve du contraire."
+      ],
+      check: "Si ton type propose <code>++</code> ou une conversion implicite, peux-tu défendre ce choix sans invoquer seulement le confort d'écriture ?"
     },
     {
       focus: "Le choix entre membre et non-membre dépend du contrat recherché. Une opération symétrique ou nécessitant des conversions des deux côtés gagne souvent à être écrite hors de la classe, parfois en friend si nécessaire.",
@@ -263,6 +366,23 @@ public:
         "Relis tous les opérateurs ensemble pour vérifier leur cohérence globale."
       ],
       check: "Ton opérateur d'égalité compare-t-il l'essentiel du métier ou seulement une représentation pratique ?"
+    },
+    {
+      focus: "Les flux et les opérateurs d'incrément rappellent qu'une surcharge n'est pas qu'une signature ; c'est aussi une convention de retour. <code>&lt;&lt;</code> et <code>&gt;&gt;</code> doivent permettre le chaînage. Le postfixe <code>++</code> doit distinguer clairement l'avant et l'après.",
+      retenir: [
+        "Le type de retour fait partie de la convention de l'opérateur, pas d'un détail libre.",
+        "Préfixe et postfixe ne doivent pas être implémentés au hasard comme deux variantes quasi identiques."
+      ],
+      pitfalls: [
+        "Oublier de retourner le flux dans un opérateur de flux.",
+        "Implémenter le postfixe sans préserver la sémantique de l'ancienne valeur."
+      ],
+      method: [
+        "Identifie d'abord la convention attendue pour l'opérateur standard visé.",
+        "Respecte ensuite son type de retour et sa sémantique habituelle.",
+        "Teste l'opérateur dans une expression enchaînée pour vérifier qu'il reste naturel."
+      ],
+      check: "Ton <code>operator++(int)</code> et ton <code>operator&gt;&gt;</code> se comportent-ils comme un lecteur C++ s'y attendrait sans surprise ?"
     },
     {
       focus: "L'opérateur >> et les six comparaisons forment un groupe symétrique. La règle d'or : implémenter l'essentiel (== et <), puis dériver tout le reste mécaniquement pour garantir la cohérence.",

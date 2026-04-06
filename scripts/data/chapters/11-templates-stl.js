@@ -26,16 +26,16 @@ registry.registerChapterBundle({
     shortTitle: "Templates et STL",
     title: "Templates, conteneurs STL, itérateurs et algorithmes",
     level: "Avancé",
-    duration: "75 min",
+    duration: "1 h 45",
     track: "SE7",
     summary:
-      "Les templates permettent d'écrire une seule fois un outil qui marche pour plusieurs types. La STL apporte ensuite des conteneurs et des algorithmes prêts à l'emploi pour éviter de réécrire les mêmes boucles.",
+      "Les templates permettent d'écrire une seule fois un outil qui marche pour plusieurs types. La STL apporte ensuite des conteneurs et des algorithmes prêts à l'emploi pour éviter de réécrire les mêmes boucles. Ce chapitre développe aussi les contraintes implicites, la spécialisation, l'invalidation d'itérateurs et les vrais critères de choix entre conteneurs.",
     goals: [
       "comprendre comment un template devient un vrai code concret pour un type donné",
-      "choisir un conteneur STL adapté au besoin au lieu de recréer sa propre structure à la main",
-      "combiner algorithmes, itérateurs, foncteurs et lambdas dans des exemples lisibles"
+      "choisir un conteneur STL adapté au besoin au lieu de recréer sa propre structure à la main, en tenant compte aussi des coûts et de l'invalidation d'itérateurs",
+      "combiner algorithmes, itérateurs, foncteurs, lambdas et quelques outils génériques avancés dans des exemples lisibles"
     ],
-    highlights: ["template", "vector", "iterator", "algorithm"],
+    highlights: ["template", "vector", "iterator", "algorithm", "specialization", "iterator invalidation"],
     body: [
       lesson(
         "Fonctions template et instanciation",
@@ -71,6 +71,34 @@ T2 calculerMoyenne(const T1 tableau[], int taille) {
           "Template avec plusieurs paramètres"
         ),
         callout("info", "Question clé", "Si ton template dépend de beaucoup d'opérations implicites sur <code>T</code>, explicite mentalement ces contraintes avant d'aller plus loin.")
+      ),
+      lesson(
+        "Contraintes implicites, surcharge et spécialisation",
+        paragraphs(
+          "Un template a souvent l'air très souple, mais il n'accepte pas n'importe quel type par magie. Il exige en réalité certaines opérations implicites : comparaison, copie, addition, accès par opérateur ou construction par défaut selon le code écrit. Une bonne lecture consiste donc à se demander ce que le type paramètre doit savoir faire.",
+          "À un niveau un peu plus avancé, C++ permet aussi de spécialiser certains comportements pour des cas particuliers. Il ne faut pas en abuser, mais comprendre l'idée aide à voir que la généricité n'est pas forcément uniforme : on peut garder un contrat général tout en adaptant un détail pour un type précis."
+        ),
+        code(
+          "cpp",
+          `
+template <typename T>
+bool egaux(const T& a, const T& b) {
+    return a == b; // T doit supporter operator==
+}
+
+template <>
+bool egaux<const char*>(const char* const& a, const char* const& b) {
+    return std::strcmp(a, b) == 0;
+}
+          `,
+          "Le template general impose deja un contrat implicite"
+        ),
+        bullets([
+          "Même sans <em>concepts</em> explicites, un template impose des exigences au type utilisé.",
+          "Une erreur de compilation dans un template révèle souvent une opération absente sur le type paramètre.",
+          "La spécialisation doit rester exceptionnelle et motivée par une vraie différence de sémantique ou d'efficacité."
+        ]),
+        callout("warn", "Piège classique", "Le message d'erreur d'un template peut être long, mais la cause de fond reste souvent simple : le type fourni ne sait pas faire une opération utilisée dans le corps du template.")
       ),
       lesson(
         "Classes template et contraintes implicites",
@@ -128,6 +156,35 @@ private:
           ]
         ),
         callout("warn", "Choix par défaut", "Dans la majorité des exercices et de nombreux projets réels, <code>std::vector</code> reste le premier choix raisonnable grâce à sa localité mémoire et à sa simplicité.")
+      ),
+      lesson(
+        "Invalidation d'itérateurs et stabilité des références",
+        paragraphs(
+          "Choisir un conteneur ne consiste pas seulement à comparer des complexités abstraites. Il faut aussi savoir ce qui arrive aux itérateurs, références et pointeurs vers les éléments quand on insère, supprime ou redimensionne. C'est un sujet extrêmement concret, car beaucoup de bugs viennent d'itérateurs conservés trop longtemps après une mutation du conteneur.",
+          "Par exemple, une réallocation de <code>std::vector</code> peut invalider tous les itérateurs et références vers ses éléments. À l'inverse, certains conteneurs chaînés gardent plus facilement la stabilité des éléments mais coûtent davantage ailleurs. Le bon choix dépend donc aussi de la durée de vie de tes vues sur les données."
+        ),
+        table(
+          ["Conteneur", "Mutation typique", "Effet fréquent sur les itérateurs/références"],
+          [
+            ["<code>std::vector</code>", "Insertion avec réallocation", "Peut invalider tous les itérateurs et références."],
+            ["<code>std::deque</code>", "Insertions/suppressions aux extrémités", "Règles plus subtiles, certaines vues peuvent devenir invalides."],
+            ["<code>std::list</code>", "Insertion/suppression locale", "Les autres itérateurs restent souvent valides."],
+            ["<code>std::map</code> / <code>std::set</code>", "Insertion ordonnée", "Les itérateurs restent généralement stables hors élément effacé."]
+          ]
+        ),
+        code(
+          "cpp",
+          `
+std::vector<int> v{1, 2, 3};
+auto it = v.begin();
+
+v.push_back(4); // peut invalider it si reallocation
+
+// *it ici peut etre dangereux selon l'etat du vector
+          `,
+          "Une vue ancienne sur un conteneur peut devenir invalide"
+        ),
+        callout("info", "Réflexe concret", "Quand tu conserves un itérateur ou une référence sur un élément, demande-toi immédiatement si le conteneur va ensuite être modifié.")
       ),
       lesson(
         "Itérateurs et parcours",
@@ -266,8 +323,11 @@ std::sort(dest.begin(), dest.end());
     checklist: [
       "Je comprends l'idée générale d'un template et de son instanciation.",
       "Je sais pourquoi les définitions de templates vivent généralement dans des headers.",
+      "Je peux repérer les contraintes implicites qu'un template impose à son type paramètre.",
+      "Je peux expliquer ce qu'est une spécialisation et pourquoi elle doit rester ciblée.",
       "Je comprends qu'une classe template impose des contraintes implicites à son type paramètre.",
       "Je sais choisir un conteneur par défaut raisonnable.",
+      "Je peux raisonner sur la stabilité ou l'invalidation d'itérateurs selon le conteneur et les mutations effectuées.",
       "Je sais ce que représentent <code>begin()</code> et <code>end()</code>.",
       "Je reconnais l'intérêt des algorithmes STL.",
       "Je peux lire une lambda simple ou un prédicat.",
@@ -303,6 +363,16 @@ std::sort(dest.begin(), dest.end());
         explanation: "Le compilateur doit voir la définition complète du template pour générer la version concrète utilisée."
       },
       {
+        question: "Que révèle souvent une erreur de compilation très longue dans un template ?",
+        options: [
+          "Souvent qu'une opération utilisée dans le template n'existe pas pour le type fourni",
+          "Que le compilateur est forcément défectueux",
+          "Que les templates ne doivent jamais être utilisés"
+        ],
+        answer: 0,
+        explanation: "Le message peut être verbeux, mais la cause de fond est souvent qu'un contrat implicite du template n'est pas satisfait par le type passé."
+      },
+      {
         question: "Que représente <code>end()</code> sur un conteneur STL ?",
         options: [
           "Le dernier élément du conteneur",
@@ -311,6 +381,16 @@ std::sort(dest.begin(), dest.end());
         ],
         answer: 2,
         explanation: "<code>end()</code> marque la fin de la plage ; on ne le déréférence pas."
+      },
+      {
+        question: "Quel risque classique apparaît si l'on garde un itérateur de <code>std::vector</code> puis qu'une insertion provoque une réallocation ?",
+        options: [
+          "L'itérateur peut devenir invalide",
+          "Le vector se transforme automatiquement en list",
+          "La réallocation est interdite par la STL"
+        ],
+        answer: 0,
+        explanation: "Une réallocation peut déplacer toute la zone mémoire du vector. Les anciennes vues vers ses éléments ne sont alors plus fiables."
       },
       {
         question: "Quelle est la différence fondamentale entre <code>std::stack</code> et <code>std::queue</code> ?",
@@ -356,9 +436,20 @@ std::sort(dest.begin(), dest.end());
           "la transformation avec std::transform",
           "l'affichage du résultat final"
         ]
+      },
+      {
+        title: "Audit d'invalidation d'itérateurs",
+        difficulty: "Avancé",
+        time: "30 min",
+        prompt: "Prends trois conteneurs différents et construis de petits scénarios où un itérateur, une référence ou un pointeur vers un élément est conservé puis utilisé après mutation du conteneur. Pour chaque cas, décide si l'usage reste correct ou devient dangereux, et explique pourquoi.",
+        deliverables: [
+          "trois scénarios sur des conteneurs différents",
+          "le diagnostic de validité ou d'invalidation pour chacun",
+          "une règle pratique que tu retiens pour éviter ce bug"
+        ]
       }
     ],
-    keywords: ["template", "stl", "vector", "map", "unordered_map", "algorithm", "lambda", "iterateur", "foncteur", "predicat", "stack", "queue", "copy", "transform", "lifo", "fifo"]
+    keywords: ["template", "stl", "vector", "map", "unordered_map", "algorithm", "lambda", "iterateur", "foncteur", "predicat", "stack", "queue", "copy", "transform", "lifo", "fifo", "specialization", "iterator invalidation"]
   })),
   deepDives: [
     {
@@ -377,6 +468,23 @@ std::sort(dest.begin(), dest.end());
         "Teste ensuite l'idée sur plusieurs cas réellement différents."
       ],
       check: "Peux-tu expliquer pourquoi un template placé uniquement dans un .cpp pose souvent problème ?"
+    },
+    {
+      focus: "La généricité ne supprime pas les contraintes ; elle les rend implicites. Lire un template correctement, c'est donc lire aussi les opérations qu'il exige du type paramètre, même lorsqu'elles ne sont pas annoncées noir sur blanc dans une syntaxe de <em>concept</em>.",
+      retenir: [
+        "Un template peut exiger comparaison, copie, construction ou appel de fonctions particulières.",
+        "La longueur du message d'erreur n'empêche pas que la cause soit souvent une opération manquante très simple."
+      ],
+      pitfalls: [
+        "Croire qu'un template 'accepte tout' tant qu'il compile sur un premier exemple.",
+        "Ne pas relier une erreur d'instanciation à l'opération concrète qui manque sur le type passé."
+      ],
+      method: [
+        "Repère les opérations exercées sur <code>T</code> dans le corps du template.",
+        "Transforme-les en contrat mental minimal sur le type paramètre.",
+        "Teste ensuite le template sur des types réellement différents pour valider ce contrat."
+      ],
+      check: "Pour un template donné, saurais-tu lister à l'oral ce que le type paramètre doit savoir faire ?"
     },
     {
       focus: "Les classes template rendent la généricité structurelle, mais elles déplacent aussi beaucoup de contraintes dans le contrat implicite du type paramètre. Le vrai enjeu pédagogique est de reconnaître ces exigences au lieu de les laisser cachées.",
@@ -428,6 +536,23 @@ std::sort(dest.begin(), dest.end());
         "Choisis ensuite l'algorithme compatible le plus expressif."
       ],
       check: "Saurais-tu expliquer pourquoi std::sort marche sur vector mais pas directement sur list ?"
+    },
+    {
+      focus: "L'invalidation d'itérateurs est l'un des pièges les plus concrets de la STL. Les conteneurs ne promettent pas tous la même stabilité après insertion, suppression ou réallocation. Ce détail est décisif dès qu'on conserve des vues vers les éléments entre deux opérations.",
+      retenir: [
+        "Une mutation du conteneur peut invalider des itérateurs, références ou pointeurs déjà récupérés.",
+        "Le bon choix de conteneur dépend aussi de cette stabilité, pas seulement des complexités abstraites."
+      ],
+      pitfalls: [
+        "Conserver un itérateur de vector puis modifier le conteneur avant de l'utiliser à nouveau.",
+        "Parler des conteneurs uniquement en termes de O(1) ou O(log n) sans regarder la durée de vie des vues."
+      ],
+      method: [
+        "Repère les itérateurs ou références conservés au-delà de l'instruction courante.",
+        "Vérifie ensuite si le conteneur est modifié entre-temps.",
+        "Si oui, relis les garanties du conteneur ou repense la stratégie d'accès."
+      ],
+      check: "Quand tu gardes une référence sur un élément de vector, sais-tu quelles opérations suivantes peuvent la rendre invalide ?"
     },
     {
       focus: "Les algorithmes STL, foncteurs et lambdas poussent vers un style plus déclaratif. L'enjeu n'est pas d'interdire les boucles, mais de choisir l'expression la plus lisible pour décrire une intention comme filtrer, transformer, compter ou accumuler.",

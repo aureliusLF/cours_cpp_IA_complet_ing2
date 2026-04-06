@@ -26,16 +26,16 @@ registry.registerChapterBundle({
     shortTitle: "Pointeurs et mémoire",
     title: "Pointeurs, adresses mémoire et allocation dynamique",
     level: "Fondations",
-    duration: "50 min",
+    duration: "1 h 20",
     track: "SE1",
     summary:
-      "Ce chapitre transforme une idée abstraite en image concrète : une variable vit à une adresse, et un pointeur est simplement une variable qui stocke cette adresse. Une fois ce modèle compris, les bugs mémoire deviennent plus lisibles et les limites des pointeurs bruts aussi.",
+      "Ce chapitre transforme une idée abstraite en image concrète : une variable vit à une adresse, et un pointeur est simplement une variable qui stocke cette adresse. Il prend aussi le temps de clarifier pile, tas, tableaux, paramètres pointeurs, arithmétique, durée de vie et allocation dynamique manuelle.",
     goals: [
       "expliquer le rôle de <code>&amp;</code>, <code>*</code> et <code>nullptr</code> sans confondre adresse et valeur",
-      "lire un parcours simple avec arithmétique de pointeurs et relier un tableau à son premier élément",
-      "distinguer les formes <code>const T*</code>, <code>T* const</code> et reconnaître les pièges mémoire les plus coûteux"
+      "lire un parcours simple avec arithmétique de pointeurs, relier un tableau à son premier élément et comprendre ce qu'une fonction reçoit vraiment",
+      "distinguer pile, tas, <code>const T*</code>, <code>T* const</code> et reconnaître les pièges mémoire les plus coûteux"
     ],
-    highlights: ["&", "*", "nullptr", "delete[]", "dangling pointer"],
+    highlights: ["&", "*", "nullptr", "stack vs heap", "delete[]", "dangling pointer"],
     body: [
       lesson(
         "Modèle mental : une variable a une valeur, mais aussi une adresse",
@@ -68,6 +68,37 @@ std::cout << note << '\\n'; // affiche 15
         callout("info", "Image utile", "Une variable classique te donne directement la valeur. Un pointeur te donne d'abord une adresse, puis il faut la suivre avec <code>*</code> pour retrouver la valeur.")
       ),
       lesson(
+        "Pile, tas et durée de vie : où la donnée vit-elle vraiment ?",
+        paragraphs(
+          "Comprendre les pointeurs devient beaucoup plus facile quand on distingue les grandes zones de durée de vie. Une variable locale simple vit généralement dans la portée courante et disparaît à la sortie du bloc. Une ressource allouée avec <code>new</code> vit, elle, jusqu'au <code>delete</code> correspondant. Le bug apparaît précisément quand le programme oublie cette différence de durée de vie.",
+          "Il ne faut pas transformer cette distinction en folklore du type 'stack contre heap' appris par cœur. La bonne question est toujours : qui crée la donnée, combien de temps doit-elle rester valide, et qui porte la responsabilité de la détruire ? Les pointeurs sont une façon de parler de cette relation."
+        ),
+        code(
+          "cpp",
+          `
+int valeurLocale{7};              // vie limitee au bloc courant
+int* adresseLocale{&valeurLocale};
+
+int* donneesDynamiques{new int[3]{1, 2, 3}}; // vie jusqu'au delete[]
+
+std::cout << *adresseLocale << '\n';
+std::cout << donneesDynamiques[1] << '\n';
+
+delete[] donneesDynamiques;
+          `,
+          "Deux durees de vie differentes, deux responsabilites differentes"
+        ),
+        table(
+          ["Situation", "Durée de vie typique", "Question de conception"],
+          [
+            ["Variable locale", "Jusqu'à la fin du bloc courant", "A-t-on besoin de la conserver plus longtemps ?"],
+            ["Objet global ou statique", "Pendant tout ou partie du programme", "Le coût global est-il vraiment justifié ?"],
+            ["Allocation dynamique", "Jusqu'à destruction explicite ou gestion RAII", "Qui possède et détruit réellement la ressource ?"]
+          ]
+        ),
+        callout("success", "Réflexe de lecture", "Quand tu vois un pointeur, ne demande pas seulement vers quoi il pointe. Demande aussi combien de temps cette cible va rester vivante.")
+      ),
+      lesson(
         "Exemple minimal avant les variantes : tableau, parcours et <code>nullptr</code>",
         paragraphs(
           "Avant de parler des cas avancés, retiens un exemple canonique : un tableau est une zone contiguë, et son nom se comporte comme un pointeur vers le premier élément. L'arithmétique des pointeurs ne compte donc pas en octets visibles pour toi, mais en éléments du type pointé.",
@@ -96,6 +127,37 @@ if (rien == nullptr) {
           "L'arithmétique n'est correcte qu'à l'intérieur du même tableau."
         ]),
         callout("success", "Ce qu'il faut retenir d'abord", "Tant que tu sais lire <code>&amp;</code>, <code>*</code>, <code>nullptr</code> et <code>*(p + i)</code>, tu possèdes déjà le noyau du chapitre.")
+      ),
+      lesson(
+        "Pointeurs en paramètres, tableaux et bornes de parcours",
+        paragraphs(
+          "Un point souvent mal compris est le suivant : lorsqu'un tableau est passé à une fonction, la fonction ne reçoit pas la taille magique du tableau. Elle reçoit essentiellement une adresse vers le premier élément. C'est pour cela qu'un bon contrat de fonction transmet aussi une taille, une borne de fin, ou mieux un conteneur standard.",
+          "Cette lecture prépare déjà la différence entre 'observer une séquence' et 'posséder une séquence'. Un pointeur de début accompagné d'un pointeur de fin reste un schéma fréquent dans les API bas niveau, et il faut savoir le lire proprement."
+        ),
+        code(
+          "cpp",
+          `
+int somme(const int* debut, const int* fin) {
+    int total{0};
+
+    for (const int* courant{debut}; courant != fin; ++courant) {
+        total += *courant;
+    }
+
+    return total;
+}
+
+int notes[]{10, 12, 15, 9};
+std::cout << somme(notes, notes + 4) << '\n';
+          `,
+          "Lire une plage memoire avec un debut et une fin"
+        ),
+        bullets([
+          "La fonction reçoit ici une plage mémoire, pas un 'vrai tableau' avec taille intégrée.",
+          "<code>fin</code> pointe juste après le dernier élément valide, comme dans beaucoup d'API de la STL.",
+          "Le contrat devient faux si <code>debut</code> et <code>fin</code> ne viennent pas de la même séquence."
+        ]),
+        callout("info", "Pont important", "Beaucoup d'interfaces bas niveau manipulent des couples <code>debut / fin</code>. Les comprendre t'aidera ensuite à lire la STL, les itérateurs et plusieurs API C.")
       ),
       lesson(
         "Piège classique : un pointeur peut survivre à sa cible",
@@ -131,7 +193,8 @@ delete[] notes;
             ["<code>const int* p</code>", "Pointeur vers <code>int</code> en lecture seule."],
             ["<code>int* const p</code>", "Pointeur fixe vers un <code>int</code> modifiable."],
             ["<code>const int* const p</code>", "Ni la cible ni l'adresse ne doivent changer."],
-            ["<code>Point* pt</code>", "Adresse d'un objet <code>Point</code>, accessible ensuite via <code>pt-&gt;x</code>."]
+            ["<code>Point* pt</code>", "Adresse d'un objet <code>Point</code>, accessible ensuite via <code>pt-&gt;x</code>."],
+            ["<code>somme(debut, fin)</code>", "Fonction qui observe une plage mémoire délimitée par deux adresses."]
           ]
         ),
         code(
@@ -180,8 +243,10 @@ void afficherNote(const int* note) {
     checklist: [
       "Je peux expliquer la différence entre la valeur d'une variable et son adresse mémoire.",
       "Je peux lire correctement <code>&amp;x</code>, <code>int* p</code> et <code>*p</code> dans leur contexte respectif.",
+      "Je peux expliquer la différence entre une variable locale dont la durée de vie suit le scope et une ressource dynamique qui vit jusqu'au <code>delete</code> ou à son gardien RAII.",
       "Je peux justifier l'usage de <code>nullptr</code> pour représenter une absence de cible.",
       "Je peux expliquer pourquoi <code>*(p + i)</code> et <code>arr[i]</code> parlent du même élément d'un tableau.",
+      "Je peux expliquer ce qu'une fonction reçoit réellement quand on lui passe un tableau sous forme de pointeur.",
       "Je peux diagnostiquer un pointeur suspendu causé par une variable locale détruite ou par un <code>delete</code> déjà effectué.",
       "Je peux lire les combinaisons essentielles de <code>const</code> avec un pointeur.",
       "Je peux expliquer pourquoi les pointeurs bruts propriétaires sont fragiles en C++ moderne."
@@ -214,6 +279,16 @@ void afficherNote(const int* note) {
         explanation: "<code>p + 2</code> atteint le troisième élément du tableau. Le déréférencement lit ensuite la valeur qui s'y trouve, ici 15."
       },
       {
+        question: "Pourquoi une fonction recevant seulement <code>int* debut</code> ne connaît-elle pas automatiquement la taille du tableau d'origine ?",
+        options: [
+          "Parce qu'un pointeur transporte une adresse, pas la taille complète de la séquence",
+          "Parce que les tableaux n'ont jamais de taille en C++",
+          "Parce que la taille n'est disponible qu'avec <code>double*</code>"
+        ],
+        answer: 0,
+        explanation: "Le pointeur vers le premier élément ne mémorise pas à lui seul la longueur de la zone valide. Il faut donc transmettre une borne, une taille ou utiliser un conteneur qui porte ce contrat."
+      },
+      {
         question: "Quelle déclaration exprime un pointeur dont <strong>l'adresse</strong> ne peut pas être modifiée mais dont la <strong>valeur pointée</strong> peut l'être ?",
         options: [
           "<code>const int* p</code>",
@@ -232,6 +307,16 @@ void afficherNote(const int* note) {
         ],
         answer: 1,
         explanation: "La syntaxe de libération doit correspondre à la syntaxe d'allocation. Mélanger les deux formes introduit un comportement indéfini, donc un bug potentiellement silencieux."
+      },
+      {
+        question: "Quel énoncé décrit le mieux le danger d'un pointeur suspendu ?",
+        options: [
+          "Le pointeur devient automatiquement <code>nullptr</code> dès que la cible disparaît",
+          "L'adresse peut encore exister en apparence alors que la ressource visée n'est plus valide",
+          "Le bug provoque toujours une erreur de compilation"
+        ],
+        answer: 1,
+        explanation: "C'est justement ce qui rend le problème piégeux : l'adresse a l'air présente, mais le contrat de validité est déjà cassé."
       }
     ],
     exercises: [
@@ -267,9 +352,20 @@ void afficherNote(const int* note) {
           "une seconde version en <code>std::vector</code> avec le même comportement observable",
           "une liste argumentée des bugs potentiels éliminés par la refactorisation"
         ]
+      },
+      {
+        title: "Lire une plage mémoire",
+        difficulty: "Intermédiaire",
+        time: "25 min",
+        prompt: "Écris deux fonctions bas niveau recevant un pointeur de début et un pointeur de fin : l'une calcule une somme, l'autre cherche une valeur. Ajoute ensuite une version équivalente en <code>std::vector</code> ou <code>std::span</code> et compare la lisibilité des contrats.",
+        deliverables: [
+          "une version correcte sur plage <code>debut / fin</code>",
+          "au moins un test montrant ce que signifie la borne de fin exclusive",
+          "une comparaison argumentée avec une version plus haut niveau"
+        ]
       }
     ],
-    keywords: ["pointeur", "adresse", "dereferencement", "nullptr", "new", "delete", "delete[]", "arithmetique pointeur", "tableau", "const pointeur", "fleche", "dangling pointer", "fuite memoire"]
+    keywords: ["pointeur", "adresse", "dereferencement", "nullptr", "new", "delete", "delete[]", "stack", "heap", "arithmetique pointeur", "tableau", "const pointeur", "fleche", "dangling pointer", "fuite memoire", "bornes", "debut fin"]
   })),
   deepDives: [
     {
@@ -290,6 +386,23 @@ void afficherNote(const int* note) {
       check: "Peux-tu expliquer à voix haute la différence entre <code>int* p = &amp;x</code> et <code>*p = 99</code> ?"
     },
     {
+      focus: "La question de la mémoire n'est pas seulement géographique. Elle est temporelle. Une adresse n'a de sens que tant que l'objet visé existe encore. C'est pourquoi pile, tas, durée de vie locale et ownership doivent être compris ensemble plutôt qu'appris séparément.",
+      retenir: [
+        "Une variable locale cesse d'exister à la fin de son bloc.",
+        "Une ressource dynamique survit au bloc courant tant qu'aucun destructeur ou <code>delete</code> ne la libère."
+      ],
+      pitfalls: [
+        "Conserver l'adresse d'une variable locale après la fin de la fonction.",
+        "Croire qu'un pointeur brut raconte à lui seul qui possède la ressource."
+      ],
+      method: [
+        "Pour chaque adresse manipulée, identifie d'abord la cible.",
+        "Demande ensuite jusqu'à quand cette cible reste valide.",
+        "Enfin, note quel morceau de code est responsable de la destruction."
+      ],
+      check: "Si une fonction retourne l'adresse d'une variable locale, peux-tu expliquer précisément à quel moment le contrat se casse ?"
+    },
+    {
       focus: "L'arithmétique des pointeurs est cohérente parce qu'elle raisonne en éléments, pas en octets. Cette propriété explique pourquoi les tableaux C se comportent comme des pointeurs, et pourquoi <code>arr[i]</code> et <code>*(arr + i)</code> sont identiques.",
       retenir: [
         "Incrémenter un pointeur avance d'une unité du type pointé, pas d'un octet.",
@@ -305,6 +418,23 @@ void afficherNote(const int* note) {
         "Préfère <code>std::span</code> (C++20) ou <code>std::vector</code> pour les fonctions recevant des séquences."
       ],
       check: "Si <code>p</code> pointe vers <code>arr[1]</code>, que vaut <code>*(p + 2)</code> pour un tableau <code>{10, 20, 30, 40}</code> ?"
+    },
+    {
+      focus: "Les couples <code>debut / fin</code> sont une façon ancienne mais très instructive d'exprimer une plage mémoire. Ils montrent qu'une fonction peut observer une séquence sans la posséder, à condition que l'appelant fournisse des bornes cohérentes.",
+      retenir: [
+        "Le pointeur de fin pointe habituellement juste après le dernier élément valide.",
+        "Une plage mémoire n'est correcte que si les deux bornes viennent de la même séquence."
+      ],
+      pitfalls: [
+        "Passer une borne de fin qui n'appartient pas au même tableau.",
+        "Supposer qu'une fonction recevant un pointeur connaît automatiquement la taille de la zone valide."
+      ],
+      method: [
+        "Définis clairement le début et la fin de la plage.",
+        "Parcours ensuite de <code>courant = debut</code> jusqu'à <code>courant != fin</code>.",
+        "Si ce contrat paraît trop fragile, remonte d'un cran avec <code>std::vector</code> ou <code>std::span</code>."
+      ],
+      check: "Sais-tu expliquer pourquoi la borne de fin d'une plage ne doit généralement pas être déréférencée ?"
     },
     {
       focus: "Lire les qualificatifs <code>const</code> sur un pointeur de droite à gauche résout immédiatement toute ambiguïté. C'est une règle mécanique que le compilateur applique et que tout lecteur peut reproduire sans apprentissage supplémentaire.",

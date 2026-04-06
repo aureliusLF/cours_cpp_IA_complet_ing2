@@ -26,16 +26,16 @@ registry.registerChapterBundle({
     shortTitle: "Héritage et polymorphisme",
     title: "Héritage, polymorphisme et interfaces abstraites",
     level: "Avancé",
-    duration: "60 min",
+    duration: "1 h 25",
     track: "SE4",
     summary:
-      "L'héritage sert quand un type est vraiment une version spécialisée d'un autre. Le polymorphisme permet ensuite d'appeler le bon comportement via un pointeur ou une référence vers la base. Ce chapitre montre aussi les pièges qui cassent vite une hiérarchie.",
+      "L'héritage sert quand un type est vraiment une version spécialisée d'un autre. Le polymorphisme permet ensuite d'appeler le bon comportement via un pointeur ou une référence vers la base. Ce chapitre développe aussi le masquage, <code>override</code>, <code>final</code>, les interfaces abstraites, le slicing et les situations où la composition reste préférable.",
     goals: [
       "utiliser l'héritage seulement quand la relation <em>est-un</em> tient vraiment",
-      "comprendre quand <code>virtual</code> et <code>override</code> font choisir la bonne méthode à l'exécution",
-      "choisir entre composition, classe abstraite et vraie hiérarchie sans sur-complexifier le design"
+      "comprendre quand <code>virtual</code>, <code>override</code> et éventuellement <code>final</code> font choisir le bon comportement à l'exécution",
+      "choisir entre composition, classe abstraite, hiérarchie concrète et éventuel downcast sans sur-complexifier le design"
     ],
-    highlights: ["virtual", "override", "abstract class", "protected"],
+    highlights: ["virtual", "override", "final", "abstract class", "protected", "slicing"],
     body: [
       lesson(
         "Relation est-un, classe de base et redéfinition",
@@ -204,6 +204,39 @@ for (const auto& forme : formes) {
         ])
       ),
       lesson(
+        "Masquage, <code>override</code> raté et rôle de <code>final</code>",
+        paragraphs(
+          "Dans une hiérarchie, tous les bugs ne viennent pas d'un oubli de <code>virtual</code>. Il existe aussi le masquage involontaire : une méthode de dérivée qui ressemble à celle de la base mais ne correspond pas exactement à sa signature ne redéfinit rien du tout. Elle crée au contraire un nouveau comportement local qui peut brouiller toute la hiérarchie.",
+          "Le mot-clé <code>override</code> protège précisément contre ce problème, et <code>final</code> permet, lui, de verrouiller une redéfinition ou une classe quand le design ne doit pas aller plus loin. Ces deux outils documentent l'intention et demandent au compilateur de la vérifier."
+        ),
+        code(
+          "cpp",
+          `
+class Base {
+public:
+    virtual void afficher() const;
+};
+
+class Derivee : public Base {
+public:
+    void afficher() const override; // verifie la redéfinition
+};
+
+class Finale final : public Base {
+public:
+    void afficher() const override;
+};
+          `,
+          "override et final servent aussi a verrouiller l'intention"
+        ),
+        bullets([
+          "<code>override</code> transforme une intention de redéfinition en vérification de compilation.",
+          "<code>final</code> peut s'appliquer à une méthode ou à une classe entière.",
+          "Une signature légèrement différente peut provoquer un masquage au lieu d'une vraie redéfinition."
+        ]),
+        callout("warn", "Bug discret", "Une méthode qui 'ressemble' à celle de la base n'est pas forcément une redéfinition. Sans <code>override</code>, ce type d'erreur peut rester silencieux.")
+      ),
+      lesson(
         "Fonctions virtuelles pures, classes abstraites et slicing",
         paragraphs(
           "Une fonction virtuelle pure s'écrit avec <code>= 0</code> et transforme la classe en classe abstraite. Une telle classe ne peut pas être instanciée directement, mais elle constitue une excellente interface de rôle pour les classes dérivées concrètes.",
@@ -234,6 +267,30 @@ void afficher(const Shape& shape) {
         ),
         callout("success", "Règle de survie", "Dès qu'une base est destinée à être utilisée polymorphiquement, donne-lui un destructeur virtuel et évite les copies par valeur vers ce type de base.")
       ),
+      lesson(
+        "Downcast, <code>dynamic_cast</code> et signes d'une hiérarchie qui force trop",
+        paragraphs(
+          "Le downcast consiste à repartir d'une base pour retrouver un type dérivé plus précis. Techniquement, <code>dynamic_cast</code> peut être utile dans certains points d'intégration ou de débogage, mais un recours fréquent à ce mécanisme signale souvent que la hiérarchie ou l'interface de base ne porte pas le bon contrat commun.",
+          "Le bon design polymorphique cherche en général à éviter d'avoir à demander 'quel est ton vrai type ?' pour agir. Si cette question revient souvent, c'est souvent que la base n'exprime pas assez le rôle commun, ou que la composition aurait été plus souple qu'une hiérarchie."
+        ),
+        code(
+          "cpp",
+          `
+void inspecter(Shape* shape) {
+    if (auto* cercle = dynamic_cast<Cercle*>(shape)) {
+        std::cout << cercle->rayon() << '\n';
+    }
+}
+          `,
+          "dynamic_cast existe, mais doit rester un signal a questionner"
+        ),
+        bullets([
+          "<code>dynamic_cast</code> vers un pointeur renvoie <code>nullptr</code> si le type réel ne correspond pas.",
+          "Un besoin fréquent de downcast suggère souvent un contrat de base mal choisi.",
+          "Le polymorphisme est plus fort quand l'on agit via le rôle commun, pas via l'identité concrète retrouvée après coup."
+        ]),
+        callout("info", "Question d'architecture", "Si tu dois souvent distinguer les dérivées avec des <code>dynamic_cast</code>, demande-toi d'abord si ta base expose vraiment le bon comportement polymorphique.")
+      ),
       videoLesson(
         "Ces vidéos sont celles de la playlist qui épousent le mieux la progression héritage -> dispatch dynamique -> destruction correcte.",
         [
@@ -250,8 +307,10 @@ void afficher(const Shape& shape) {
       "Je sais appeler explicitement le constructeur parent dans la liste d'initialisation.",
       "Je connais le rôle de <code>protected</code> et les effets de <code>public</code>, <code>protected</code> et <code>private</code> à l'héritage.",
       "J'emploie <code>override</code> systématiquement.",
+      "Je peux expliquer à quoi sert <code>final</code> sur une méthode ou une classe.",
       "Je connais le problème du slicing.",
       "Je mets un destructeur virtuel dans une base polymorphique.",
+      "Je peux expliquer pourquoi un usage fréquent de <code>dynamic_cast</code> peut révéler un contrat de base insuffisant.",
       "Je sais quand préférer la composition à l'héritage."
     ],
     quiz: [
@@ -294,6 +353,26 @@ void afficher(const Shape& shape) {
         ],
         answer: 2,
         explanation: "<code>protected</code> ouvre l'accès aux dérivées tout en le fermant aux utilisateurs externes de la classe."
+      },
+      {
+        question: "Quel est l'intérêt principal de <code>override</code> ?",
+        options: [
+          "Forcer le compilateur à vérifier qu'on redéfinit bien une méthode virtuelle existante",
+          "Rendre la méthode automatiquement plus rapide",
+          "Supprimer le besoin d'un destructeur virtuel"
+        ],
+        answer: 0,
+        explanation: "<code>override</code> n'est pas décoratif. Il attrape les erreurs de signature ou de masquage au moment de la compilation."
+      },
+      {
+        question: "Que peut révéler un recours fréquent à <code>dynamic_cast</code> dans une hiérarchie ?",
+        options: [
+          "Souvent que l'interface de base n'exprime pas assez bien le rôle commun",
+          "Que la hiérarchie est forcément parfaite",
+          "Que le destructeur virtuel n'est plus nécessaire"
+        ],
+        answer: 0,
+        explanation: "Le downcast peut être utile ponctuellement, mais s'il devient fréquent, il signale souvent que le contrat polymorphique ou le choix d'héritage méritent d'être revus."
       }
     ],
     exercises: [
@@ -318,9 +397,20 @@ void afficher(const Shape& shape) {
           "la solution retenue",
           "le critère utilisé"
         ]
+      },
+      {
+        title: "Autopsie d'un mauvais polymorphisme",
+        difficulty: "Avancé",
+        time: "30 min",
+        prompt: "Pars d'une petite hiérarchie volontairement bancale contenant au moins un problème parmi : héritage injustifié, oubli de <code>override</code>, slicing, ou usage excessif de <code>dynamic_cast</code>. Corrige le design et explique ce que chaque correction rétablit dans le contrat.",
+        deliverables: [
+          "la version initiale annotée avec les défauts de design",
+          "la version corrigée",
+          "une explication reliant chaque correction à la substitution, au cycle de vie ou au contrat polymorphique"
+        ]
       }
     ],
-    keywords: ["heritage", "polymorphisme", "virtual", "override", "slicing", "abstract class", "protected", "destructeur virtuel", "heritage multiple", "composition"]
+    keywords: ["heritage", "polymorphisme", "virtual", "override", "final", "slicing", "abstract class", "protected", "destructeur virtuel", "heritage multiple", "composition", "dynamic_cast"]
   })),
   deepDives: [
     {
@@ -392,6 +482,23 @@ void afficher(const Shape& shape) {
       check: "Que t'apporte concrètement le polymorphisme par rapport à un simple appel direct sur les types concrets ?"
     },
     {
+      focus: "override et final sont des outils de gouvernance de hiérarchie autant que de syntaxe. Ils rendent visible ce qui est redéfini, ce qui ne doit plus l'être, et ils évitent les faux positifs de masquage qui empoisonnent les hiérarchies complexes.",
+      retenir: [
+        "override transforme une intention en vérification du compilateur.",
+        "final sert à verrouiller une méthode ou une classe quand le design doit s'arrêter là."
+      ],
+      pitfalls: [
+        "Redéfinir une méthode avec une signature légèrement différente en croyant faire du polymorphisme.",
+        "Laisser une hiérarchie ouverte alors que certaines variations ne doivent plus exister."
+      ],
+      method: [
+        "Ajoute <code>override</code> à toute redéfinition voulue.",
+        "Utilise <code>final</code> quand une spécialisation ne doit pas être étendue davantage.",
+        "Relis les signatures pour repérer les masquages involontaires."
+      ],
+      check: "Si une méthode de dérivée change de signature par erreur, override permet-il encore de détecter le problème ?"
+    },
+    {
       focus: "Les classes abstraites et les fonctions virtuelles pures servent à exprimer une interface de rôle. Les plus gros pièges restent le slicing et l'oubli du destructeur virtuel, parce qu'ils cassent silencieusement le contrat polymorphique au moment du stockage ou de la destruction.",
       retenir: [
         "Une classe abstraite n'est pas instanciable mais peut servir de type de référence ou de pointeur.",
@@ -407,6 +514,23 @@ void afficher(const Shape& shape) {
         "Garde la hiérarchie petite, motivée et explicitement polymorphique."
       ],
       check: "Si une hiérarchie polymorphique fuit ou perd son comportement, regarderais-tu d'abord le stockage, la destruction ou le contrat de base ?"
+    },
+    {
+      focus: "Le downcast n'est pas un outil honteux, mais c'est un excellent révélateur de design. Lorsqu'il devient fréquent, il indique souvent que le contrat de base n'exprime pas assez clairement le comportement polymorphique réellement attendu par les appelants.",
+      retenir: [
+        "dynamic_cast peut être utile ponctuellement pour des intégrations ou des inspections spécialisées.",
+        "Un besoin récurrent de retrouver le type concret signale souvent une base trop pauvre ou un mauvais choix d'héritage."
+      ],
+      pitfalls: [
+        "Multiplier les branches conditionnelles sur les types dérivés dans du code censé être polymorphique.",
+        "Utiliser le downcast comme béquille permanente au lieu d'améliorer l'interface commune."
+      ],
+      method: [
+        "Repère les endroits où le code demande souvent 'quel est ton vrai type ?'.",
+        "Cherche si ce besoin pourrait être absorbé par une méthode virtuelle commune.",
+        "Si ce n'est pas possible, réévalue si l'héritage était vraiment le bon outil."
+      ],
+      check: "Quand tu as besoin d'un dynamic_cast, peux-tu dire si c'est un cas ponctuel raisonnable ou le symptôme d'une hiérarchie qui porte mal son rôle ?"
     }
   ]
 });
