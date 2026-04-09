@@ -20,7 +20,7 @@ const {
 } = registry.helpers;
 
 registry.registerChapterBundle({
-  order: 13,
+  order: 14,
   chapter: withChapterTheme("modern-cpp", () => ({
     id: "modern-cpp",
     shortTitle: "Modern C++",

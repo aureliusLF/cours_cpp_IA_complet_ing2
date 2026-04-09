@@ -71,9 +71,13 @@ const chapterLore = {
     scene: "Le même sort s'applique à plusieurs créatures tant que le contrat reste le même.",
     focus: "Repère le modèle générique, puis imagine ses instanciations concrètes."
   },
-  "exceptions-io": {
-    scene: "Quand une potion tourne mal, on doit signaler l'erreur sans laisser le laboratoire en désordre.",
-    focus: "Sépare le chemin nominal, le signal d'erreur et le nettoyage."
+  "flux-io": {
+    scene: "La bibliothèque de Poudlard possède une salle des parchemins : qu'on lise sur une ardoise, dans un grimoire ou sur un miroir enchanté, on utilise toujours le même sort de lecture.",
+    focus: "Identifie d'abord la source du flux, puis sépare ouverture, lecture brute et validation métier."
+  },
+  "exceptions-erreurs": {
+    scene: "Un sorcier expérimenté ne panique pas quand un sort tourne mal — il a prévu un filet de sécurité, sait où l'activer et n'encombre pas chaque corridor d'attrape-tout.",
+    focus: "Sépare les erreurs de conception (logic_error), les aléas d'exécution (runtime_error) et les alternatives légitimes à l'exception (optional, code de retour)."
   },
   "modern-cpp": {
     scene: "Le cours de magie moderne cherche moins de bruit et plus d'intention.",

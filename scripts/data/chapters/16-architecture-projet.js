@@ -20,7 +20,7 @@ const {
 } = registry.helpers;
 
 registry.registerChapterBundle({
-  order: 16,
+  order: 17,
   chapter: withChapterTheme("architecture-projet", () => ({
     id: "architecture-projet",
     shortTitle: "Architecture projet",

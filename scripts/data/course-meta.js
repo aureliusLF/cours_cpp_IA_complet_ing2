@@ -12,7 +12,7 @@ registry.setCourseMeta({
   description:
     "Le fil directeur suit la logique d'un semestre d'ING2, mais repart vraiment des bases de syntaxe sans supposer de bagage en C, puis étend le parcours avec les réflexes du C++ moderne : RAII, STL, move semantics, debug, architecture et mini-projet final.",
   stats: [
-    { value: "16", label: "chapitres progressifs" },
+    { value: "17", label: "chapitres progressifs" },
     { value: "55+", label: "objectifs et checklists" },
     { value: "33", label: "exercices guidés" },
     { value: "C++20", label: "base de compilation recommandée" }

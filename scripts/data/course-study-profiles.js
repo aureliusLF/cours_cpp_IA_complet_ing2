@@ -275,28 +275,53 @@ globalScope.COURSE_STUDY_PROFILES = {
       ]
     }
   },
-  "exceptions-io": {
+  "flux-io": {
     review: {
       expectations: [
-        "Séparer clairement chemin nominal, validation, signal d'erreur, propagation et traitement.",
-        "Choisir entre assertion, exception, valeur de retour ou simple branche métier selon la nature de l'échec.",
-        "Lire et parser des flux texte ou fichiers en vérifiant réellement l'état des streams."
+        "Ouvrir un fichier, vérifier son état et choisir le mode minimal nécessaire sans avoir besoin d'aide-mémoire.",
+        "Expliquer la différence entre les trois niveaux : lecture brute du fichier, parsing local d'une ligne et validation métier des champs.",
+        "Distinguer <code>istringstream</code>, <code>ostringstream</code> et <code>stringstream</code> et choisir le bon selon la direction du flux de données."
       ],
       commonMistakes: [
-        "Attraper trop tôt avec un <code>catch (...)</code> qui masque la cause réelle de l'erreur.",
-        "Lancer des exceptions pour des cas qui devraient rester de la logique métier normale.",
-        "Parser un fichier ou un flux sans tester les échecs d'ouverture, de conversion ou de lecture."
+        "Utiliser <code>while (!flux.eof())</code> au lieu de l'idiome sûr <code>while (flux >> valeur)</code>.",
+        "Mélanger le parsing et la logique métier dans une même boucle, rendant impossible le diagnostic précis d'une erreur.",
+        "Confondre <code>std::endl</code> et <code>'\\n'</code> et ignorer leur différence de coût dans une boucle d'écriture intensive."
       ],
-      oralCheck: "Pourquoi ce cas mérite-t-il une exception ici, alors qu'un autre cas voisin devrait être géré autrement ?"
+      oralCheck: "Si une seule ligne d'un fichier de 10 000 lignes est mal formée, comment ton code la rejette-t-il sans perdre les 9 999 autres ?"
     },
     assistant: {
-      focus: "Faire travailler la discipline de gestion d'erreurs et le parsing robuste d'entrées texte, fichiers ou arguments.",
+      focus: "Faire travailler la séparation lecture/parsing/validation et la manipulation rigoureuse de l'état des flux.",
       mustInclude: [
-        "Au moins un exercice de parsing avec validation explicite des flux.",
-        "Au moins un exercice de propagation d'erreur où il faut décider qui attrape et qui relaie."
+        "Au moins un exercice de parsing ligne par ligne avec <code>getline</code> + <code>stringstream</code> et gestion des lignes invalides.",
+        "Au moins un exercice de construction de sortie avec <code>ostringstream</code> avant écriture dans un fichier."
       ],
       avoid: [
-        "Éviter les <code>catch</code> trop larges ou les corrections qui masquent simplement le symptôme."
+        "Éviter de mélanger exceptions et I/O dans le même exercice tant que les deux chapitres n'ont pas été couverts séparément."
+      ]
+    }
+  },
+  "exceptions-erreurs": {
+    review: {
+      expectations: [
+        "Justifier le choix entre exception, <code>std::optional</code> et code de retour selon la nature et la portée de l'erreur.",
+        "Concevoir une exception personnalisée portant un contexte exploitable (fichier, ligne, opération) et dérivant de la bonne classe de base.",
+        "Expliquer les trois garanties d'exception et identifier laquelle s'applique naturellement quand le code utilise RAII."
+      ],
+      commonMistakes: [
+        "Attraper par <code>catch (...)</code> trop tôt et masquer la cause réelle de l'erreur.",
+        "Lancer une exception dans un destructeur et risquer <code>std::terminate</code>.",
+        "Utiliser <code>std::optional</code> comme remplacement universel des exceptions au lieu de le réserver aux absences de valeur légitimes."
+      ],
+      oralCheck: "Cette erreur doit-elle être une exception, un <code>std::optional</code>, ou une assertion — et pourquoi ?"
+    },
+    assistant: {
+      focus: "Faire raisonner sur la distance sémantique entre l'erreur et son traitement, la richesse du contexte dans les exceptions, et les garanties offertes par RAII.",
+      mustInclude: [
+        "Au moins un exercice de conception d'exception personnalisée avec contexte exploitable.",
+        "Au moins un exercice de refonte qui remplace une valeur sentinelle par <code>std::optional</code> avec justification."
+      ],
+      avoid: [
+        "Éviter les <code>catch</code> trop larges ou les exceptions utilisées comme mécanisme de contrôle de flux normal."
       ]
     }
   },

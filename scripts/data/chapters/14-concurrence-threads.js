@@ -20,7 +20,7 @@ const {
 } = registry.helpers;
 
 registry.registerChapterBundle({
-  order: 14,
+  order: 15,
   chapter: withChapterTheme("concurrence-threads", () => ({
     id: "concurrence-threads",
     shortTitle: "Concurrence",
