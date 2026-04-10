@@ -114,21 +114,17 @@ function renderHero(container, {
     ? nextChapter.title
     : "Tous les chapitres sont validés. Tu peux maintenant revenir sur les parties les plus fragiles ou générer une série d'exercices.";
 
-  container.innerHTML = `
-    <div class="hero__layout">
-      <div class="hero__copy">
-        <h2 class="hero__title">${courseMeta.title}</h2>
-        <p class="hero__lead">${courseMeta.description}</p>
-      </div>
+  const terminalContext = {
+    nextStepLabel,
+    nextStepText,
+    progress,
+    completedCount,
+    visibleCount,
+    assistantAvailable,
+    chaptersTotal: chapters.length
+  };
 
-      <aside class="hero-focus hero-focus--terminal">
-        <div class="terminal-header">
-          <span class="term-dot term-dot--red"></span>
-          <span class="term-dot term-dot--yellow"></span>
-          <span class="term-dot term-dot--green"></span>
-        </div>
-        <div class="terminal-body">
-<pre><code><span class="token-keyword">#include</span> <span class="token-string">&lt;ingenieur&gt;</span>
+  const defaultTerminalCode = `<span class="token-keyword">#include</span> <span class="token-string">&lt;ingenieur&gt;</span>
 <span class="token-keyword">#include</span> <span class="token-string">&lt;cplusplus&gt;</span>
 
 <span class="token-keyword">int</span> <span class="token-function">main</span>() {
@@ -144,7 +140,33 @@ function renderHero(container, {
   });
 
   <span class="token-keyword">return</span> course.<span class="token-function">execute</span>();
-}</code></pre>
+}`;
+
+  const terminalCode = typeof courseMeta.heroTerminal === "function"
+    ? courseMeta.heroTerminal(terminalContext)
+    : (typeof courseMeta.heroTerminal === "string" ? courseMeta.heroTerminal : defaultTerminalCode);
+  const introVisual = typeof courseMeta.introVisual === "function"
+    ? courseMeta.introVisual(terminalContext)
+    : courseMeta.introVisual;
+  const introMarkup = introVisual
+    ? `<div class="hero__intro-visual">${introVisual}</div>`
+    : `<p class="hero__lead">${courseMeta.description}</p>`;
+
+  container.innerHTML = `
+    <div class="hero__layout">
+      <div class="hero__copy">
+        <h2 class="hero__title">${courseMeta.title}</h2>
+        ${introMarkup}
+      </div>
+
+      <aside class="hero-focus hero-focus--terminal">
+        <div class="terminal-header">
+          <span class="term-dot term-dot--red"></span>
+          <span class="term-dot term-dot--yellow"></span>
+          <span class="term-dot term-dot--green"></span>
+        </div>
+        <div class="terminal-body">
+<pre><code>${terminalCode}</code></pre>
 
           <div class="terminal-actions">
             <div class="term-command">

@@ -1,5 +1,5 @@
 (function initialiseCourseAppStorage(globalScope) {
-  const STORAGE_KEY = "cours_cpp_complet_ing2_state_v4";
+  const STORAGE_KEY = globalScope.COURSE_STORAGE_KEY || "cours_cpp_complet_ing2_state_v4";
   const MAX_SEED = 2147483647;
 
   function createSeed() {

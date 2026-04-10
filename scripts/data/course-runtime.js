@@ -23,7 +23,7 @@ const slugify = sharedStrings.slugify || ((value) => normaliseForSearch(value)
   .replace(/^-+|-+$/g, ""));
 
 const proseLinkSelectors = "p, li, td, th, blockquote, dd, dt";
-const skippedGlossaryTags = new Set(["A", "BUTTON", "CODE", "PRE", "SCRIPT", "STYLE", "H1", "H2", "H3", "H4", "H5", "H6"]);
+const skippedGlossaryTags = new Set(["A", "BUTTON", "CODE", "PRE", "SCRIPT", "STYLE", "H1", "H2", "H3", "H4", "H5", "H6", "SVG", "FIGURE", "FIGCAPTION"]);
 const blockLikeTags = new Set(["P", "LI", "TD", "TH", "BLOCKQUOTE", "DD", "DT"]);
 
 const chapterLore = {
@@ -240,7 +240,7 @@ function addAutoComments(source, languageId, label) {
       return line;
     }
 
-    if (languageId === "bash" || languageId === "shell") {
+    if (languageId === "bash" || languageId === "shell" || languageId === "python" || languageId === "text") {
       return line;
     }
 
@@ -467,7 +467,7 @@ function annotateGlossaryLinks(root, glossaryEntries, sharedSeenEntryIds = null)
     collectedBlocks.push(root.firstElementChild);
   }
 
-  const blockNodes = Array.from(new Set(collectedBlocks.filter((node) => !node.closest("a, button, code, pre"))));
+  const blockNodes = Array.from(new Set(collectedBlocks.filter((node) => !node.closest("a, button, code, pre, .formula, .figure, figure, svg"))));
 
   blockNodes.forEach((block) => {
     const walker = documentRef.createTreeWalker(block, NodeFilter.SHOW_TEXT);
@@ -481,7 +481,7 @@ function annotateGlossaryLinks(root, glossaryEntries, sharedSeenEntryIds = null)
         continue;
       }
 
-      if (parentElement.closest("a, button, code, pre")) {
+      if (parentElement.closest("a, button, code, pre, .formula, .figure, figure, svg")) {
         continue;
       }
 
@@ -590,6 +590,29 @@ const table = (headers, rows) => `
     </tbody>
   </table>
 `;
+
+const formula = (body, { caption = "", inline = false } = {}) => {
+  if (inline) {
+    return `<span class="formula formula--inline">${body}</span>`;
+  }
+  return `
+    <div class="formula formula--block" role="math">
+      <div class="formula__body">${body}</div>
+      ${caption ? `<div class="formula__caption">${caption}</div>` : ""}
+    </div>
+  `;
+};
+
+const figure = (body, { caption = "", label = "", variant = "" } = {}) => {
+  const variantClass = variant ? ` figure--${variant}` : "";
+  const labelAttr = label ? ` aria-label="${escapeAttribute(label)}"` : "";
+  return `
+    <figure class="figure${variantClass}"${labelAttr}>
+      <div class="figure__body">${body}</div>
+      ${caption ? `<figcaption class="figure__caption">${caption}</figcaption>` : ""}
+    </figure>
+  `;
+};
 
 const chernoPlaylistUrl = "https://www.youtube.com/playlist?list=PLlrATfBNZ98dudnM48yfGUldqGD0S4FFb";
 const revaninioPlaylistUrl = "https://www.youtube.com/playlist?list=PL0ibd6OZI4XKMwaPS1xHU9N_smy3AkcUr";
@@ -806,6 +829,8 @@ globalScope.CourseDataRegistry = {
     callout,
     code,
     table,
+    formula,
+    figure,
     externalLink,
     withChapterTheme,
     videoLesson,

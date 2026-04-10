@@ -10,7 +10,7 @@ function glossaryModePanelId(mode) {
   return `glossary-mode-panel-${mode}`;
 }
 
-const QUIZ_CATEGORIES = [
+const DEFAULT_QUIZ_CATEGORIES = [
   { id: "build", label: "Compilation & linkage" },
   { id: "poo", label: "POO & polymorphisme" },
   { id: "memory", label: "Mémoire & ressources" },
@@ -24,7 +24,7 @@ const QUIZ_CATEGORIES = [
   { id: "general", label: "Concepts C++" }
 ];
 
-const CATEGORY_BY_TAG = {
+const DEFAULT_CATEGORY_BY_TAG = {
   algorithmes: "stl",
   api: "design",
   build: "build",
@@ -69,7 +69,33 @@ const CATEGORY_BY_TAG = {
   template: "template"
 };
 
-const categoryById = Object.fromEntries(QUIZ_CATEGORIES.map((category) => [category.id, category]));
+function getCourseQuizCategories() {
+  const meta = globalScope.COURSE_DATA?.meta;
+  if (meta && Array.isArray(meta.glossaryCategories) && meta.glossaryCategories.length) {
+    return meta.glossaryCategories;
+  }
+  return DEFAULT_QUIZ_CATEGORIES;
+}
+
+function getCourseCategoryByTag() {
+  const meta = globalScope.COURSE_DATA?.meta;
+  if (meta && meta.glossaryTagToCategory && typeof meta.glossaryTagToCategory === "object") {
+    return meta.glossaryTagToCategory;
+  }
+  return DEFAULT_CATEGORY_BY_TAG;
+}
+
+function getCategoryById(id) {
+  const categories = getCourseQuizCategories();
+  return categories.find((category) => category.id === id) || categories[categories.length - 1] || { id: "general", label: "Concepts" };
+}
+
+function renderVisual(entry) {
+  if (!entry || !entry.visual) {
+    return "";
+  }
+  return `<div class="glossary-card__visual">${entry.visual}</div>`;
+}
 
 function renderCodeBlock(codeExample) {
   if (!codeExample || !codeExample.source) {
@@ -136,8 +162,11 @@ function sortBySeed(items, seed, keyBuilder) {
 }
 
 function getCategory(entry) {
-  const categoryId = (entry.tags || []).map((tag) => CATEGORY_BY_TAG[tag]).find(Boolean) || "general";
-  return categoryById[categoryId] || categoryById.general;
+  const tagMap = getCourseCategoryByTag();
+  const categories = getCourseQuizCategories();
+  const fallbackId = categories[categories.length - 1]?.id || "general";
+  const categoryId = (entry.tags || []).map((tag) => tagMap[tag]).find(Boolean) || fallbackId;
+  return getCategoryById(categoryId);
 }
 
 function buildOrderedEntries(entries, seed) {
@@ -224,9 +253,11 @@ function buildCategoryQuestion(correctEntry, entries, seed) {
     })).values()
   );
 
+  const allCategories = getCourseQuizCategories();
+  const fallbackCategoryId = allCategories[allCategories.length - 1]?.id;
   const categoryPool = visibleCategories.length >= 4
     ? visibleCategories
-    : QUIZ_CATEGORIES.filter((category) => category.id !== "general");
+    : allCategories.filter((category) => category.id !== fallbackCategoryId);
 
   const distractors = sortBySeed(
     categoryPool.filter((category) => category.id !== correctCategory.id),
@@ -285,14 +316,27 @@ function buildQuizQuestion(entries, state) {
   }
 
   if (variant === 2) {
-    return buildTermChoiceQuestion(
-      correctEntry,
-      entries,
-      variantSeed,
-      `${renderCodeBlock(correctEntry.codeExample)}<p class="glossary-quiz__hint">Repère l'idée centrale illustrée par le code, pas juste un mot-clé visible.</p>`,
-      "Quel concept est illustré par ce code ?",
-      "Lecture de code"
-    );
+    if (correctEntry.visual) {
+      return buildTermChoiceQuestion(
+        correctEntry,
+        entries,
+        variantSeed,
+        `${renderVisual(correctEntry)}<p class="glossary-quiz__hint">Observe le schéma : c'est le mécanisme central qui est illustré.</p>`,
+        "Quel concept est illustré par ce schéma ?",
+        "Lecture de schéma"
+      );
+    }
+    if (correctEntry.codeExample && correctEntry.codeExample.source) {
+      return buildTermChoiceQuestion(
+        correctEntry,
+        entries,
+        variantSeed,
+        `${renderCodeBlock(correctEntry.codeExample)}<p class="glossary-quiz__hint">Repère l'idée centrale illustrée par le code, pas juste un mot-clé visible.</p>`,
+        "Quel concept est illustré par ce code ?",
+        "Lecture de code"
+      );
+    }
+    return buildDefinitionChoiceQuestion(correctEntry, entries, variantSeed);
   }
 
   if (variant === 3) {
@@ -330,6 +374,7 @@ function renderListMode(entries, knownSet, context = {}) {
             </div>
             <p class="glossary-card__text">${entry.text}</p>
             <p class="glossary-card__example"><strong>Exemple :</strong> ${entry.example}</p>
+            ${renderVisual(entry)}
             ${renderCodeBlock(entry.codeExample)}
             <div class="glossary-card__tags">
               ${entry.tags.map((tag) => `<span class="glossary-tag">${tag}</span>`).join("")}
@@ -391,6 +436,7 @@ function renderFlashcardsMode(entries, state, knownSet) {
           <h3>${current.term}</h3>
           <p class="glossary-card__text">${current.text}</p>
           <p class="glossary-card__example"><strong>Exemple :</strong> ${current.example}</p>
+          ${renderVisual(current)}
           ${renderCodeBlock(current.codeExample)}
         </div>
       </article>

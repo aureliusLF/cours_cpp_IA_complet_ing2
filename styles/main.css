@@ -792,6 +792,181 @@ kbd {
   font-size: 1rem;
 }
 
+.hero__intro-visual {
+  width: min(540px, 100%);
+  margin-top: 18px;
+}
+
+.hero-neural-network {
+  width: 100%;
+  min-height: 190px;
+}
+
+.hero-neural-network svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.hero-nn__connection {
+  stroke: var(--accent);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  opacity: 0.24;
+}
+
+.hero-nn__connection--input,
+.hero-nn__connection--hidden,
+.hero-nn__connection--output {
+  stroke-dasharray: 5 12;
+  animation: hero-nn-flow 2.4s linear infinite;
+}
+
+.hero-nn__connection--hidden {
+  animation-delay: 0.35s;
+}
+
+.hero-nn__connection--output {
+  animation-delay: 0.7s;
+}
+
+.hero-nn__node {
+  transform-box: fill-box;
+  transform-origin: center;
+  fill: var(--panel-solid);
+  stroke: var(--accent);
+  stroke-width: 1.8;
+  animation: hero-nn-node-pulse 3.6s ease-in-out infinite;
+}
+
+.hero-nn__node--input {
+  animation-delay: 0s;
+}
+
+.hero-nn__node--hidden-one {
+  animation-delay: 0.45s;
+}
+
+.hero-nn__node--hidden-two {
+  animation-delay: 0.9s;
+}
+
+.hero-nn__node--output {
+  fill: var(--accent-light);
+  animation-delay: 1.35s;
+}
+
+.hero-nn__signal {
+  transform-box: view-box;
+  transform-origin: 0 0;
+  fill: var(--accent);
+  opacity: 0;
+  filter: drop-shadow(0 0 8px var(--accent));
+  animation: hero-nn-signal 3.6s ease-in-out infinite;
+}
+
+.hero-nn__signal--a {
+  --signal-from-x: 46px;
+  --signal-from-y: 58px;
+  --signal-to-x: 165px;
+  --signal-to-y: 88px;
+  animation-delay: 0s;
+}
+
+.hero-nn__signal--b {
+  --signal-from-x: 46px;
+  --signal-from-y: 172px;
+  --signal-to-x: 165px;
+  --signal-to-y: 142px;
+  animation-delay: 0.2s;
+}
+
+.hero-nn__signal--c {
+  --signal-from-x: 165px;
+  --signal-from-y: 88px;
+  --signal-to-x: 292px;
+  --signal-to-y: 66px;
+  animation-delay: 0.75s;
+}
+
+.hero-nn__signal--d {
+  --signal-from-x: 165px;
+  --signal-from-y: 142px;
+  --signal-to-x: 292px;
+  --signal-to-y: 166px;
+  animation-delay: 0.95s;
+}
+
+.hero-nn__signal--e {
+  --signal-from-x: 292px;
+  --signal-from-y: 66px;
+  --signal-to-x: 410px;
+  --signal-to-y: 116px;
+  animation-delay: 1.55s;
+}
+
+.hero-nn__signal--f {
+  --signal-from-x: 292px;
+  --signal-from-y: 166px;
+  --signal-to-x: 410px;
+  --signal-to-y: 116px;
+  animation-delay: 1.75s;
+}
+
+.hero-nn__label {
+  fill: var(--ink-soft);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  text-anchor: middle;
+}
+
+@keyframes hero-nn-flow {
+  to {
+    stroke-dashoffset: -34;
+  }
+}
+
+@keyframes hero-nn-node-pulse {
+  0%,
+  100% {
+    opacity: 0.78;
+    transform: scale(1);
+  }
+
+  45%,
+  58% {
+    opacity: 1;
+    transform: scale(1.12);
+    filter: drop-shadow(0 0 9px var(--accent));
+  }
+}
+
+@keyframes hero-nn-signal {
+  0%,
+  8% {
+    opacity: 0;
+    transform: translate(var(--signal-from-x), var(--signal-from-y)) scale(0.65);
+  }
+
+  18%,
+  52% {
+    opacity: 1;
+  }
+
+  62% {
+    opacity: 1;
+    transform: translate(var(--signal-to-x), var(--signal-to-y)) scale(1);
+  }
+
+  72%,
+  100% {
+    opacity: 0;
+    transform: translate(var(--signal-to-x), var(--signal-to-y)) scale(0.65);
+  }
+}
+
 .hero__meta {
   margin-top: 16px;
   flex-wrap: wrap;
@@ -1800,6 +1975,16 @@ kbd {
   line-height: 1.7;
 }
 
+.glossary-card__visual {
+  display: flex;
+  justify-content: center;
+}
+
+.glossary-card__visual .figure {
+  margin: 8px 0 4px;
+  width: 100%;
+}
+
 .glossary-card__actions {
   margin-top: auto;
 }
@@ -2201,6 +2386,407 @@ kbd {
     padding: 18px;
     border-radius: var(--radius-md);
   }
+}
+
+/* ===== FORMULAS ===== */
+.formula {
+  font-family: "DM Serif Display", "Times New Roman", Georgia, serif;
+  font-feature-settings: "lnum" 1, "tnum" 0;
+  color: var(--ink);
+}
+
+.formula var {
+  font-style: italic;
+  font-family: inherit;
+}
+
+.formula--block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 20px auto;
+  padding: 18px 24px;
+  background: var(--accent-light);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-md, 10px);
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.formula--block .formula__body {
+  font-size: 1.35rem;
+  line-height: 1.9;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.formula--block .formula__caption {
+  font-family: "DM Sans", system-ui, sans-serif;
+  font-size: 0.82rem;
+  color: var(--ink);
+  opacity: 0.7;
+  font-style: italic;
+}
+
+.formula--inline {
+  display: inline;
+  font-size: 1.05em;
+  padding: 0 2px;
+}
+
+.formula .op {
+  font-style: normal;
+  padding: 0 0.15em;
+}
+
+.formula .sum {
+  font-style: normal;
+  font-size: 1.5em;
+  line-height: 0.8;
+  display: inline-block;
+  vertical-align: middle;
+  position: relative;
+  padding: 0 0.1em;
+}
+
+.formula .sum-limits {
+  display: inline-flex;
+  flex-direction: column;
+  font-size: 0.55em;
+  line-height: 1;
+  vertical-align: middle;
+  font-style: normal;
+  padding: 0 0.3em 0 0.1em;
+  text-align: center;
+  font-family: "DM Sans", system-ui, sans-serif;
+}
+
+.formula .sum-limits .top {
+  margin-bottom: 0.15em;
+}
+
+.formula .sum-limits .bot {
+  margin-top: 0.15em;
+}
+
+.formula .fn {
+  font-style: normal;
+  font-family: "DM Sans", system-ui, sans-serif;
+  font-weight: 500;
+  padding-right: 0.1em;
+}
+
+.formula .pipeline {
+  font-family: "DM Sans", system-ui, sans-serif;
+  font-style: normal;
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.formula .pipeline .arrow {
+  padding: 0 0.4em;
+  color: var(--accent);
+}
+
+.formula .pipeline .group {
+  display: inline-block;
+  padding: 0.1em 0.5em;
+  margin: 0 0.1em;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 6px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .formula .pipeline .group {
+    background: rgba(255, 255, 255, 0.05);
+  }
+}
+
+/* ===== FIGURES (SVG, schemas, diagrams) ===== */
+.figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin: 22px auto;
+  padding: 18px 22px;
+  background: var(--accent-light);
+  border: 1px solid rgba(20, 184, 166, 0.18);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-md, 10px);
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.figure__body {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.figure__body svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.figure__caption {
+  font-family: "DM Sans", system-ui, sans-serif;
+  font-size: 0.82rem;
+  color: var(--ink);
+  opacity: 0.75;
+  font-style: italic;
+  text-align: center;
+  max-width: 54ch;
+}
+
+.figure--tight {
+  padding: 10px 14px;
+  gap: 6px;
+  margin: 14px auto;
+}
+
+.figure--wide .figure__caption {
+  max-width: 72ch;
+}
+
+/* SVG semantic colors — inherit the course accent variables */
+.figure svg .svg-grid {
+  stroke: rgba(15, 23, 42, 0.35);
+  fill: none;
+  stroke-width: 1;
+}
+
+.figure svg .svg-cell {
+  fill: rgba(255, 255, 255, 0.7);
+  stroke: rgba(15, 23, 42, 0.35);
+  stroke-width: 1;
+}
+
+.figure svg .svg-cell-text {
+  fill: var(--ink, #0f172a);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 14px;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.figure svg .svg-label {
+  fill: var(--ink, #0f172a);
+  font-family: "DM Sans", system-ui, sans-serif;
+  font-size: 13px;
+  text-anchor: middle;
+}
+
+.figure svg .svg-label-small {
+  fill: var(--ink, #0f172a);
+  font-family: "DM Sans", system-ui, sans-serif;
+  font-size: 11px;
+  text-anchor: middle;
+  opacity: 0.75;
+}
+
+.figure svg .svg-filter-cell {
+  fill: rgba(20, 184, 166, 0.18);
+  stroke: var(--accent);
+  stroke-width: 1.2;
+}
+
+.figure svg .svg-highlight {
+  fill: rgba(20, 184, 166, 0.28);
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.figure svg .svg-arrow {
+  stroke: var(--accent);
+  stroke-width: 1.6;
+  fill: none;
+  marker-end: url(#arrowHead);
+}
+
+.figure svg .svg-pipeline-block {
+  fill: rgba(255, 255, 255, 0.7);
+  stroke: var(--accent);
+  stroke-width: 1.4;
+}
+
+.figure svg .svg-pipeline-block-text {
+  fill: var(--ink, #0f172a);
+  font-family: "DM Sans", system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.figure svg .svg-neuron {
+  fill: rgba(255, 255, 255, 0.85);
+  stroke: var(--accent);
+  stroke-width: 1.4;
+}
+
+.figure svg .svg-neuron-dropped {
+  fill: rgba(148, 163, 184, 0.25);
+  stroke: rgba(148, 163, 184, 0.6);
+  stroke-dasharray: 3 3;
+}
+
+.figure svg .svg-connection {
+  stroke: rgba(20, 184, 166, 0.45);
+  stroke-width: 1;
+  fill: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .figure {
+    background: rgba(20, 184, 166, 0.12);
+    border-color: rgba(45, 212, 191, 0.22);
+  }
+  .figure svg .svg-grid,
+  .figure svg .svg-cell {
+    stroke: rgba(226, 232, 240, 0.4);
+  }
+  .figure svg .svg-cell {
+    fill: rgba(15, 23, 42, 0.5);
+  }
+  .figure svg .svg-cell-text,
+  .figure svg .svg-label,
+  .figure svg .svg-label-small,
+  .figure svg .svg-pipeline-block-text {
+    fill: #e2e8f0;
+  }
+  .figure svg .svg-pipeline-block {
+    fill: rgba(15, 23, 42, 0.55);
+  }
+  .figure svg .svg-neuron {
+    fill: rgba(15, 23, 42, 0.55);
+  }
+}
+
+/* --- Animations used inside figures --- */
+
+@keyframes anim-slide-window {
+  0%, 8%    { transform: translate(0, 0); }
+  11%, 19%  { transform: translate(40px, 0); }
+  22%, 30%  { transform: translate(80px, 0); }
+  33%, 41%  { transform: translate(0, 40px); }
+  44%, 52%  { transform: translate(40px, 40px); }
+  55%, 63%  { transform: translate(80px, 40px); }
+  66%, 74%  { transform: translate(0, 80px); }
+  77%, 85%  { transform: translate(40px, 80px); }
+  88%, 100% { transform: translate(80px, 80px); }
+}
+
+.figure svg .anim-slide-window {
+  animation: anim-slide-window 6s ease-in-out infinite;
+}
+
+@keyframes anim-slide-output {
+  0%, 10%    { opacity: 0; }
+  11%, 21%   { opacity: 1; }
+  22%, 32%   { opacity: 1; }
+  33%, 100%  { opacity: 1; }
+}
+
+.figure svg .anim-output-appear-0 { animation: anim-output-appear 6s ease-in-out infinite; animation-delay: 0s; opacity: 0; }
+.figure svg .anim-output-appear-1 { animation: anim-output-appear 6s ease-in-out infinite; animation-delay: 0.66s; opacity: 0; }
+.figure svg .anim-output-appear-2 { animation: anim-output-appear 6s ease-in-out infinite; animation-delay: 1.32s; opacity: 0; }
+.figure svg .anim-output-appear-3 { animation: anim-output-appear 6s ease-in-out infinite; animation-delay: 2.00s; opacity: 0; }
+.figure svg .anim-output-appear-4 { animation: anim-output-appear 6s ease-in-out infinite; animation-delay: 2.66s; opacity: 0; }
+.figure svg .anim-output-appear-5 { animation: anim-output-appear 6s ease-in-out infinite; animation-delay: 3.32s; opacity: 0; }
+.figure svg .anim-output-appear-6 { animation: anim-output-appear 6s ease-in-out infinite; animation-delay: 4.00s; opacity: 0; }
+.figure svg .anim-output-appear-7 { animation: anim-output-appear 6s ease-in-out infinite; animation-delay: 4.66s; opacity: 0; }
+.figure svg .anim-output-appear-8 { animation: anim-output-appear 6s ease-in-out infinite; animation-delay: 5.32s; opacity: 0; }
+
+@keyframes anim-output-appear {
+  0%, 5%   { opacity: 0; transform: scale(0.6); }
+  10%, 95% { opacity: 1; transform: scale(1); }
+  100%     { opacity: 1; transform: scale(1); }
+}
+
+@keyframes anim-pulse-highlight {
+  0%, 100% { opacity: 0.4; }
+  50%      { opacity: 1; }
+}
+
+.figure svg .anim-pulse {
+  animation: anim-pulse-highlight 1.6s ease-in-out infinite;
+}
+
+@keyframes anim-dropout-flicker {
+  0%, 24%  { opacity: 1; }
+  25%, 49% { opacity: 0.2; }
+  50%, 74% { opacity: 1; }
+  75%, 99% { opacity: 0.2; }
+  100%     { opacity: 1; }
+}
+
+.figure svg .anim-dropout-a { animation: anim-dropout-flicker 3.2s steps(1, end) infinite; animation-delay: 0s; }
+.figure svg .anim-dropout-b { animation: anim-dropout-flicker 3.2s steps(1, end) infinite; animation-delay: 0.8s; }
+.figure svg .anim-dropout-c { animation: anim-dropout-flicker 3.2s steps(1, end) infinite; animation-delay: 1.6s; }
+.figure svg .anim-dropout-d { animation: anim-dropout-flicker 3.2s steps(1, end) infinite; animation-delay: 2.4s; }
+
+@keyframes anim-ball-descend {
+  0%   { transform: translate(0, 0); }
+  15%  { transform: translate(30px, 20px); }
+  30%  { transform: translate(55px, 38px); }
+  45%  { transform: translate(75px, 52px); }
+  60%  { transform: translate(90px, 62px); }
+  75%  { transform: translate(100px, 68px); }
+  90%, 100% { transform: translate(105px, 70px); }
+}
+
+.figure svg .anim-ball {
+  animation: anim-ball-descend 4s ease-in-out infinite alternate;
+}
+
+@keyframes anim-pipeline-flow {
+  0%   { stroke-dashoffset: 24; }
+  100% { stroke-dashoffset: 0; }
+}
+
+.figure svg .anim-pipeline-arrow {
+  stroke-dasharray: 6 6;
+  animation: anim-pipeline-flow 1.2s linear infinite;
+}
+
+/* ===== COURSE THEMES ===== */
+body[data-course="ia"] {
+  --accent: #14b8a6;
+  --accent-dark: #0d9488;
+  --accent-light: rgba(20, 184, 166, 0.12);
+  --teal: #06b6d4;
+  --teal-soft: rgba(6, 182, 212, 0.12);
+}
+
+@media (prefers-color-scheme: dark) {
+  body[data-course="ia"] {
+    --accent: #2dd4bf;
+    --accent-dark: #14b8a6;
+    --accent-light: rgba(45, 212, 191, 0.18);
+    --teal: #22d3ee;
+    --teal-soft: rgba(34, 211, 238, 0.18);
+  }
+}
+
+.course-switch-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--accent);
+  font-weight: 500;
+  text-decoration: none;
+  font-size: 0.9em;
+  transition: color 0.15s ease;
+}
+
+.course-switch-link:hover,
+.course-switch-link:focus-visible {
+  color: var(--accent-dark);
+  text-decoration: underline;
 }
 
 /* ===== REDUCED MOTION ===== */

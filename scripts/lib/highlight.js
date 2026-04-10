@@ -64,6 +64,22 @@
         { className: "token-number", regex: /\b\d+\b/y },
         { className: "token-punctuation", regex: /[()]/y }
       ],
+      python: [
+        { className: "token-comment", regex: /#[^\n]*/y },
+        { className: "token-string", regex: /(?:[rRbBuUfF]{0,2})(?:"""[\s\S]*?"""|'''[\s\S]*?'''|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')/y },
+        { className: "token-number", regex: /\b(?:0x[\da-fA-F]+|\d+(?:\.\d+)?(?:[eE][+-]?\d+)?j?)\b/y },
+        {
+          className: "token-keyword",
+          regex: /\b(?:False|None|True|and|as|assert|async|await|break|class|continue|def|del|elif|else|except|finally|for|from|global|if|import|in|is|lambda|nonlocal|not|or|pass|raise|return|try|while|with|yield)\b/y
+        },
+        {
+          className: "token-type",
+          regex: /\b(?:int|float|str|bool|list|dict|set|tuple|bytes|object|None|Any|Optional|Union|Callable|Iterable|Iterator|Generator|torch|nn|np|tf|keras)\b/y
+        },
+        { className: "token-function", regex: /\b[A-Za-z_]\w*(?=\s*\()/y },
+        { className: "token-operator", regex: /\*\*|\/\/|<<|>>|<=|>=|==|!=|[+\-*/%&|^~!=<>]+/y },
+        { className: "token-punctuation", regex: /[{}()[\],.;:@]/y }
+      ],
       text: []
     };
 
