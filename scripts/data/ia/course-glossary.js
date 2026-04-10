@@ -10,6 +10,7 @@ if (!registry) {
 // - fondations, "deep learning", neurone, parametre  → famille "Fondations du deep learning"
 // - activation, convolution, operation, filtre, pooling → famille "Opérations de base"
 // - convnet, architecture                           → famille "Couches & architectures"
+// - recurrence, sequence, rnn, lstm, memoire, langage, attention, transformeur → famille "Récurrence & séquences"
 // - apprentissage, optimisation, gradient            → famille "Apprentissage & optimisation"
 // - regularisation, generalisation                   → famille "Régularisation & généralisation"
 // - diagnostic, metrique, evaluation                  → famille "Évaluation & diagnostics"
@@ -193,6 +194,440 @@ registry.setGlossary([
     text: "Technique qui interrompt l'entraînement dès que la perte sur l'ensemble de validation cesse de diminuer, pour éviter le sur-apprentissage.",
     aliases: ["arrêt précoce"],
     tags: ["regularisation", "generalisation", "diagnostic"]
+  },
+  {
+    term: "Réseau feedforward",
+    text: "Réseau sans cycle dans lequel l'information circule uniquement de l'entrée vers la sortie. Les réseaux denses classiques et les ConvNet standards sont feedforward.",
+    aliases: ["feedforward", "feed-forward", "réseau acyclique"],
+    tags: ["sequence", "architecture", "feedforward"]
+  },
+  {
+    term: "Réseau récurrent",
+    text: "Réseau de neurones comportant une boucle temporelle : à chaque pas, il combine l'entrée courante avec un état issu du pas précédent. Il est conçu pour traiter des séquences.",
+    aliases: ["RNN", "réseau de neurones récurrent", "réseaux récurrents"],
+    tags: ["rnn", "recurrence", "sequence"]
+  },
+  {
+    term: "Couche récurrente",
+    text: "Couche de neurones dont la sortie au temps t dépend à la fois de l'entrée courante et d'un état caché venu du temps précédent. C'est la vraie brique de base d'un RNN.",
+    aliases: ["recurrent layer"],
+    tags: ["rnn", "architecture", "sequence"]
+  },
+  {
+    term: "Pas de temps",
+    text: "Indice temporel noté en général t dans un RNN. Chaque pas correspond au traitement d'un élément supplémentaire de la séquence.",
+    aliases: ["time step", "temps t"],
+    tags: ["rnn", "sequence"]
+  },
+  {
+    term: "Déroulage temporel",
+    text: "Transformation conceptuelle d'un RNN replié avec boucle en une chaîne de copies du même bloc, une par pas de temps. Elle sert à comprendre le calcul et l'apprentissage.",
+    aliases: ["unrolling", "dépliage dans le temps"],
+    tags: ["rnn", "sequence", "architecture"]
+  },
+  {
+    term: "Poids partagés dans le temps",
+    text: "Principe selon lequel les mêmes matrices U, V et W sont réutilisées à chaque pas de temps d'un RNN déroulé. On n'apprend pas un nouveau jeu de poids pour chaque t.",
+    aliases: ["shared weights through time", "partage de poids dans le temps"],
+    tags: ["rnn", "sequence", "architecture"]
+  },
+  {
+    term: "État caché",
+    text: "Vecteur interne d'un RNN, noté en général <code>h_t</code>, qui résume ce que le réseau a déjà vu dans la séquence jusqu'au temps <code>t</code>.",
+    aliases: ["hidden state", "état interne"],
+    tags: ["rnn", "sequence", "memoire"]
+  },
+  {
+    term: "Unités d'état",
+    text: "Dans le réseau de Jordan, unités ajoutées à l'entrée pour recopier la sortie précédente du réseau vers le pas de temps suivant.",
+    aliases: ["state units"],
+    tags: ["rnn", "architecture", "sequence"]
+  },
+  {
+    term: "Unités de contexte",
+    text: "Dans le réseau d'Elman, unités qui recopient l'état caché précédent afin d'alimenter le calcul du pas de temps courant.",
+    aliases: ["context units"],
+    tags: ["rnn", "architecture", "sequence"]
+  },
+  {
+    term: "Réseau de Jordan",
+    text: "Architecture récurrente historique dans laquelle c'est la sortie précédente du réseau qui est recopiée vers des unités d'état à l'entrée pour influencer le pas de temps suivant.",
+    aliases: ["Jordan network"],
+    tags: ["rnn", "recurrence", "architecture"]
+  },
+  {
+    term: "Réseau d'Elman",
+    text: "Architecture récurrente historique dans laquelle c'est l'état caché précédent, et non la sortie du réseau, qui est recopié vers des unités de contexte.",
+    aliases: ["Elman network"],
+    tags: ["rnn", "recurrence", "architecture"]
+  },
+  {
+    term: "Rétropropagation à travers le temps",
+    text: "Adaptation de la rétropropagation aux réseaux récurrents. On déroule le réseau sur les pas de temps, puis on propage le gradient du dernier pas vers les premiers en accumulant les contributions sur les poids partagés.",
+    aliases: ["BPTT", "backpropagation through time"],
+    tags: ["rnn", "sequence", "gradient", "apprentissage", "bptt"]
+  },
+  {
+    term: "Séquence temporelle",
+    text: "Suite ordonnée de valeurs observées au fil du temps, comme un historique boursier, une mesure capteur ou un signal audio. Les RNN sont souvent utilisés sur ce type de données.",
+    aliases: ["time series", "série temporelle"],
+    tags: ["sequence", "rnn"]
+  },
+  {
+    term: "Séquence à séquence",
+    text: "Problème dans lequel une séquence d'entrée est transformée en une séquence de sortie. Les longueurs d'entrée et de sortie ne sont pas nécessairement égales.",
+    aliases: ["Seq2Seq", "sequence-to-sequence"],
+    tags: ["sequence", "langage", "architecture"]
+  },
+  {
+    term: "Many-to-many",
+    text: "Famille de problèmes où une séquence d'entrée produit une séquence de sortie. La traduction automatique est l'exemple classique.",
+    aliases: ["plusieurs-à-plusieurs"],
+    tags: ["sequence", "rnn", "langage"]
+  },
+  {
+    term: "Many-to-one",
+    text: "Famille de problèmes où une séquence d'entrée est résumée en une seule sortie. Exemple : analyse de sentiments d'un document.",
+    aliases: ["plusieurs-à-un"],
+    tags: ["sequence", "rnn", "langage"]
+  },
+  {
+    term: "One-to-many",
+    text: "Famille de problèmes où une entrée unique produit une séquence. Exemple : génération d'une légende textuelle à partir d'une image.",
+    aliases: ["un-à-plusieurs"],
+    tags: ["sequence", "rnn", "langage"]
+  },
+  {
+    term: "Encodage one-hot",
+    text: "Représentation d'un symbole discret par un grand vecteur contenant un seul 1 et des 0 ailleurs. Utile conceptuellement, mais peu compacte pour les grands vocabulaires.",
+    aliases: ["one hot", "one-hot"],
+    tags: ["sequence", "langage"]
+  },
+  {
+    term: "Word embedding",
+    text: "Représentation dense d'un mot par un vecteur réel de petite dimension, apprise ou fournie par un modèle. Elle remplace avantageusement l'encodage one-hot en NLP.",
+    aliases: ["embedding", "word embeddings"],
+    tags: ["sequence", "langage"]
+  },
+  {
+    term: "Modélisation du langage",
+    text: "Tâche qui consiste à apprendre une distribution de probabilité sur des suites de mots ou de caractères, par exemple en prédisant le mot suivant.",
+    aliases: ["language modeling", "prédiction du mot suivant"],
+    tags: ["sequence", "langage", "rnn"]
+  },
+  {
+    term: "Mémoire courte",
+    text: "Faiblesse d'un RNN standard qui peine à conserver de l'information utile sur de longues dépendances temporelles ou linguistiques.",
+    aliases: ["short memory"],
+    tags: ["rnn", "memoire", "sequence"]
+  },
+  {
+    term: "LSTM",
+    text: "Variante de RNN conçue pour mieux conserver l'information sur de longues séquences grâce à un état de cellule et trois portes apprises qui contrôlent ce qui est gardé, ajouté ou exposé.",
+    aliases: ["Long Short-Term Memory"],
+    tags: ["lstm", "rnn", "sequence", "architecture"]
+  },
+  {
+    term: "État de cellule",
+    text: "Mémoire interne d'un LSTM, notée <code>c_t</code>. Elle transporte l'information sur la durée et est modulée par les portes d'oubli et d'entrée.",
+    aliases: ["cell state"],
+    tags: ["lstm", "memoire", "sequence"]
+  },
+  {
+    term: "Porte d'oubli",
+    text: "Porte d'un LSTM qui décide quelle fraction de l'ancien état de cellule <code>c_{t-1}</code> est conservée au temps <code>t</code>.",
+    aliases: ["forget gate"],
+    tags: ["lstm", "sequence", "memoire"]
+  },
+  {
+    term: "Porte d'entrée",
+    text: "Porte d'un LSTM qui contrôle quelle fraction de l'état candidat est écrite dans l'état de cellule courant.",
+    aliases: ["input gate"],
+    tags: ["lstm", "sequence", "memoire"]
+  },
+  {
+    term: "Porte de sortie",
+    text: "Porte d'un LSTM qui contrôle quelle fraction de l'état de cellule courant est exposée en sortie cachée <code>h_t</code>.",
+    aliases: ["output gate"],
+    tags: ["lstm", "sequence", "memoire"]
+  },
+  {
+    term: "État candidat",
+    text: "Nouvelle information potentielle calculée dans un LSTM avant d'être filtrée par la porte d'entrée et injectée dans l'état de cellule.",
+    aliases: ["candidate state", "c tilde"],
+    tags: ["lstm", "sequence", "memoire"]
+  },
+  {
+    term: "Connexions peephole",
+    text: "Variante de LSTM dans laquelle certaines portes dépendent aussi de l'état de cellule précédent, ce qui leur permet de \"regarder\" directement la mémoire interne.",
+    aliases: ["peephole connections", "peephole"],
+    tags: ["lstm", "sequence", "architecture"]
+  },
+  {
+    term: "Encodeur-décodeur",
+    text: "Architecture Seq2Seq composée de deux réseaux : un encodeur lit la séquence source et un décodeur produit la séquence cible à partir d'une représentation intermédiaire.",
+    aliases: ["encoder-decoder", "encodeur decodeur"],
+    tags: ["sequence", "architecture", "attention"]
+  },
+  {
+    term: "Vecteur-contexte",
+    text: "Vecteur produit par l'encodeur dans une architecture encodeur-décodeur pour résumer la séquence source avant sa transmission au décodeur.",
+    aliases: ["context vector", "contexte"],
+    tags: ["sequence", "langage", "attention"]
+  },
+  {
+    term: "Attention",
+    text: "Mécanisme qui attribue un poids d'importance aux différentes positions d'une séquence source afin de se concentrer sur les éléments pertinents pour la prédiction en cours.",
+    tags: ["attention", "sequence", "architecture"]
+  },
+  {
+    term: "Transformeur",
+    text: "Architecture de traitement de séquences fondée sur l'attention et non sur la récurrence explicite. Elle traite les positions en parallèle, ce qui facilite fortement le passage à l'échelle.",
+    aliases: ["Transformer", "transformers"],
+    tags: ["transformeur", "attention", "sequence", "architecture"]
+  },
+  {
+    term: "Explosion du gradient",
+    text: "Phénomène où le gradient devient très grand pendant l'entraînement, en particulier lorsqu'il est rétropropagé sur de longues séquences. Il peut rendre l'optimisation instable ou divergente.",
+    aliases: ["exploding gradient"],
+    tags: ["gradient", "apprentissage", "rnn", "sequence"]
+  },
+  {
+    term: "Fenêtre glissante",
+    text: "Sous-séquence de longueur fixe extraite d'une série temporelle ou d'un texte pour fabriquer un exemple d'entraînement. Très utilisée dans les TD RNN sur séries de prix et génération de texte.",
+    aliases: ["sliding window"],
+    tags: ["sequence", "rnn"]
+  },
+  {
+    term: "Génération caractère par caractère",
+    text: "Procédé dans lequel un modèle lit une séquence de caractères, prédit le suivant, l'ajoute à la séquence, puis recommence pour produire un texte progressivement.",
+    aliases: ["character-level generation", "génération de texte"],
+    tags: ["sequence", "rnn", "lstm", "langage"]
+  },
+  {
+    term: "Apprentissage par renforcement",
+    text: "Famille d'apprentissage où un agent apprend à agir par interactions avec un environnement, en utilisant des récompenses ou punitions comme signal d'amélioration.",
+    aliases: ["AR", "RL", "reinforcement learning"],
+    tags: ["renforcement", "rl", "ar"]
+  },
+  {
+    term: "Agent",
+    text: "Entité qui observe l'état de l'environnement, choisit une action et apprend progressivement une stratégie pour maximiser ses récompenses à long terme.",
+    tags: ["renforcement", "agent", "rl"]
+  },
+  {
+    term: "Environnement",
+    text: "Monde dans lequel l'agent agit. Il reçoit une action, renvoie un nouvel état et un signal de récompense.",
+    tags: ["renforcement", "environnement", "rl"]
+  },
+  {
+    term: "État en renforcement",
+    text: "Description de la situation courante de l'environnement dans un problème d'apprentissage par renforcement. On le note souvent <code>s</code> ou <code>S_t</code>.",
+    aliases: ["état RL", "state"],
+    tags: ["renforcement", "rl", "markov"]
+  },
+  {
+    term: "Action",
+    text: "Décision exécutée par l'agent dans un état donné. Une action influence le reward reçu et le prochain état.",
+    tags: ["renforcement", "rl", "agent"]
+  },
+  {
+    term: "Signal de renforcement",
+    text: "Retour scalaire envoyé à l'agent après une action. Il peut être positif, négatif ou nul selon la conséquence observée.",
+    aliases: ["reinforcement signal"],
+    tags: ["renforcement", "reward", "rl"]
+  },
+  {
+    term: "Récompense",
+    text: "Signal positif ou valeur scalaire qui indique qu'une conséquence est favorable pour l'objectif de l'agent.",
+    aliases: ["reward"],
+    tags: ["renforcement", "reward", "rl"]
+  },
+  {
+    term: "Punition",
+    text: "Signal négatif ou reward défavorable indiquant qu'une action a conduit à une conséquence mauvaise pour l'agent.",
+    aliases: ["penalty"],
+    tags: ["renforcement", "reward", "rl"]
+  },
+  {
+    term: "Fonction de récompense",
+    text: "Fonction qui associe à un état, ou à un couple état-action, le reward moyen attendu. Dans un MDP, on l'écrit souvent <code>R(s,a)</code>.",
+    aliases: ["reward function"],
+    tags: ["renforcement", "reward", "mdp"]
+  },
+  {
+    term: "Stratégie",
+    text: "Comportement de l'agent. Une stratégie déterministe associe une action à chaque état ; une stratégie stochastique donne une probabilité à chaque action.",
+    aliases: ["policy", "politique"],
+    tags: ["renforcement", "strategie", "policy"]
+  },
+  {
+    term: "Observabilité totale",
+    text: "Hypothèse selon laquelle l'agent observe directement l'état réel de l'environnement. Dans le cours, cela correspond à prendre la fonction d'entrée <code>I</code> comme identité.",
+    aliases: ["full observability"],
+    tags: ["renforcement", "rl"]
+  },
+  {
+    term: "Stationnarité",
+    text: "Hypothèse selon laquelle les probabilités de transition et de reward ne changent pas au cours du temps.",
+    aliases: ["stationarity"],
+    tags: ["renforcement", "markov", "rl"]
+  },
+  {
+    term: "Retour actualisé",
+    text: "Somme des récompenses futures pondérées par le facteur d'actualisation <code>γ</code>. On le note souvent <code>G_t</code>.",
+    aliases: ["return", "discounted return", "gain actualisé"],
+    tags: ["renforcement", "reward", "rl"]
+  },
+  {
+    term: "Facteur d'actualisation",
+    text: "Paramètre <code>γ</code> compris entre 0 et 1 qui contrôle l'importance accordée aux récompenses futures.",
+    aliases: ["gamma", "discount factor"],
+    tags: ["renforcement", "reward", "rl"]
+  },
+  {
+    term: "Épisode",
+    text: "Séquence d'interactions entre l'agent et l'environnement, depuis un état initial jusqu'à un état terminal.",
+    aliases: ["episode"],
+    tags: ["renforcement", "rl"]
+  },
+  {
+    term: "État terminal",
+    text: "État qui met fin à un épisode, par exemple une victoire, une défaite, une collision ou la fin d'une trajectoire.",
+    aliases: ["terminal state"],
+    tags: ["renforcement", "rl"]
+  },
+  {
+    term: "Processus stochastique",
+    text: "Famille de variables aléatoires indexées par le temps. Les chaînes de Markov utilisées en AR en sont un exemple.",
+    tags: ["renforcement", "markov"]
+  },
+  {
+    term: "Propriété de Markov",
+    text: "Propriété selon laquelle le futur dépend du présent mais pas de tout l'historique, une fois l'état courant connu.",
+    aliases: ["Markov property"],
+    tags: ["renforcement", "markov", "mdp"]
+  },
+  {
+    term: "Chaîne de Markov",
+    text: "Suite de variables aléatoires à valeurs dans un espace d'états fini ou dénombrable et vérifiant la propriété de Markov.",
+    aliases: ["Markov chain"],
+    tags: ["renforcement", "markov"]
+  },
+  {
+    term: "Matrice de transition",
+    text: "Matrice contenant les probabilités de passer d'un état à un autre dans une chaîne de Markov. Chaque ligne est une distribution et somme à 1.",
+    aliases: ["transition matrix"],
+    tags: ["renforcement", "markov", "transition"]
+  },
+  {
+    term: "Processus de décision markovien",
+    text: "Modèle formel d'un problème d'AR défini par un ensemble d'états, un ensemble d'actions, une fonction de transition, une fonction de récompense et un facteur d'actualisation.",
+    aliases: ["MDP", "Markov Decision Process"],
+    tags: ["renforcement", "mdp", "markov"]
+  },
+  {
+    term: "Fonction de transition",
+    text: "Fonction <code>T(s,a,s')</code> qui donne la probabilité de passer à l'état <code>s'</code> après avoir exécuté l'action <code>a</code> dans l'état <code>s</code>.",
+    aliases: ["transition function"],
+    tags: ["renforcement", "transition", "mdp"]
+  },
+  {
+    term: "Fonction valeur",
+    text: "Fonction qui associe à un état la récompense cumulée moyenne attendue à partir de cet état, éventuellement sous une stratégie donnée.",
+    aliases: ["value function", "V(s)", "Vπ"],
+    tags: ["renforcement", "bellman", "mdp"]
+  },
+  {
+    term: "Valeur optimale",
+    text: "Meilleure valeur possible d'un état lorsque l'agent suit une stratégie optimale. On la note <code>V*(s)</code>.",
+    aliases: ["optimal value", "V star"],
+    tags: ["renforcement", "bellman", "policy"]
+  },
+  {
+    term: "Équation de Bellman",
+    text: "Équation récursive reliant la valeur d'un état à son reward immédiat et aux valeurs actualisées des états suivants.",
+    aliases: ["Bellman equation"],
+    tags: ["renforcement", "bellman", "mdp"]
+  },
+  {
+    term: "Bellman d'optimalité",
+    text: "Version optimale de l'équation de Bellman qui choisit l'action maximisant reward immédiat plus valeur future attendue.",
+    aliases: ["Bellman optimality equation"],
+    tags: ["renforcement", "bellman", "policy"]
+  },
+  {
+    term: "Value Iteration",
+    text: "Algorithme de programmation dynamique qui met à jour les valeurs des états par backups Bellman max jusqu'à convergence vers <code>V*</code>.",
+    tags: ["renforcement", "planning", "bellman"]
+  },
+  {
+    term: "Policy Iteration",
+    text: "Algorithme de programmation dynamique qui alterne évaluation d'une stratégie et amélioration de cette stratégie jusqu'à stabilisation.",
+    tags: ["renforcement", "planning", "policy"]
+  },
+  {
+    term: "Model-based",
+    text: "Famille de méthodes d'AR qui estiment ou utilisent un modèle de l'environnement, c'est-à-dire les fonctions de transition et de reward.",
+    aliases: ["méthode avec modèle"],
+    tags: ["renforcement", "model-based", "modele"]
+  },
+  {
+    term: "Model-free",
+    text: "Famille de méthodes d'AR qui apprennent directement une stratégie ou une fonction de valeur sans construire explicitement un modèle de transition et de reward.",
+    aliases: ["méthode sans modèle"],
+    tags: ["renforcement", "model-free", "modele"]
+  },
+  {
+    term: "Dyna",
+    text: "Méthode model-based qui met à jour un modèle à partir des vraies transitions, puis l'utilise pour effectuer des mises à jour simulées supplémentaires.",
+    tags: ["renforcement", "dyna", "model-based"]
+  },
+  {
+    term: "Q-Learning",
+    text: "Méthode model-free qui apprend la valeur des couples état-action <code>Q(s,a)</code>, puis choisit les actions de valeur maximale.",
+    aliases: ["Q learning", "qlearning"],
+    tags: ["renforcement", "qlearning", "model-free"]
+  },
+  {
+    term: "Fonction Q",
+    text: "Fonction qui donne la qualité d'un couple état-action, c'est-à-dire la récompense cumulée attendue si l'agent exécute cette action puis agit optimalement.",
+    aliases: ["Q function", "action-value function", "Q(s,a)"],
+    tags: ["renforcement", "q", "qlearning"]
+  },
+  {
+    term: "Exploration",
+    text: "Choix volontaire d'actions incertaines ou aléatoires pour découvrir de meilleurs comportements possibles.",
+    tags: ["renforcement", "exploration", "rl"]
+  },
+  {
+    term: "Exploitation",
+    text: "Choix de l'action actuellement estimée comme la meilleure selon la fonction de valeur ou la fonction Q.",
+    tags: ["renforcement", "exploitation", "rl"]
+  },
+  {
+    term: "ε-greedy",
+    text: "Stratégie de choix d'action qui exploite avec probabilité <code>1 − ε</code> et explore au hasard avec probabilité <code>ε</code>.",
+    aliases: ["epsilon-greedy", "e-greedy"],
+    tags: ["renforcement", "exploration", "exploitation"]
+  },
+  {
+    term: "Facteur d'apprentissage",
+    text: "Paramètre <code>α</code> de la mise à jour Q-Learning qui contrôle le poids accordé à la nouvelle observation par rapport à l'ancienne estimation.",
+    aliases: ["learning rate", "alpha"],
+    tags: ["renforcement", "qlearning", "apprentissage"]
+  },
+  {
+    term: "Cible TD",
+    text: "Quantité observée vers laquelle on rapproche une estimation de valeur. En Q-Learning, elle vaut <code>r + γ max_a' Q(s',a')</code>.",
+    aliases: ["TD target", "temporal-difference target"],
+    tags: ["renforcement", "qlearning", "bellman"]
+  },
+  {
+    term: "Erreur TD",
+    text: "Différence entre la cible TD et l'estimation actuelle. Elle indique dans quel sens corriger la valeur apprise.",
+    aliases: ["TD error", "temporal-difference error"],
+    tags: ["renforcement", "qlearning", "bellman"]
   }
 ]);
 })(window);

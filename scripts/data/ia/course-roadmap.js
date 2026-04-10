@@ -10,51 +10,141 @@ registry.setRoadmap([
   {
     index: "01",
     title: "Fondations du deep learning",
-    text: "Comprendre ce qu'apporte la profondeur, lire une architecture, et situer les ConvNet dans le paysage.",
+    text: "Comprendre ce qu'apporte la profondeur, d'ou viennent les niveaux d'abstraction, et pourquoi le deep learning a decolle.",
     bullets: [
-      "niveaux d'abstraction et feature maps",
-      "convolution, pooling, ReLU, dropout",
-      "partage de poids et connexions locales"
+      "profondeur, largeur et abstraction",
+      "cortex visuel et vanishing gradient",
+      "jalons historiques du deep learning"
     ]
   },
   {
     index: "02",
-    title: "Architectures spécialisées",
-    text: "Savoir choisir une famille de modèle selon la structure des données : images, séquences, graphes.",
+    title: "Convolution et filtres",
+    text: "Comprendre comment un filtre glisse, calcule une somme ponderee, puis construit des feature maps.",
     bullets: [
-      "ConvNet classiques et modernes",
-      "réseaux récurrents et attention",
-      "adapter l'architecture au problème"
+      "formule de convolution",
+      "stride, padding, taille de sortie",
+      "partage de poids et champ recepteur"
     ]
   },
   {
     index: "03",
-    title: "Entraînement et optimisation",
-    text: "Comprendre ce qui se passe pendant l'apprentissage : rétropropagation, optimiseurs, régularisation, diagnostics.",
+    title: "Pooling, activations, régularisation",
+    text: "Ajouter les briques qui rendent un ConvNet entrainable et plus robuste.",
     bullets: [
-      "descente de gradient et variantes",
-      "sur-apprentissage et remèdes",
-      "lecture des courbes d'apprentissage"
+      "max-pooling et average-pooling",
+      "ReLU et ses variantes",
+      "dropout et batch normalization"
     ]
   },
   {
     index: "04",
-    title: "Applications et projet",
-    text: "Mettre en pratique sur un cas concret : pipeline de données, entraînement, évaluation, inférence.",
+    title: "Assembler et entraîner un ConvNet",
+    text: "Passer du bloc local a une architecture complete, puis la diagnostiquer proprement.",
     bullets: [
-      "pipeline de données propre",
-      "métriques adaptées à la tâche",
-      "présentation d'un projet crédible"
+      "pipeline Keras et preparation de donnees",
+      "optimiseurs, courbes train/val",
+      "metriques et matrice de confusion"
     ]
   },
   {
     index: "05",
-    title: "TD corrigés et pratique Keras",
-    text: "Transformer les exercices en réflexes opérationnels : préparation MNIST, ConvNet Keras, CIFAR-10, analyse d'erreurs.",
+    title: "TD corrigés ConvNet",
+    text: "Transformer les premiers TD en reflexes de pratique : NumPy, MNIST, reseaux Keras, CIFAR-10.",
     bullets: [
       "corrections guidées des TD",
       "workflow add/compile/fit/evaluate",
       "diagnostic par matrice de confusion"
+    ]
+  },
+  {
+    index: "06",
+    title: "Pourquoi les RNN",
+    text: "Comprendre pourquoi les reseaux feedforward sont mal a l'aise avec les sequences, puis introduire la recurrence.",
+    bullets: [
+      "entrees et sorties de taille variable",
+      "cycles et etat cache",
+      "reseaux de Jordan et d'Elman"
+    ]
+  },
+  {
+    index: "07",
+    title: "RNN formel et déroulage",
+    text: "Ecrire proprement les equations d'un RNN, lire les matrices U, V, W, puis le deplier dans le temps.",
+    bullets: [
+      "etat cache et sortie a chaque temps t",
+      "dimensions des matrices",
+      "poids partages dans le temps"
+    ]
+  },
+  {
+    index: "08",
+    title: "Séquences et BPTT",
+    text: "Traiter des problemes many-to-many, many-to-one, one-to-many, puis apprendre par retropropagation dans le temps.",
+    bullets: [
+      "Seq2Seq et modelisation du langage",
+      "softmax sur le mot suivant",
+      "perte totale et BPTT"
+    ]
+  },
+  {
+    index: "09",
+    title: "LSTM, attention, transformeurs",
+    text: "Comprendre les limites des RNN standards puis la transition vers les architectures modernes.",
+    bullets: [
+      "memoire courte et gradients instables",
+      "portes du LSTM et etat de cellule",
+      "encodeur-decodeur, attention, transformeurs"
+    ]
+  },
+  {
+    index: "10",
+    title: "TD corrigés RNN",
+    text: "Passer des slides aux gestes concrets : RNN Python, prédiction de série temporelle et LSTM pour générer du texte.",
+    bullets: [
+      "RNN minimal avec tanh et softmax",
+      "MSFT avec fenêtres glissantes et Keras",
+      "génération caractère par caractère avec LSTM"
+    ]
+  },
+  {
+    index: "11",
+    title: "Fondations de l'AR",
+    text: "Introduire la boucle agent-environnement, les rewards, la stratégie et les modèles d'optimalité.",
+    bullets: [
+      "essai-erreur, action, reward",
+      "observabilité totale et stationnarité",
+      "horizon fini, actualisé, reward moyen"
+    ]
+  },
+  {
+    index: "12",
+    title: "MDP et Bellman",
+    text: "Formaliser les états, transitions, récompenses et valeurs avec les processus de décision markoviens.",
+    bullets: [
+      "propriété de Markov",
+      "matrice de transition",
+      "fonction valeur et équation de Bellman"
+    ]
+  },
+  {
+    index: "13",
+    title: "Stratégies optimales",
+    text: "Calculer la valeur optimale et la stratégie optimale quand le modèle du MDP est connu.",
+    bullets: [
+      "policy déterministe ou stochastique",
+      "Bellman d'optimalité",
+      "Value Iteration et Policy Iteration"
+    ]
+  },
+  {
+    index: "14",
+    title: "Dyna et Q-Learning",
+    text: "Passer au modèle inconnu : méthodes model-based, model-free, Dyna et Q-Learning.",
+    bullets: [
+      "exploration vs exploitation",
+      "mise à jour Q et erreur TD",
+      "conditions de convergence"
     ]
   }
 ]);

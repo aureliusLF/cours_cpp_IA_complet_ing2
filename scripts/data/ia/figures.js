@@ -622,6 +622,784 @@ const paddingExample = `
   </svg>
 `;
 
+// ---------- 14. Feedforward vs récurrent ----------
+
+const rnnFeedforwardVsRecurrent = `
+  <svg viewBox="0 0 620 220" role="img" aria-label="Comparaison entre un réseau feedforward et un réseau récurrent">
+    ${arrowHeadDefs}
+
+    <g transform="translate(20, 24)">
+      <rect class="svg-cell" x="0" y="0" width="260" height="160" rx="12" fill="rgba(20,184,166,0.04)"/>
+      <text class="svg-label" x="130" y="24">Feedforward</text>
+
+      <rect class="svg-pipeline-block" x="18" y="62" width="56" height="36" rx="8"/>
+      <text class="svg-pipeline-block-text" x="46" y="84">X</text>
+
+      <rect class="svg-pipeline-block" x="104" y="50" width="74" height="60" rx="8"/>
+      <text class="svg-pipeline-block-text" x="141" y="80">réseau</text>
+
+      <rect class="svg-pipeline-block" x="208" y="62" width="36" height="36" rx="8"/>
+      <text class="svg-pipeline-block-text" x="226" y="84">Y</text>
+
+      <line class="svg-arrow anim-pipeline-arrow" x1="74" y1="80" x2="104" y2="80"/>
+      <line class="svg-arrow anim-pipeline-arrow" x1="178" y1="80" x2="208" y2="80"/>
+
+      <circle cx="88" cy="80" r="4" fill="var(--accent)">
+        <animate attributeName="cx" values="78;100;78" dur="2.6s" repeatCount="indefinite"/>
+      </circle>
+
+      <text class="svg-label-small" x="130" y="132">Entrée fixe</text>
+      <text class="svg-label-small" x="130" y="148">sortie fixe</text>
+    </g>
+
+    <g transform="translate(330, 24)">
+      <rect class="svg-cell" x="0" y="0" width="270" height="160" rx="12" fill="rgba(20,184,166,0.04)"/>
+      <text class="svg-label" x="135" y="24">Récurrent</text>
+
+      <rect class="svg-pipeline-block" x="18" y="62" width="56" height="36" rx="8"/>
+      <text class="svg-pipeline-block-text" x="46" y="84">X<tspan baseline-shift="sub">t</tspan></text>
+
+      <circle class="svg-neuron anim-pulse" cx="118" cy="80" r="20"/>
+      <text class="svg-label-small" x="118" y="80">RNN</text>
+
+      <rect class="svg-pipeline-block" x="192" y="62" width="46" height="36" rx="8"/>
+      <text class="svg-pipeline-block-text" x="215" y="84">Y<tspan baseline-shift="sub">t</tspan></text>
+
+      <rect class="svg-pipeline-block" x="86" y="118" width="64" height="28" rx="8"/>
+      <text class="svg-pipeline-block-text" x="118" y="136">h<tspan baseline-shift="sub">t</tspan></text>
+
+      <rect class="svg-pipeline-block" x="18" y="118" width="52" height="28" rx="8"/>
+      <text class="svg-pipeline-block-text" x="44" y="136">h<tspan baseline-shift="sub">t−1</tspan></text>
+
+      <line class="svg-arrow" x1="74" y1="80" x2="98" y2="80"/>
+      <line class="svg-arrow" x1="138" y1="80" x2="192" y2="80"/>
+      <line class="svg-arrow" x1="44" y1="118" x2="44" y2="96"/>
+      <line class="svg-arrow" x1="44" y1="96" x2="98" y2="96"/>
+      <line class="svg-arrow" x1="118" y1="100" x2="118" y2="118"/>
+      <path class="svg-arrow" d="M 118 146 C 156 156 174 150 196 126" stroke-dasharray="4 3"/>
+
+      <circle cx="88" cy="80" r="4" fill="var(--accent)">
+        <animate attributeName="cx" values="78;96;78" dur="2.6s" repeatCount="indefinite"/>
+      </circle>
+
+      <text class="svg-label-small" x="135" y="148">Mémoire via h<tspan baseline-shift="sub">t</tspan></text>
+    </g>
+  </svg>
+`;
+
+// ---------- 15. Jordan vs Elman ----------
+
+const jordanElmanComparison = `
+  <svg viewBox="0 0 640 250" role="img" aria-label="Comparaison entre le réseau de Jordan et le réseau d'Elman">
+    ${arrowHeadDefs}
+
+    <g transform="translate(20, 24)">
+      <rect class="svg-cell" x="0" y="0" width="280" height="190" rx="12" fill="rgba(20,184,166,0.04)"/>
+      <text class="svg-label" x="140" y="24">Jordan</text>
+
+      <rect class="svg-pipeline-block" x="18" y="62" width="56" height="36" rx="8"/>
+      <text class="svg-pipeline-block-text" x="46" y="84">X<tspan baseline-shift="sub">t</tspan></text>
+
+      <rect class="svg-pipeline-block" x="108" y="50" width="64" height="60" rx="8"/>
+      <text class="svg-pipeline-block-text" x="140" y="80">H<tspan baseline-shift="sub">t</tspan></text>
+
+      <rect class="svg-pipeline-block" x="206" y="62" width="48" height="36" rx="8"/>
+      <text class="svg-pipeline-block-text" x="230" y="84">Y<tspan baseline-shift="sub">t</tspan></text>
+
+      <rect class="svg-pipeline-block" x="96" y="132" width="88" height="28" rx="8"/>
+      <text class="svg-pipeline-block-text" x="140" y="150">Y<tspan baseline-shift="sub">t−1</tspan></text>
+
+      <line class="svg-arrow" x1="74" y1="80" x2="108" y2="80"/>
+      <line class="svg-arrow" x1="172" y1="80" x2="206" y2="80"/>
+      <line class="svg-arrow" x1="140" y1="132" x2="140" y2="110"/>
+      <path class="svg-arrow" d="M 230 98 C 230 122 212 132 184 146" stroke-dasharray="4 3"/>
+
+      <text class="svg-label-small" x="140" y="182">Unites d'état</text>
+      <text class="svg-label-small" x="230" y="116">copie fixe 1.0</text>
+    </g>
+
+    <g transform="translate(340, 24)">
+      <rect class="svg-cell" x="0" y="0" width="280" height="190" rx="12" fill="rgba(20,184,166,0.04)"/>
+      <text class="svg-label" x="140" y="24">Elman</text>
+
+      <rect class="svg-pipeline-block" x="18" y="62" width="56" height="36" rx="8"/>
+      <text class="svg-pipeline-block-text" x="46" y="84">X<tspan baseline-shift="sub">t</tspan></text>
+
+      <rect class="svg-pipeline-block" x="108" y="50" width="64" height="60" rx="8"/>
+      <text class="svg-pipeline-block-text" x="140" y="80">H<tspan baseline-shift="sub">t</tspan></text>
+
+      <rect class="svg-pipeline-block" x="206" y="62" width="48" height="36" rx="8"/>
+      <text class="svg-pipeline-block-text" x="230" y="84">Y<tspan baseline-shift="sub">t</tspan></text>
+
+      <rect class="svg-pipeline-block" x="96" y="132" width="88" height="28" rx="8"/>
+      <text class="svg-pipeline-block-text" x="140" y="150">H<tspan baseline-shift="sub">t−1</tspan></text>
+
+      <line class="svg-arrow" x1="74" y1="80" x2="108" y2="80"/>
+      <line class="svg-arrow" x1="172" y1="80" x2="206" y2="80"/>
+      <line class="svg-arrow" x1="140" y1="132" x2="140" y2="110"/>
+      <path class="svg-arrow" d="M 140 110 C 196 124 210 132 230 146" stroke-dasharray="4 3"/>
+      <path class="svg-arrow" d="M 140 98 C 140 118 140 126 140 132" stroke-dasharray="4 3"/>
+
+      <text class="svg-label-small" x="140" y="182">Unites contexte</text>
+      <text class="svg-label-small" x="230" y="116">copie fixe 1.0</text>
+    </g>
+  </svg>
+`;
+
+// ---------- 16. Cartographie des matrices U, V, W ----------
+
+const rnnMatrixMap = `
+  <svg viewBox="0 0 620 220" role="img" aria-label="Dimensions des matrices d'un RNN conventionnel">
+    ${arrowHeadDefs}
+
+    <g transform="translate(22, 26)">
+      <rect class="svg-pipeline-block" x="0" y="54" width="76" height="44" rx="8"/>
+      <text class="svg-pipeline-block-text" x="38" y="78">X<tspan baseline-shift="sub">t</tspan></text>
+      <text class="svg-label-small" x="38" y="114">dimension n</text>
+
+      <rect class="svg-pipeline-block" x="248" y="54" width="88" height="44" rx="8"/>
+      <text class="svg-pipeline-block-text" x="292" y="78">H<tspan baseline-shift="sub">t</tspan></text>
+      <text class="svg-label-small" x="292" y="114">dimension m</text>
+
+      <rect class="svg-pipeline-block" x="514" y="54" width="76" height="44" rx="8"/>
+      <text class="svg-pipeline-block-text" x="552" y="78">Y<tspan baseline-shift="sub">t</tspan></text>
+      <text class="svg-label-small" x="552" y="114">dimension p</text>
+
+      <rect class="svg-pipeline-block" x="226" y="142" width="132" height="30" rx="8"/>
+      <text class="svg-pipeline-block-text" x="292" y="160">H<tspan baseline-shift="sub">t−1</tspan></text>
+
+      <line class="svg-arrow" x1="76" y1="76" x2="248" y2="76"/>
+      <text class="svg-label-small" x="162" y="64">U : (m, n)</text>
+
+      <line class="svg-arrow" x1="336" y1="76" x2="514" y2="76"/>
+      <text class="svg-label-small" x="425" y="64">W : (p, m)</text>
+
+      <line class="svg-arrow" x1="292" y1="142" x2="292" y2="98"/>
+      <text class="svg-label-small" x="352" y="126">V : (m, m)</text>
+
+      <circle class="svg-neuron anim-pulse" cx="292" cy="76" r="10"/>
+      <circle cx="162" cy="76" r="4" fill="var(--accent)">
+        <animate attributeName="cx" values="92;236;92" dur="3s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="425" cy="76" r="4" fill="var(--accent)">
+        <animate attributeName="cx" values="350;500;350" dur="3s" repeatCount="indefinite"/>
+      </circle>
+
+      <text class="svg-label" x="292" y="18">Les objets du RNN conventionnel</text>
+      <text class="svg-label-small" x="292" y="196">U relie l'entrée au caché, V porte la récurrence, W relie le caché à la sortie.</text>
+    </g>
+  </svg>
+`;
+
+// ---------- 17. RNN déroulé dans le temps ----------
+
+const rnnUnrolledTime = `
+  <svg viewBox="0 0 700 230" role="img" aria-label="Un RNN replié puis déroulé dans le temps">
+    ${arrowHeadDefs}
+
+    <g transform="translate(16, 28)">
+      <rect class="svg-cell" x="0" y="20" width="120" height="112" rx="12" fill="rgba(20,184,166,0.04)"/>
+      <text class="svg-label" x="60" y="10">Forme repliée</text>
+      <rect class="svg-pipeline-block" x="28" y="54" width="64" height="44" rx="8"/>
+      <text class="svg-pipeline-block-text" x="60" y="78">RNN</text>
+      <line class="svg-arrow" x1="12" y1="76" x2="28" y2="76"/>
+      <line class="svg-arrow" x1="92" y1="76" x2="108" y2="76"/>
+      <path class="svg-arrow" d="M 60 98 C 94 118 94 34 60 54" stroke-dasharray="4 3"/>
+      <text class="svg-label-small" x="60" y="150">une boucle</text>
+    </g>
+
+    <g transform="translate(176, 28)">
+      <text class="svg-label" x="244" y="10">Forme déroulée</text>
+
+      ${[
+        { x: 0, label: "t−1" },
+        { x: 172, label: "t" },
+        { x: 344, label: "t+1" }
+      ].map((step) => `
+        <g transform="translate(${step.x}, 0)">
+          <rect class="svg-cell" x="0" y="20" width="132" height="112" rx="12" fill="rgba(20,184,166,0.04)"/>
+          <text class="svg-label-small" x="66" y="40">temps ${step.label}</text>
+          <rect class="svg-pipeline-block" x="12" y="54" width="34" height="26" rx="8"/>
+          <text class="svg-pipeline-block-text" x="29" y="70">X</text>
+          <circle class="svg-neuron" cx="66" cy="67" r="16"/>
+          <text class="svg-label-small" x="66" y="67">H</text>
+          <rect class="svg-pipeline-block" x="92" y="54" width="28" height="26" rx="8"/>
+          <text class="svg-pipeline-block-text" x="106" y="70">Y</text>
+          <line class="svg-arrow" x1="46" y1="67" x2="50" y2="67"/>
+          <line class="svg-arrow" x1="82" y1="67" x2="92" y2="67"/>
+        </g>
+      `).join("")}
+
+      <line class="svg-arrow" x1="66" y1="150" x2="238" y2="150"/>
+      <line class="svg-arrow" x1="238" y1="150" x2="410" y2="150"/>
+      <text class="svg-label-small" x="152" y="170">H<tspan baseline-shift="sub">t−1</tspan> → H<tspan baseline-shift="sub">t</tspan></text>
+      <text class="svg-label-small" x="324" y="170">H<tspan baseline-shift="sub">t</tspan> → H<tspan baseline-shift="sub">t+1</tspan></text>
+      <text class="svg-label-small" x="244" y="198">Les mêmes U, V, W sont partagés à chaque pas.</text>
+    </g>
+  </svg>
+`;
+
+// ---------- 18. Typologie many-to-many / many-to-one / one-to-many ----------
+
+const seq2seqTypes = `
+  <svg viewBox="0 0 720 240" role="img" aria-label="Les trois grands types de problèmes séquentiels">
+    ${arrowHeadDefs}
+
+    ${[
+      { x: 16, title: "Many-to-many", out: ["y1", "y2", "y3"], in: ["x1", "x2", "x3"] },
+      { x: 248, title: "Many-to-one", out: ["classe"], in: ["x1", "x2", "x3"] },
+      { x: 480, title: "One-to-many", out: ["y1", "y2", "y3"], in: ["x"] }
+    ].map((panel) => `
+      <g transform="translate(${panel.x}, 18)">
+        <rect class="svg-cell" x="0" y="0" width="224" height="184" rx="12" fill="rgba(20,184,166,0.04)"/>
+        <text class="svg-label" x="112" y="24">${panel.title}</text>
+
+        ${panel.in.map((token, index) => `
+          <rect class="svg-pipeline-block" x="${24 + index * 54}" y="56" width="42" height="26" rx="8"/>
+          <text class="svg-pipeline-block-text" x="${45 + index * 54}" y="72">${token}</text>
+        `).join("")}
+
+        <circle class="svg-neuron anim-pulse" cx="112" cy="112" r="20"/>
+        <text class="svg-label-small" x="112" y="112">RNN</text>
+
+        ${panel.in.length === 1 ? "" : `<line class="svg-arrow" x1="112" y1="82" x2="112" y2="92"/>`}
+        ${panel.in.length > 1 ? panel.in.map((_, index) => `
+          <line class="svg-arrow" x1="${45 + index * 54}" y1="82" x2="112" y2="96"/>
+        `).join("") : `<line class="svg-arrow" x1="45" y1="82" x2="112" y2="96"/>`}
+
+        ${panel.out.map((token, index) => `
+          <rect class="svg-pipeline-block" x="${24 + index * 54}" y="144" width="${token === "classe" ? 60 : 42}" height="26" rx="8"/>
+          <text class="svg-pipeline-block-text" x="${token === "classe" ? 54 : 45 + index * 54}" y="160">${token}</text>
+        `).join("")}
+
+        ${panel.out.length === 1
+          ? `<line class="svg-arrow" x1="112" y1="132" x2="112" y2="144"/>`
+          : panel.out.map((_, index) => `
+              <line class="svg-arrow" x1="112" y1="128" x2="${45 + index * 54}" y2="144"/>
+            `).join("")}
+      </g>
+    `).join("")}
+  </svg>
+`;
+
+// ---------- 19. One-hot vs embedding ----------
+
+const tokenEncodingCompare = `
+  <svg viewBox="0 0 620 180" role="img" aria-label="Comparaison entre encodage one-hot et embedding">
+    ${arrowHeadDefs}
+
+    <g transform="translate(20, 24)">
+      <text class="svg-label" x="120" y="16">One-hot</text>
+      ${[0, 1, 2, 3, 4, 5, 6, 7].map((index) => `
+        <rect class="${index === 5 ? "svg-highlight" : "svg-cell"}" x="${index * 30}" y="44" width="24" height="56" rx="4"/>
+        <text class="svg-cell-text" x="${index * 30 + 12}" y="72">${index === 5 ? 1 : 0}</text>
+      `).join("")}
+      <text class="svg-label-small" x="120" y="126">grand vecteur creux</text>
+      <text class="svg-label-small" x="120" y="142">un seul 1, le reste à 0</text>
+    </g>
+
+    <line class="svg-arrow" x1="272" y1="78" x2="350" y2="78"/>
+
+    <g transform="translate(380, 24)">
+      <text class="svg-label" x="100" y="16">Embedding</text>
+      ${[
+        { x: 0, h: 52, value: "0.72" },
+        { x: 42, h: 24, value: "-0.11" },
+        { x: 84, h: 40, value: "0.33" },
+        { x: 126, h: 58, value: "0.91" }
+      ].map((bar) => `
+        <rect class="svg-highlight" x="${bar.x}" y="${100 - bar.h}" width="26" height="${bar.h}" rx="4"/>
+        <text class="svg-label-small" x="${bar.x + 13}" y="122">${bar.value}</text>
+      `).join("")}
+      <line class="svg-arrow" x1="-6" y1="100" x2="176" y2="100"/>
+      <text class="svg-label-small" x="100" y="142">petit vecteur dense appris</text>
+    </g>
+  </svg>
+`;
+
+// ---------- 20. Modélisation du langage avec softmax ----------
+
+const languageModelSoftmax = `
+  <svg viewBox="0 0 700 220" role="img" aria-label="Prédiction du mot suivant avec un RNN et une sortie softmax">
+    ${arrowHeadDefs}
+
+    <g transform="translate(18, 26)">
+      ${[
+        { x: 0, label: "je" },
+        { x: 56, label: "vois" },
+        { x: 126, label: "un" }
+      ].map((token) => `
+        <rect class="svg-pipeline-block" x="${token.x}" y="60" width="${token.label === "vois" ? 56 : 42}" height="26" rx="8"/>
+        <text class="svg-pipeline-block-text" x="${token.x + (token.label === "vois" ? 28 : 21)}" y="76">${token.label}</text>
+      `).join("")}
+      <text class="svg-label" x="82" y="24">Contexte déjà lu</text>
+      <line class="svg-arrow" x1="168" y1="73" x2="238" y2="73"/>
+    </g>
+
+    <g transform="translate(256, 26)">
+      <circle class="svg-neuron anim-pulse" cx="56" cy="73" r="24"/>
+      <text class="svg-label-small" x="56" y="73">H<tspan baseline-shift="sub">t</tspan></text>
+      <text class="svg-label-small" x="56" y="118">état caché</text>
+    </g>
+
+    <line class="svg-arrow" x1="336" y1="99" x2="424" y2="99"/>
+
+    <g transform="translate(436, 26)">
+      <text class="svg-label" x="110" y="18">Softmax sur le vocabulaire</text>
+      ${[
+        { label: "chat", p: "0.61", w: 108, active: true },
+        { label: "chien", p: "0.18", w: 60, active: false },
+        { label: "mur", p: "0.09", w: 34, active: false },
+        { label: "train", p: "0.05", w: 22, active: false }
+      ].map((bar, index) => `
+        <text class="svg-label-small" x="20" y="${56 + index * 28}">${bar.label}</text>
+        <rect class="${bar.active ? "svg-highlight" : "svg-cell"}" x="70" y="${42 + index * 28}" width="${bar.w}" height="16" rx="4"/>
+        <text class="svg-label-small" x="${bar.w + 88}" y="${56 + index * 28}">${bar.p}</text>
+      `).join("")}
+      <text class="svg-label-small" x="110" y="170">Le mot prédit est celui avec la probabilité la plus haute.</text>
+    </g>
+  </svg>
+`;
+
+// ---------- 21. BPTT ----------
+
+const bpttFlow = `
+  <svg viewBox="0 0 700 240" role="img" aria-label="Rétropropagation à travers le temps sur un RNN déroulé">
+    ${arrowHeadDefs}
+
+    <g transform="translate(28, 28)">
+      ${[
+        { x: 0, label: "t−1" },
+        { x: 188, label: "t" },
+        { x: 376, label: "t+1" }
+      ].map((step) => `
+        <g transform="translate(${step.x}, 0)">
+          <text class="svg-label-small" x="56" y="12">${step.label}</text>
+          <rect class="svg-pipeline-block" x="0" y="46" width="38" height="24" rx="8"/>
+          <text class="svg-pipeline-block-text" x="19" y="61">X</text>
+          <circle class="svg-neuron" cx="78" cy="58" r="18"/>
+          <text class="svg-label-small" x="78" y="58">H</text>
+          <rect class="svg-pipeline-block" x="122" y="46" width="32" height="24" rx="8"/>
+          <text class="svg-pipeline-block-text" x="138" y="61">Y</text>
+          <rect class="svg-cell" x="116" y="100" width="44" height="24" rx="6" fill="rgba(20,184,166,0.08)"/>
+          <text class="svg-label-small" x="138" y="115">L</text>
+          <line class="svg-arrow" x1="38" y1="58" x2="60" y2="58"/>
+          <line class="svg-arrow" x1="96" y1="58" x2="122" y2="58"/>
+          <line class="svg-arrow" x1="138" y1="70" x2="138" y2="100"/>
+        </g>
+      `).join("")}
+
+      <line class="svg-arrow" x1="78" y1="154" x2="266" y2="154"/>
+      <line class="svg-arrow" x1="266" y1="154" x2="454" y2="154"/>
+      <text class="svg-label-small" x="172" y="176">forward dans le temps</text>
+      <text class="svg-label-small" x="360" y="176">mêmes poids U, V, W</text>
+
+      <path class="svg-arrow" d="M 498 126 C 458 196 342 206 266 188" stroke-dasharray="5 4"/>
+      <path class="svg-arrow" d="M 310 126 C 270 196 156 206 78 188" stroke-dasharray="5 4"/>
+      <text class="svg-label-small" x="490" y="206">gradient vers le passé</text>
+      <text class="svg-label-small" x="226" y="224">grad(U) = Σ<tspan baseline-shift="sub">t</tspan> grad<tspan baseline-shift="sub">t</tspan>(U)</text>
+    </g>
+  </svg>
+`;
+
+// ---------- 22. Instabilité du gradient ----------
+
+const rnnGradientInstability = `
+  <svg viewBox="0 0 620 220" role="img" aria-label="Comparaison entre disparition du gradient et explosion du gradient">
+    ${arrowHeadDefs}
+
+    <g transform="translate(22, 28)">
+      <rect class="svg-cell" x="0" y="0" width="270" height="160" rx="12" fill="rgba(20,184,166,0.04)"/>
+      <text class="svg-label" x="135" y="22">Vanishing gradient</text>
+      ${[
+        { x: 34, r: 14, text: "1" },
+        { x: 94, r: 10, text: "0.3" },
+        { x: 154, r: 7, text: "0.09" },
+        { x: 214, r: 5, text: "0.03" }
+      ].map((step, index) => `
+        <circle class="svg-highlight" cx="${step.x}" cy="88" r="${step.r}"/>
+        <text class="svg-label-small" x="${step.x}" y="122">${step.text}</text>
+        ${index < 3 ? `<line class="svg-arrow" x1="${step.x + step.r}" y1="88" x2="${step.x + 42}" y2="88"/>` : ""}
+      `).join("")}
+      <text class="svg-label-small" x="135" y="146">le signal s'atténue quand on remonte le temps</text>
+    </g>
+
+    <g transform="translate(328, 28)">
+      <rect class="svg-cell" x="0" y="0" width="270" height="160" rx="12" fill="rgba(20,184,166,0.04)"/>
+      <text class="svg-label" x="135" y="22">Exploding gradient</text>
+      ${[
+        { x: 34, r: 14, text: "1" },
+        { x: 94, r: 18, text: "3" },
+        { x: 154, r: 24, text: "9" },
+        { x: 214, r: 30, text: "27" }
+      ].map((step, index) => `
+        <circle class="svg-highlight" cx="${step.x}" cy="88" r="${step.r}" fill="rgba(20,184,166,0.18)"/>
+        <text class="svg-label-small" x="${step.x}" y="132">${step.text}</text>
+        ${index < 3 ? `<line class="svg-arrow" x1="${step.x + step.r}" y1="88" x2="${step.x + 40}" y2="88"/>` : ""}
+      `).join("")}
+      <text class="svg-label-small" x="135" y="146">le signal devient trop grand et déstabilise l'apprentissage</text>
+    </g>
+  </svg>
+`;
+
+// ---------- 23. LSTM ----------
+
+const lstmGatesCell = `
+  <svg viewBox="0 0 720 260" role="img" aria-label="Cellule LSTM avec portes d'oubli, d'entrée et de sortie">
+    ${arrowHeadDefs}
+
+    <g transform="translate(24, 30)">
+      <text class="svg-label" x="320" y="18">Cellule LSTM</text>
+
+      <line class="svg-arrow" x1="40" y1="58" x2="658" y2="58"/>
+      <text class="svg-label-small" x="22" y="58">C<tspan baseline-shift="sub">t−1</tspan></text>
+      <text class="svg-label-small" x="680" y="58">C<tspan baseline-shift="sub">t</tspan></text>
+
+      <rect class="svg-cell" x="110" y="34" width="70" height="34" rx="8" fill="rgba(20,184,166,0.08)"/>
+      <text class="svg-label-small" x="145" y="54">f<tspan baseline-shift="sub">t</tspan></text>
+
+      <rect class="svg-cell" x="246" y="34" width="70" height="34" rx="8" fill="rgba(20,184,166,0.08)"/>
+      <text class="svg-label-small" x="281" y="54">i<tspan baseline-shift="sub">t</tspan></text>
+
+      <rect class="svg-cell" x="348" y="34" width="84" height="34" rx="8" fill="rgba(20,184,166,0.08)"/>
+      <text class="svg-label-small" x="390" y="54">c̃<tspan baseline-shift="sub">t</tspan></text>
+
+      <circle class="svg-neuron" cx="476" cy="52" r="13"/>
+      <text class="svg-label-small" x="476" y="52">+</text>
+
+      <rect class="svg-cell" x="540" y="34" width="70" height="34" rx="8" fill="rgba(20,184,166,0.08)"/>
+      <text class="svg-label-small" x="575" y="54">o<tspan baseline-shift="sub">t</tspan></text>
+
+      <line class="svg-arrow" x1="476" y1="65" x2="476" y2="112"/>
+      <circle class="svg-neuron anim-pulse" cx="476" cy="138" r="18"/>
+      <text class="svg-label-small" x="476" y="138">tanh</text>
+      <line class="svg-arrow" x1="476" y1="156" x2="476" y2="196"/>
+      <text class="svg-label-small" x="494" y="198">H<tspan baseline-shift="sub">t</tspan></text>
+
+      <rect class="svg-pipeline-block" x="56" y="178" width="58" height="28" rx="8"/>
+      <text class="svg-pipeline-block-text" x="85" y="196">X<tspan baseline-shift="sub">t</tspan></text>
+      <rect class="svg-pipeline-block" x="130" y="178" width="66" height="28" rx="8"/>
+      <text class="svg-pipeline-block-text" x="163" y="196">H<tspan baseline-shift="sub">t−1</tspan></text>
+
+      ${[145, 281, 390, 575].map((x) => `
+        <line class="svg-arrow" x1="85" y1="178" x2="${x}" y2="88"/>
+        <line class="svg-arrow" x1="163" y1="178" x2="${x}" y2="88"/>
+      `).join("")}
+
+      <text class="svg-label-small" x="145" y="90">oublier</text>
+      <text class="svg-label-small" x="281" y="90">écrire</text>
+      <text class="svg-label-small" x="390" y="90">état candidat</text>
+      <text class="svg-label-small" x="575" y="90">montrer</text>
+    </g>
+  </svg>
+`;
+
+// ---------- 24. Encodeur-décodeur avec attention ----------
+
+const encoderDecoderAttention = `
+  <svg viewBox="0 0 720 250" role="img" aria-label="Architecture encodeur-décodeur avec mécanisme d'attention">
+    ${arrowHeadDefs}
+
+    <g transform="translate(20, 30)">
+      <text class="svg-label" x="120" y="18">Encodeur</text>
+      ${[
+        { x: 0, token: "je" },
+        { x: 58, token: "vois" },
+        { x: 126, token: "chat" }
+      ].map((item, index) => `
+        <rect class="svg-pipeline-block" x="${item.x}" y="44" width="${item.token === "vois" ? 56 : 44}" height="26" rx="8"/>
+        <text class="svg-pipeline-block-text" x="${item.x + (item.token === "vois" ? 28 : 22)}" y="60">${item.token}</text>
+        <circle class="svg-neuron" cx="${22 + item.x}" cy="122" r="16"/>
+        <text class="svg-label-small" x="${22 + item.x}" y="122">h<tspan baseline-shift="sub">${index + 1}</tspan></text>
+        <line class="svg-arrow" x1="${22 + item.x}" y1="70" x2="${22 + item.x}" y2="106"/>
+      `).join("")}
+    </g>
+
+    <g transform="translate(296, 30)">
+      <text class="svg-label" x="78" y="18">Attention</text>
+      <circle class="svg-neuron anim-pulse" cx="78" cy="122" r="22"/>
+      <text class="svg-label-small" x="78" y="122">s<tspan baseline-shift="sub">t</tspan></text>
+      <text class="svg-label-small" x="78" y="164">état du décodeur</text>
+    </g>
+
+    <g transform="translate(454, 30)">
+      <text class="svg-label" x="118" y="18">Décodeur</text>
+      <rect class="svg-pipeline-block" x="42" y="108" width="68" height="28" rx="8"/>
+      <text class="svg-pipeline-block-text" x="76" y="126">contexte</text>
+      <rect class="svg-pipeline-block" x="140" y="108" width="54" height="28" rx="8"/>
+      <text class="svg-pipeline-block-text" x="167" y="126">chat</text>
+      <line class="svg-arrow" x1="110" y1="122" x2="140" y2="122"/>
+    </g>
+
+    <path class="svg-arrow" d="M 42 152 C 158 196 258 204 374 152" stroke-dasharray="4 3"/>
+    <path class="svg-arrow" d="M 100 152 C 188 124 282 118 374 132" stroke-width="3"/>
+    <path class="svg-arrow" d="M 170 152 C 250 168 306 174 374 142" stroke-dasharray="4 3"/>
+
+    <text class="svg-label-small" x="356" y="204">poids élevés sur les positions utiles</text>
+  </svg>
+`;
+
+// ---------- 25. Traitement séquentiel vs transformeur ----------
+
+const transformerParallelAttention = `
+  <svg viewBox="0 0 720 240" role="img" aria-label="Comparaison entre traitement séquentiel d'un RNN et traitement parallèle d'un transformeur">
+    ${arrowHeadDefs}
+
+    <g transform="translate(18, 28)">
+      <rect class="svg-cell" x="0" y="0" width="300" height="176" rx="12" fill="rgba(20,184,166,0.04)"/>
+      <text class="svg-label" x="150" y="24">RNN : lecture séquentielle</text>
+      ${[
+        { x: 26, token: "t1" },
+        { x: 92, token: "t2" },
+        { x: 158, token: "t3" },
+        { x: 224, token: "t4" }
+      ].map((token, index) => `
+        <rect class="svg-pipeline-block" x="${token.x}" y="78" width="38" height="26" rx="8"/>
+        <text class="svg-pipeline-block-text" x="${token.x + 19}" y="94">${token.token}</text>
+        ${index < 3 ? `<line class="svg-arrow anim-pipeline-arrow" x1="${token.x + 38}" y1="91" x2="${token.x + 66}" y2="91"/>` : ""}
+      `).join("")}
+      <text class="svg-label-small" x="150" y="136">t1 puis t2 puis t3 puis t4</text>
+    </g>
+
+    <g transform="translate(398, 28)">
+      <rect class="svg-cell" x="0" y="0" width="300" height="176" rx="12" fill="rgba(20,184,166,0.04)"/>
+      <text class="svg-label" x="150" y="24">Transformeur : parallèle</text>
+      ${[
+        { x: 48, y: 62, token: "t1" },
+        { x: 196, y: 62, token: "t2" },
+        { x: 48, y: 118, token: "t3" },
+        { x: 196, y: 118, token: "t4" }
+      ].map((token) => `
+        <rect class="svg-pipeline-block" x="${token.x}" y="${token.y}" width="42" height="26" rx="8"/>
+        <text class="svg-pipeline-block-text" x="${token.x + 21}" y="${token.y + 16}">${token.token}</text>
+      `).join("")}
+
+      <line class="svg-arrow" x1="90" y1="75" x2="196" y2="75"/>
+      <line class="svg-arrow" x1="90" y1="131" x2="196" y2="131"/>
+      <line class="svg-arrow" x1="69" y1="88" x2="69" y2="118"/>
+      <line class="svg-arrow" x1="217" y1="88" x2="217" y2="118"/>
+      <line class="svg-arrow" x1="90" y1="75" x2="196" y2="131"/>
+      <line class="svg-arrow" x1="196" y1="75" x2="90" y2="131"/>
+
+      <text class="svg-label-small" x="150" y="156">chaque position peut regarder les autres</text>
+    </g>
+  </svg>
+`;
+
+// ---------- 26. Boucle agent-environnement ----------
+
+const rlAgentEnvironmentLoop = `
+  <svg viewBox="0 0 720 260" role="img" aria-label="Boucle de l'apprentissage par renforcement entre agent et environnement">
+    ${arrowHeadDefs}
+
+    <g transform="translate(40, 34)">
+      <rect class="svg-pipeline-block" x="40" y="76" width="160" height="76" rx="8"/>
+      <text class="svg-pipeline-block-text" x="120" y="108">Agent</text>
+      <text class="svg-label-small" x="120" y="132">choisit a<tspan baseline-shift="sub">t</tspan></text>
+
+      <rect class="svg-pipeline-block" x="460" y="76" width="180" height="76" rx="8"/>
+      <text class="svg-pipeline-block-text" x="550" y="108">Environnement</text>
+      <text class="svg-label-small" x="550" y="132">répond et évolue</text>
+
+      <line class="svg-arrow anim-pipeline-arrow" x1="200" y1="98" x2="460" y2="98"/>
+      <text class="svg-label" x="330" y="84">action a<tspan baseline-shift="sub">t</tspan></text>
+
+      <path class="svg-arrow" d="M 460 136 C 360 210 240 210 200 136"/>
+      <text class="svg-label" x="330" y="214">état s<tspan baseline-shift="sub">t+1</tspan> + récompense r<tspan baseline-shift="sub">t+1</tspan></text>
+
+      <rect class="svg-cell" x="246" y="20" width="170" height="40" rx="8" fill="rgba(20,184,166,0.08)"/>
+      <text class="svg-label" x="331" y="43">essai → erreur → ajustement</text>
+
+      <circle class="svg-neuron anim-pulse" cx="120" cy="114" r="10"/>
+      <circle class="svg-neuron anim-pulse" cx="550" cy="114" r="10"/>
+    </g>
+  </svg>
+`;
+
+// ---------- 27. Modèles d'optimalité ----------
+
+const rlOptimalityHorizons = `
+  <svg viewBox="0 0 760 260" role="img" aria-label="Trois modèles d'optimalité en apprentissage par renforcement">
+    ${arrowHeadDefs}
+
+    ${[
+      { x: 20, title: "Horizon fini", note: "h prochaines étapes", bars: [52, 52, 52, 52, 0, 0] },
+      { x: 270, title: "Actualisé", note: "γ^t diminue", bars: [62, 48, 36, 26, 18, 12] },
+      { x: 520, title: "Reward moyen", note: "moyenne long terme", bars: [36, 42, 30, 46, 38, 40] }
+    ].map((panel) => `
+      <g transform="translate(${panel.x}, 28)">
+        <rect class="svg-cell" x="0" y="0" width="220" height="174" rx="12" fill="rgba(20,184,166,0.04)"/>
+        <text class="svg-label" x="110" y="24">${panel.title}</text>
+        ${panel.bars.map((height, index) => `
+          <rect class="${height === 0 ? "svg-cell" : "svg-highlight"}" x="${32 + index * 28}" y="${120 - height}" width="18" height="${Math.max(height, 4)}" rx="4" fill-opacity="${height === 0 ? "0.2" : "0.85"}"/>
+          <text class="svg-label-small" x="${41 + index * 28}" y="144">r${index}</text>
+        `).join("")}
+        <line class="svg-arrow" x1="28" y1="124" x2="196" y2="124"/>
+        <text class="svg-label-small" x="110" y="164">${panel.note}</text>
+      </g>
+    `).join("")}
+
+    <text class="svg-label-small" x="380" y="238">Dans ce cours, on retient surtout l'horizon infini actualisé avec γ ∈ [0, 1[.</text>
+  </svg>
+`;
+
+// ---------- 28. MDP et Bellman ----------
+
+const rlMdpBellman = `
+  <svg viewBox="0 0 760 300" role="img" aria-label="Processus de décision markovien et équation de Bellman">
+    ${arrowHeadDefs}
+
+    <g transform="translate(28, 34)">
+      <text class="svg-label" x="170" y="18">MDP : S, A, T, R, γ</text>
+      <circle class="svg-neuron" cx="68" cy="92" r="28"/>
+      <text class="svg-label" x="68" y="92">s</text>
+      <circle class="svg-neuron" cx="238" cy="52" r="24"/>
+      <text class="svg-label" x="238" y="52">s'</text>
+      <circle class="svg-neuron" cx="238" cy="134" r="24"/>
+      <text class="svg-label" x="238" y="134">s''</text>
+      <line class="svg-arrow" x1="92" y1="82" x2="214" y2="58"/>
+      <line class="svg-arrow" x1="92" y1="102" x2="214" y2="128"/>
+      <text class="svg-label-small" x="156" y="58">a, T=0.7, r</text>
+      <text class="svg-label-small" x="156" y="136">a, T=0.3, r</text>
+
+      <rect class="svg-cell" x="20" y="190" width="288" height="46" rx="8" fill="rgba(20,184,166,0.08)"/>
+      <text class="svg-label" x="164" y="218">le futur dépend du présent et de l'action</text>
+    </g>
+
+    <g transform="translate(410, 40)">
+      <text class="svg-label" x="150" y="12">Bellman</text>
+      <rect class="svg-pipeline-block" x="10" y="48" width="280" height="52" rx="8"/>
+      <text class="svg-pipeline-block-text" x="150" y="76">V(s) = R(s) + γ Σ P(s,s') V(s')</text>
+
+      <rect class="svg-pipeline-block" x="10" y="128" width="280" height="64" rx="8"/>
+      <text class="svg-pipeline-block-text" x="150" y="154">V*(s) = max<tspan baseline-shift="sub">a</tspan>[R(s,a)</text>
+      <text class="svg-pipeline-block-text" x="150" y="174">+ γ Σ T(s,a,s') V*(s')]</text>
+
+      <line class="svg-arrow" x1="150" y1="100" x2="150" y2="128"/>
+      <text class="svg-label-small" x="150" y="222">Bellman relie la valeur présente aux valeurs futures.</text>
+    </g>
+  </svg>
+`;
+
+// ---------- 29. Value Iteration et Policy Iteration ----------
+
+const rlPlanningIterations = `
+  <svg viewBox="0 0 760 270" role="img" aria-label="Comparaison entre Value Iteration et Policy Iteration">
+    ${arrowHeadDefs}
+
+    <g transform="translate(26, 30)">
+      <rect class="svg-cell" x="0" y="0" width="330" height="184" rx="12" fill="rgba(20,184,166,0.04)"/>
+      <text class="svg-label" x="165" y="24">Value Iteration</text>
+
+      <rect class="svg-pipeline-block" x="34" y="58" width="96" height="40" rx="8"/>
+      <text class="svg-pipeline-block-text" x="82" y="82">V arbitraire</text>
+
+      <rect class="svg-pipeline-block" x="190" y="58" width="104" height="40" rx="8"/>
+      <text class="svg-pipeline-block-text" x="242" y="82">backup max</text>
+
+      <path class="svg-arrow" d="M 130 78 C 154 54 174 54 190 78"/>
+      <path class="svg-arrow" d="M 242 98 C 220 130 100 130 82 98"/>
+      <text class="svg-label-small" x="165" y="144">répéter jusqu'à ΔV &lt; ε</text>
+      <text class="svg-label-small" x="165" y="164">puis extraire π(s)=argmax</text>
+    </g>
+
+    <g transform="translate(404, 30)">
+      <rect class="svg-cell" x="0" y="0" width="330" height="184" rx="12" fill="rgba(20,184,166,0.04)"/>
+      <text class="svg-label" x="165" y="24">Policy Iteration</text>
+
+      <rect class="svg-pipeline-block" x="28" y="58" width="82" height="40" rx="8"/>
+      <text class="svg-pipeline-block-text" x="69" y="82">π</text>
+
+      <rect class="svg-pipeline-block" x="132" y="58" width="82" height="40" rx="8"/>
+      <text class="svg-pipeline-block-text" x="173" y="82">évaluer Vπ</text>
+
+      <rect class="svg-pipeline-block" x="236" y="58" width="72" height="40" rx="8"/>
+      <text class="svg-pipeline-block-text" x="272" y="82">améliorer</text>
+
+      <line class="svg-arrow" x1="110" y1="78" x2="132" y2="78"/>
+      <line class="svg-arrow" x1="214" y1="78" x2="236" y2="78"/>
+      <path class="svg-arrow" d="M 272 98 C 238 146 112 146 69 98"/>
+      <text class="svg-label-small" x="165" y="164">arrêt quand π' = π</text>
+    </g>
+
+    <text class="svg-label-small" x="380" y="240">Ces deux méthodes supposent un modèle connu : T(s,a,s') et R(s,a).</text>
+  </svg>
+`;
+
+// ---------- 30. Model-based, model-free et Dyna ----------
+
+const rlModelBasedFreeDyna = `
+  <svg viewBox="0 0 760 260" role="img" aria-label="Différence entre méthodes model-based, model-free et Dyna">
+    ${arrowHeadDefs}
+
+    <g transform="translate(22, 32)">
+      <rect class="svg-cell" x="0" y="0" width="224" height="170" rx="12" fill="rgba(20,184,166,0.04)"/>
+      <text class="svg-label" x="112" y="24">Model-based</text>
+      <rect class="svg-pipeline-block" x="34" y="56" width="156" height="34" rx="8"/>
+      <text class="svg-pipeline-block-text" x="112" y="77">estimer T̂, R̂</text>
+      <rect class="svg-pipeline-block" x="34" y="112" width="156" height="34" rx="8"/>
+      <text class="svg-pipeline-block-text" x="112" y="133">planifier π</text>
+      <line class="svg-arrow" x1="112" y1="90" x2="112" y2="112"/>
+    </g>
+
+    <g transform="translate(268, 32)">
+      <rect class="svg-cell" x="0" y="0" width="224" height="170" rx="12" fill="rgba(20,184,166,0.04)"/>
+      <text class="svg-label" x="112" y="24">Model-free</text>
+      <rect class="svg-pipeline-block" x="34" y="72" width="156" height="34" rx="8"/>
+      <text class="svg-pipeline-block-text" x="112" y="93">apprendre Q directement</text>
+      <text class="svg-label-small" x="112" y="134">pas de T̂ ni R̂ explicites</text>
+    </g>
+
+    <g transform="translate(514, 32)">
+      <rect class="svg-cell" x="0" y="0" width="224" height="170" rx="12" fill="rgba(20,184,166,0.04)"/>
+      <text class="svg-label" x="112" y="24">Dyna</text>
+      <circle class="svg-neuron anim-pulse" cx="112" cy="84" r="30"/>
+      <text class="svg-label-small" x="112" y="78">vrai pas</text>
+      <text class="svg-label-small" x="112" y="96">+ k backups</text>
+      <path class="svg-arrow" d="M 112 114 C 168 142 174 56 112 54" stroke-dasharray="4 3"/>
+      <text class="svg-label-small" x="112" y="148">le modèle sert à simuler</text>
+    </g>
+  </svg>
+`;
+
+// ---------- 31. Q-Learning ----------
+
+const rlQLearningUpdate = `
+  <svg viewBox="0 0 780 300" role="img" aria-label="Mise à jour Q-Learning avec epsilon-greedy et erreur TD">
+    ${arrowHeadDefs}
+
+    <g transform="translate(26, 28)">
+      <text class="svg-label" x="144" y="20">ε-greedy</text>
+      <rect class="svg-cell" x="0" y="44" width="288" height="110" rx="12" fill="rgba(20,184,166,0.04)"/>
+      <rect class="svg-pipeline-block" x="28" y="82" width="82" height="34" rx="8"/>
+      <text class="svg-pipeline-block-text" x="69" y="103">état s</text>
+      <line class="svg-arrow" x1="110" y1="99" x2="152" y2="99"/>
+      <rect class="svg-pipeline-block" x="152" y="60" width="106" height="30" rx="8"/>
+      <text class="svg-pipeline-block-text" x="205" y="80">max Q</text>
+      <rect class="svg-pipeline-block" x="152" y="108" width="106" height="30" rx="8"/>
+      <text class="svg-pipeline-block-text" x="205" y="128">hasard</text>
+      <text class="svg-label-small" x="205" y="52">1−ε</text>
+      <text class="svg-label-small" x="205" y="154">ε</text>
+    </g>
+
+    <g transform="translate(360, 28)">
+      <text class="svg-label" x="186" y="20">Mise à jour</text>
+      <rect class="svg-cell" x="0" y="44" width="374" height="178" rx="12" fill="rgba(20,184,166,0.04)"/>
+
+      <rect class="svg-pipeline-block" x="28" y="72" width="314" height="42" rx="8"/>
+      <text class="svg-pipeline-block-text" x="185" y="96">cible = r + γ max<tspan baseline-shift="sub">a'</tspan> Q(s',a')</text>
+
+      <rect class="svg-pipeline-block" x="28" y="136" width="314" height="42" rx="8"/>
+      <text class="svg-pipeline-block-text" x="185" y="160">Q ← Q + α(cible − Q)</text>
+
+      <line class="svg-arrow" x1="185" y1="114" x2="185" y2="136"/>
+      <text class="svg-label-small" x="185" y="204">δ = cible − Q(s,a) : erreur TD</text>
+    </g>
+
+    <text class="svg-label-small" x="390" y="270">Q-Learning apprend la qualité des couples état-action sans connaître T ni R.</text>
+  </svg>
+`;
+
 // ---------- Export global ----------
 
 globalScope.IA_FIGURES = {
@@ -638,6 +1416,24 @@ globalScope.IA_FIGURES = {
   gradientDescent2D,
   vanishingGradientHeatmap,
   strideExample,
-  paddingExample
+  paddingExample,
+  rnnFeedforwardVsRecurrent,
+  jordanElmanComparison,
+  rnnMatrixMap,
+  rnnUnrolledTime,
+  seq2seqTypes,
+  tokenEncodingCompare,
+  languageModelSoftmax,
+  bpttFlow,
+  rnnGradientInstability,
+  lstmGatesCell,
+  encoderDecoderAttention,
+  transformerParallelAttention,
+  rlAgentEnvironmentLoop,
+  rlOptimalityHorizons,
+  rlMdpBellman,
+  rlPlanningIterations,
+  rlModelBasedFreeDyna,
+  rlQLearningUpdate
 };
 })(window);
