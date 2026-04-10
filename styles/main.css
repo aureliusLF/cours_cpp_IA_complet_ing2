@@ -274,6 +274,12 @@ kbd {
   margin-top: 14px;
 }
 
+.sidebar-course-switch {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
 /* HIDE CLUTTER */
 .site-footer,
 .sidebar-note,
@@ -3209,6 +3215,10 @@ body[data-course="ia"] {
   text-decoration: none;
   font-size: 0.92rem;
   transition: var(--transition-smooth);
+}
+
+.course-switch-link--sidebar {
+  min-height: 46px;
 }
 
 .course-switch-link:hover,
