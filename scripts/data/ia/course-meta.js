@@ -69,7 +69,7 @@ registry.setCourseMeta({
     </div>
   `,
   stats: [
-    { value: "4", label: "chapitres progressifs" },
+    { value: "5", label: "chapitres progressifs" },
     { value: "Python", label: "langage de référence" },
     { value: "ConvNet", label: "brique de départ" },
     { value: "ING5", label: "niveau" }

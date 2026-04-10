@@ -34,13 +34,15 @@ registry.registerChapterBundle({
     shortTitle: "Architecture",
     title: "Assembler et entraîner un ConvNet",
     level: "Fondations",
-    duration: "1 h 30",
+    duration: "1 h 45",
     track: "IA1",
     summary:
-      "On a toutes les briques : convolution, pooling, ReLU, dropout, batch norm. Il est temps de les assembler en un vrai ConvNet, de le faire tourner, et d'apprendre à lire ce qu'il fait. Ce chapitre couvre l'architecture typique, l'énumération des hyperparamètres, le cycle forward/backprop/update, les optimiseurs modernes, et les réflexes de diagnostic à avoir pendant et après l'entraînement.",
+      "On a toutes les briques : convolution, pooling, ReLU, dropout, batch norm. Il est temps de les assembler en un vrai ConvNet, de le faire tourner, et d'apprendre à lire ce qu'il fait. Ce chapitre couvre l'architecture typique, la préparation concrète de jeux comme MNIST et CIFAR-10, le workflow Keras <code>Sequential → compile → fit → evaluate</code>, le cycle forward/backprop/update, les optimiseurs modernes, et les réflexes de diagnostic à avoir pendant et après l'entraînement.",
     goals: [
       "décrire et reconnaître l'architecture typique d'un ConvNet de classification",
       "énumérer les hyperparamètres à fixer avant d'entraîner un modèle",
+      "préparer un dataset image pour un ConvNet (forme du tenseur, normalisation, encodage des labels)",
+      "décrire le cycle Keras Sequential → compile → fit → evaluate et savoir à quoi sert chaque étape",
       "expliquer le cycle forward pass → perte → rétropropagation → mise à jour",
       "comparer SGD, SGD momentum, RMSProp et Adam et savoir quand choisir lequel",
       "lire une courbe train/val et diagnostiquer sur-apprentissage ou sous-apprentissage",
@@ -49,6 +51,9 @@ registry.registerChapterBundle({
     ],
     highlights: [
       "pipeline",
+      "Keras",
+      "MNIST",
+      "CIFAR-10",
       "rétropropagation",
       "Adam",
       "early stopping",
@@ -108,6 +113,108 @@ Dimensions spatiales qui diminuent       Nombre de feature maps qui augmente
           "warn",
           "Ne pas régler tout en même temps",
           "Résister à la tentation de tout changer en même temps. La règle d'or : un hyperparamètre à la fois. Commence par le taux d'apprentissage (c'est le plus impactant), puis la taille du modèle, puis les régularisations. Tenir un petit journal des expériences (avec les courbes) vaut tout l'or du monde quand on cherche à comprendre pourquoi une configuration marche mieux qu'une autre."
+        )
+      ),
+
+      lesson(
+        "Préparer un dataset image : MNIST et CIFAR-10",
+        paragraphs(
+          "Avant même de lancer un réseau, il faut inspecter les données. Les TD insistent à juste titre sur un réflexe simple et très rentable : afficher les <strong>dimensions</strong>, le <strong>type</strong> et les <strong>valeurs min/max</strong> de chaque tableau. Une grande partie des bugs de deep learning viennent d'une forme de tenseur fausse, d'un type entier oublié, ou d'une normalisation absente."
+        ),
+        table(
+          ["Dataset", "Forme brute", "Préparation typique", "But"],
+          [
+            ["MNIST", "<code>(N, 28, 28)</code>", "<code>astype(\"float32\") / 255</code>, puis reshape en <code>(N, 28, 28, 1)</code>", "garder la structure spatiale pour Conv2D"],
+            ["CIFAR-10", "<code>(N, 32, 32, 3)</code>", "<code>astype(\"float32\") / 255</code>", "conserver les 3 canaux couleur"],
+            ["Labels multi-classes", "<code>(N,)</code>", "<code>to_categorical(..., K)</code> ou <code>sparse_categorical_crossentropy</code>", "adapter la sortie softmax"]
+          ]
+        ),
+        paragraphs(
+          "Pour un réseau dense simple, on peut aplatir MNIST en <code>(N, 784)</code>. Pour un ConvNet, on garde l'image en 2D et on ajoute explicitement le canal de gris. C'est exactement la différence entre « apprendre sur un vecteur » et « apprendre sur une structure spatiale »."
+        ),
+        code(
+          "python",
+          `
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.utils import to_categorical
+
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+
+print(x_train.shape, x_train.dtype, x_train.min(), x_train.max())
+print(y_train.shape, y_train.dtype, y_train.min(), y_train.max())
+
+x_train = x_train[:1000].astype("float32") / 255.0
+x_test = x_test[:100].astype("float32") / 255.0
+y_train = y_train[:1000]
+y_test = y_test[:100]
+
+x_train = x_train.reshape(-1, 28, 28, 1)
+x_test = x_test.reshape(-1, 28, 28, 1)
+y_train = to_categorical(y_train, 10)
+y_test = to_categorical(y_test, 10)
+          `,
+          "Préparation MNIST pour un ConvNet Keras"
+        ),
+        callout(
+          "info",
+          "Le piège classique de forme",
+          "En Keras/TensorFlow, les images sont généralement rangées en <code>(batch, hauteur, largeur, canaux)</code>. Pour MNIST en niveaux de gris, on ajoute donc un dernier axe de taille 1 : <code>(N, 28, 28, 1)</code>. En PyTorch, le format usuel est plutôt <code>(N, C, H, W)</code>."
+        )
+      ),
+
+      lesson(
+        "Le cycle Keras : add, compile, fit, evaluate",
+        paragraphs(
+          "L'annexe de TD résume très bien le geste standard en Keras : <strong>lire les données</strong>, <strong>empiler les couches</strong>, <strong>compiler</strong> le modèle, <strong>l'entraîner</strong>, puis <strong>l'évaluer</strong>. Une fois ce schéma en tête, tu peux lire ou écrire une bonne partie des premiers notebooks de deep learning sans te perdre."
+        ),
+        bullets([
+          "<strong><code>Sequential([...])</code></strong> : définit un enchaînement simple de couches, idéal pour un premier ConvNet.",
+          "<strong><code>model.compile(...)</code></strong> : fixe la fonction de perte, l'optimiseur et les métriques que tu veux suivre.",
+          "<strong><code>model.fit(...)</code></strong> : lance l'entraînement avec un nombre d'epochs, une taille de batch et éventuellement un jeu de validation.",
+          "<strong><code>model.evaluate(...)</code></strong> : mesure proprement les performances finales sur un jeu séparé."
+        ]),
+        code(
+          "python",
+          `
+from tensorflow.keras import Sequential
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense
+
+model = Sequential([
+    Conv2D(32, (3, 3), activation="relu", input_shape=(28, 28, 1)),
+    MaxPooling2D((2, 2)),
+    Dropout(0.25),
+    Flatten(),
+    Dense(10, activation="softmax")
+])
+
+model.compile(
+    optimizer="adam",
+    loss="categorical_crossentropy",
+    metrics=["accuracy"]
+)
+
+model.summary()
+
+history = model.fit(
+    x_train,
+    y_train,
+    epochs=10,
+    batch_size=32,
+    validation_split=0.2
+)
+
+test_loss, test_acc = model.evaluate(x_test, y_test, verbose=0)
+print(test_loss, test_acc)
+          `,
+          "Cycle minimal Keras sur MNIST"
+        ),
+        callout(
+          "success",
+          "Bien choisir la perte de sortie",
+          "Sortie binaire : <code>Dense(1, activation=\"sigmoid\")</code> avec <code>binary_crossentropy</code>. Sortie multi-classes : <code>Dense(K, activation=\"softmax\")</code> avec <code>categorical_crossentropy</code> ou <code>sparse_categorical_crossentropy</code> selon le format des labels."
+        ),
+        paragraphs(
+          "Ne saute jamais l'étape <code>model.summary()</code> : elle te permet de vérifier la cohérence des dimensions et le nombre de paramètres avant de lancer dix minutes d'entraînement pour découvrir qu'une couche ne s'enchaîne pas correctement."
         )
       ),
 
@@ -257,6 +364,9 @@ print(classification_report(y_true, y_pred, target_names=['chat', 'chien', 'oise
     checklist: [
       "Je peux décrire l'architecture typique <code>Input → (Conv → ReLU → Pool) × n → FC → Softmax</code> et expliquer pourquoi le nombre de canaux monte pendant que la taille spatiale descend.",
       "Je peux énumérer au moins 8 hyperparamètres à fixer avant d'entraîner un ConvNet.",
+      "Je sais inspecter un dataset image avant entraînement en vérifiant sa forme, son type et ses bornes min/max.",
+      "Je peux préparer MNIST pour un ConvNet Keras en <code>float32</code>, normalisé dans <code>[0, 1]</code>, avec une forme <code>(N, 28, 28, 1)</code>.",
+      "Je peux expliquer le cycle <code>Sequential → compile → fit → evaluate</code> et choisir la bonne perte entre cas binaire et multi-classes.",
       "Je peux décrire en une phrase chacune des quatre étapes du cycle d'entraînement (forward, perte, backward, update).",
       "Je connais la règle de dérivation en chaîne et je peux expliquer en une phrase comment la rétropropagation l'utilise.",
       "Je peux comparer SGD, SGD + momentum et Adam et dire lequel choisir par défaut.",
@@ -287,6 +397,28 @@ print(classification_report(y_true, y_pred, target_names=['chat', 'chien', 'oise
         ],
         answer: 1,
         explanation: "L'ordre correct : (1) on fait le forward pour obtenir les prédictions, (2) on compare aux étiquettes pour calculer la perte, (3) on rétropropage pour obtenir les gradients, (4) l'optimiseur met à jour les poids."
+      },
+      {
+        question: "Quelle est la bonne forme d'entrée pour des images MNIST en niveaux de gris dans un ConvNet Keras ?",
+        options: [
+          "<code>(N, 784)</code>",
+          "<code>(N, 28, 28, 1)</code>",
+          "<code>(N, 1, 28, 28)</code>",
+          "<code>(28, 28, N)</code>"
+        ],
+        answer: 1,
+        explanation: "En Keras/TensorFlow, le format image le plus courant est <code>(batch, hauteur, largeur, canaux)</code>. Pour MNIST, il faut donc ajouter un canal final de taille 1 : <code>(N, 28, 28, 1)</code>."
+      },
+      {
+        question: "Que fixe principalement l'appel <code>model.compile(...)</code> dans Keras ?",
+        options: [
+          "Le découpage train/test et la normalisation des pixels",
+          "Le nombre de couches et la taille des filtres",
+          "La perte, l'optimiseur et les métriques suivies",
+          "Le nombre de paramètres appris par chaque couche"
+        ],
+        answer: 2,
+        explanation: "L'étape <code>compile</code> sert à préciser comment le modèle va apprendre et être mesuré : fonction de perte, optimiseur, et métriques comme l'accuracy."
       },
       {
         question: "Quel optimiseur est généralement un bon choix par défaut pour un projet de deep learning ?",
@@ -400,6 +532,14 @@ print(classification_report(y_true, y_pred, target_names=['chat', 'chien', 'oise
       "pipeline",
       "softmax",
       "entropie croisée",
+      "keras",
+      "compile",
+      "fit",
+      "evaluate",
+      "mnist",
+      "cifar10",
+      "normalisation",
+      "one hot",
       "rétropropagation",
       "descente de gradient",
       "sgd",

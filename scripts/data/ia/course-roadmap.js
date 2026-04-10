@@ -46,6 +46,16 @@ registry.setRoadmap([
       "métriques adaptées à la tâche",
       "présentation d'un projet crédible"
     ]
+  },
+  {
+    index: "05",
+    title: "TD corrigés et pratique Keras",
+    text: "Transformer les exercices en réflexes opérationnels : préparation MNIST, ConvNet Keras, CIFAR-10, analyse d'erreurs.",
+    bullets: [
+      "corrections guidées des TD",
+      "workflow add/compile/fit/evaluate",
+      "diagnostic par matrice de confusion"
+    ]
   }
 ]);
 })(window);

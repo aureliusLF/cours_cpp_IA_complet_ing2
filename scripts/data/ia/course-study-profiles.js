@@ -124,6 +124,37 @@ globalScope.COURSE_STUDY_PROFILES = {
         "Pas de déploiement en production, pas d'optimisation GPU bas niveau : on reste sur la démarche scientifique."
       ]
     }
+  },
+
+  "td-corriges": {
+    review: {
+      expectations: [
+        "Écrire une convolution 2D valide et un max-pooling simples en NumPy pour retrouver l'intuition calculatoire des ConvNet.",
+        "Préparer MNIST pour deux cas différents : un réseau dense (<code>N × 784</code>) et un ConvNet Keras (<code>N × 28 × 28 × 1</code>).",
+        "Choisir correctement la sortie et la perte d'un modèle Keras selon le cas binaire (<code>sigmoid</code> + <code>binary_crossentropy</code>) ou multi-classes (<code>softmax</code> + <code>categorical_crossentropy</code>).",
+        "Lire un <code>model.summary()</code> et vérifier la cohérence des dimensions avant de lancer un entraînement.",
+        "Analyser un classifieur CIFAR-10 avec accuracy, matrice de confusion, rapport précision/rappel et exemples mal classés."
+      ],
+      commonMistakes: [
+        "Normaliser les images après le reshape ou avant le reshape n'a pas d'importance, mais oublier la conversion en <code>float32</code> conduit souvent à des surprises de type.",
+        "Confondre labels entiers et labels one-hot dans Keras, puis choisir la mauvaise perte.",
+        "Évaluer directement sur le test sans garder de validation pendant le développement.",
+        "Regarder uniquement l'accuracy CIFAR-10 sans inspecter les classes confondues."
+      ],
+      oralCheck: "Montre le pipeline complet d'un TD au choix : chargement des données, préparation des tenseurs, définition du réseau, compile, fit, evaluate, puis un diagnostic de sortie."
+    },
+    assistant: {
+      focus: "Faire passer l'étudiant du cours à la pratique : moins de théorie isolée, plus de pipelines complets qui s'exécutent et se diagnostiquent.",
+      mustInclude: [
+        "Au moins un exercice où l'étudiant code une petite opération ConvNet à la main.",
+        "Au moins un exercice où il corrige une erreur de forme de tenseur Keras.",
+        "Au moins un exercice où il interprète une matrice de confusion ou quelques images mal classées."
+      ],
+      avoid: [
+        "Ne pas transformer les corrigés en pavés opaques : chaque solution doit rester lisible et découpée.",
+        "Éviter les architectures trop ambitieuses qui noient le geste pédagogique de base."
+      ]
+    }
   }
 };
 })(window);
