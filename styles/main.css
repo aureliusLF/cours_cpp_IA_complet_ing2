@@ -1317,9 +1317,238 @@ body[data-page="home"] {
   text-anchor: middle;
 }
 
+.hero-cpp-journey {
+  width: 100%;
+  min-height: 190px;
+}
+
+.hero-cpp-journey svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.hero-cpp__card {
+  animation: hero-cpp-card-float 5.2s ease-in-out infinite;
+}
+
+.hero-cpp__card--run {
+  animation-delay: -2.6s;
+}
+
+.hero-cpp__card-panel {
+  fill: var(--panel-solid);
+  stroke-width: 1.4;
+}
+
+.hero-cpp__card-panel--source {
+  stroke: rgba(59, 130, 246, 0.36);
+}
+
+.hero-cpp__card-panel--run {
+  stroke: rgba(16, 185, 129, 0.34);
+}
+
+.hero-cpp__card-title,
+.hero-cpp__core-text {
+  fill: var(--ink);
+  font-family: var(--font-body);
+  font-weight: 700;
+}
+
+.hero-cpp__card-title {
+  font-size: 13px;
+}
+
+.hero-cpp__card-subtitle,
+.hero-cpp__core-subtext,
+.hero-cpp__token-label {
+  fill: var(--ink-soft);
+  font-family: var(--font-body);
+  font-size: 11px;
+}
+
+.hero-cpp__code-line,
+.hero-cpp__output-line {
+  fill: rgba(59, 130, 246, 0.14);
+}
+
+.hero-cpp__output-line {
+  animation: hero-cpp-output-pulse 2.8s ease-in-out infinite;
+}
+
+.hero-cpp__output-line--mid {
+  animation-delay: 0.2s;
+}
+
+.hero-cpp__output-line--short {
+  animation-delay: 0.4s;
+}
+
+.hero-cpp__code-line--short,
+.hero-cpp__output-line--short {
+  opacity: 0.7;
+}
+
+.hero-cpp__stream {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-dasharray: 6 10;
+  opacity: 0.24;
+  animation: hero-cpp-stream-flow 1.6s linear infinite;
+}
+
+.hero-cpp__stream--b,
+.hero-cpp__stream--d {
+  animation-delay: 0.22s;
+}
+
+.hero-cpp__halo {
+  fill: rgba(59, 130, 246, 0.08);
+  animation: hero-cpp-core-breathe 3.8s ease-in-out infinite;
+}
+
+.hero-cpp__orbit {
+  fill: none;
+  stroke: rgba(59, 130, 246, 0.28);
+  stroke-width: 1.3;
+}
+
+.hero-cpp__orbit--inner {
+  stroke: rgba(16, 185, 129, 0.24);
+}
+
+.hero-cpp__core-node {
+  fill: var(--panel-solid);
+  stroke: var(--accent);
+  stroke-width: 1.7;
+  animation: hero-cpp-core-breathe 3.8s ease-in-out infinite;
+}
+
+.hero-cpp__core-text,
+.hero-cpp__core-subtext,
+.hero-cpp__token-label {
+  text-anchor: middle;
+}
+
+.hero-cpp__core-text {
+  font-size: 22px;
+}
+
+.hero-cpp__rotor {
+  transform-box: view-box;
+  transform-origin: 260px 122px;
+  opacity: 0.84;
+}
+
+.hero-cpp__rotor--outer {
+  animation: hero-cpp-rotate 16s linear infinite;
+}
+
+.hero-cpp__rotor--inner {
+  animation: hero-cpp-rotate-reverse 11s linear infinite;
+}
+
+.hero-cpp__token-pill {
+  fill: rgba(15, 23, 42, 0.78);
+  stroke: rgba(59, 130, 246, 0.34);
+  stroke-width: 1.1;
+}
+
+.hero-cpp__token-pill--small {
+  fill: rgba(15, 23, 42, 0.72);
+  stroke: rgba(16, 185, 129, 0.34);
+}
+
+.hero-cpp__token-label {
+  fill: rgba(226, 232, 240, 0.92);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  dominant-baseline: central;
+}
+
+.hero-cpp__token-label--small {
+  font-size: 10px;
+}
+
+@media (prefers-color-scheme: light) {
+  .hero-cpp__token-pill {
+    fill: rgba(226, 232, 240, 0.72);
+    stroke: rgba(59, 130, 246, 0.3);
+  }
+
+  .hero-cpp__token-pill--small {
+    fill: rgba(219, 234, 254, 0.78);
+    stroke: rgba(16, 185, 129, 0.28);
+  }
+
+  .hero-cpp__token-label {
+    fill: rgba(15, 23, 42, 0.82);
+  }
+}
+
+.hero-cpp__particle {
+  fill: var(--accent);
+  opacity: 0;
+  filter: drop-shadow(0 0 8px var(--accent));
+  animation: hero-cpp-particle 2.8s ease-in-out infinite;
+}
+
+.hero-cpp__particle--a {
+  --from-x: 148px;
+  --from-y: 94px;
+  --to-x: 222px;
+  --to-y: 94px;
+  animation-delay: 0s;
+}
+
+.hero-cpp__particle--b {
+  --from-x: 148px;
+  --from-y: 150px;
+  --to-x: 222px;
+  --to-y: 150px;
+  animation-delay: 0.34s;
+}
+
+.hero-cpp__particle--c {
+  --from-x: 298px;
+  --from-y: 94px;
+  --to-x: 372px;
+  --to-y: 94px;
+  animation-delay: 1.02s;
+}
+
+.hero-cpp__particle--d {
+  --from-x: 298px;
+  --from-y: 150px;
+  --to-x: 372px;
+  --to-y: 150px;
+  animation-delay: 1.36s;
+}
+
 @keyframes hero-nn-flow {
   to {
     stroke-dashoffset: -34;
+  }
+}
+
+@keyframes hero-cpp-stream-flow {
+  to {
+    stroke-dashoffset: -32;
+  }
+}
+
+@keyframes hero-cpp-card-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-4px);
   }
 }
 
@@ -1359,6 +1588,66 @@ body[data-page="home"] {
   100% {
     opacity: 0;
     transform: translate(var(--signal-to-x), var(--signal-to-y)) scale(0.65);
+  }
+}
+
+@keyframes hero-cpp-core-breathe {
+  0%,
+  100% {
+    opacity: 0.82;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes hero-cpp-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes hero-cpp-rotate-reverse {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes hero-cpp-output-pulse {
+  0%,
+  100% {
+    opacity: 0.48;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes hero-cpp-particle {
+  0%,
+  12% {
+    opacity: 0;
+    transform: translate(var(--from-x), var(--from-y)) scale(0.65);
+  }
+
+  28%,
+  58% {
+    opacity: 1;
+  }
+
+  68% {
+    opacity: 1;
+    transform: translate(var(--to-x), var(--to-y)) scale(1);
+  }
+
+  80%,
+  100% {
+    opacity: 0;
+    transform: translate(var(--to-x), var(--to-y)) scale(0.65);
   }
 }
 
