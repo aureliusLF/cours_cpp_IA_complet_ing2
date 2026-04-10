@@ -40,7 +40,7 @@ function init() {
     !renderGlossary ||
     !syncGlossaryState
   ) {
-    console.error("Les scripts applicatifs ne sont pas tous chargés. Vérifie l'ordre des balises <script> dans index.html.");
+    console.error("Les scripts applicatifs ne sont pas tous chargés. Vérifie l'ordre des balises <script> dans la page du cours.");
     return;
   }
 

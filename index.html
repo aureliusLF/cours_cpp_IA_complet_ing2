@@ -4,114 +4,80 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Cours C++ complet ING2</title>
+  <title>Accueil — Supports de cours</title>
   <meta name="description"
-    content="Support interactif et autonome de C++ pour ING2 : navigation claire, progression, quiz, glossaire et parcours de révision.">
-  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+    content="Accueil des supports de cours interactifs : C++ ING2 et IA ING5.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
     href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=DM+Serif+Display&family=JetBrains+Mono:wght@400;700&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="styles/main.css">
-  <script defer src="scripts/lib/strings.js"></script>
-  <script defer src="scripts/lib/highlight.js"></script>
-  <script defer src="scripts/state/storage.js"></script>
-  <script defer src="scripts/data/course-runtime.js"></script>
-  <script defer src="scripts/data/course-meta.js"></script>
-  <script defer src="scripts/data/course-roadmap.js"></script>
-  <script defer src="scripts/data/course-glossary.js"></script>
-  <script defer src="scripts/data/glossary-study.js"></script>
-  <script defer src="scripts/data/course-study-profiles.js"></script>
-  <script defer src="scripts/data/chapters/01-vision-outillage.js"></script>
-  <script defer src="scripts/data/chapters/02-fondamentaux-syntaxe.js"></script>
-  <script defer src="scripts/data/chapters/03-pointeurs-memoire.js"></script>
-  <script defer src="scripts/data/chapters/04-fonctions-references.js"></script>
-  <script defer src="scripts/data/chapters/05-classes-encapsulation.js"></script>
-  <script defer src="scripts/data/chapters/06-constructeurs-raii.js"></script>
-  <script defer src="scripts/data/chapters/07-memoire-smart-pointers.js"></script>
-  <script defer src="scripts/data/chapters/08-copie-mouvement.js"></script>
-  <script defer src="scripts/data/chapters/09-surcharge-operateurs.js"></script>
-  <script defer src="scripts/data/chapters/10-heritage-polymorphisme.js"></script>
-  <script defer src="scripts/data/chapters/11-templates-stl.js"></script>
-  <script defer src="scripts/data/chapters/12-flux-io.js"></script>
-  <script defer src="scripts/data/chapters/13-exceptions-erreurs.js"></script>
-  <script defer src="scripts/data/chapters/13-modern-cpp.js"></script>
-  <script defer src="scripts/data/chapters/14-concurrence-threads.js"></script>
-  <script defer src="scripts/data/chapters/15-tests-qualite.js"></script>
-  <script defer src="scripts/data/chapters/16-architecture-projet.js"></script>
-  <script defer src="scripts/ui/course-view.js"></script>
-  <script defer src="scripts/ui/glossary-view.js"></script>
-  <script defer src="scripts/course-data.js"></script>
-  <script defer src="scripts/app.js"></script>
 </head>
 
-<body>
-  <a class="skip-link" href="#chapterPanel">Aller au chapitre en cours</a>
-
-  <div class="app-shell" id="appRoot">
-    <aside class="sidebar">
-      <div class="sidebar-shell">
-        <section class="brand-block brand-block--compact" aria-label="Identité du cours">
-          <p class="eyebrow">C++ ING2</p>
-          <h1>Cours C++ complet</h1>
-          <p class="brand-copy">
-            Support interactif sans build pour réviser le parcours ING2, suivre sa progression et s'entraîner.
-          </p>
-          <p class="brand-copy">
-            <a class="course-switch-link" href="ia.html">Cours IA ING5 →</a>
-          </p>
-        </section>
-
-        <section class="sidebar-chapters">
-          <div class="sidebar-card__row">
-            <span>Chapitres visibles</span>
-            <strong id="visibleCount" aria-live="polite">0</strong>
-          </div>
-          <nav class="chapter-nav" id="chapterNav" aria-label="Chapitres"></nav>
-        </section>
-      </div>
-    </aside>
-
-    <main class="workspace">
-      <section class="assistant-panel is-hidden" id="assistantPanel" hidden aria-live="polite"></section>
-      <header class="hero" id="hero"></header>
-
-      <section class="global-dashboard">
-        <div class="dashboard-search">
-          <input
-            id="searchInput"
-            class="search-input sleek-input"
-            type="search"
-            placeholder="Recherche rapide (ex. héritage, vector)..."
-            autocomplete="off"
-          >
-          <button class="dashboard-clear-btn" id="resetFiltersButton" type="button">Effacer</button>
-        </div>
-        <div class="filter-row elegant-filters" id="levelFilters" aria-label="Filtres de niveau"></div>
-
-        <div class="dashboard-progress">
-          <span class="progress-text">Progression <strong id="progressLabel" aria-live="polite">0%</strong></span>
-          <div class="progress-track elegant-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-labelledby="progressLabel">
-            <span class="progress-track__fill" id="progressFill"></span>
-          </div>
-        </div>
-      </section>
-      <section class="chapter-panel" id="chapterPanel" tabindex="-1"></section>
-      <section class="glossary-panel" id="glossaryPanel"></section>
-    </main>
-  </div>
-
-  <footer class="site-footer">
-    <p>Support autonome en HTML, CSS et JavaScript. Aucun build n'est requis.</p>
-    <a href="#appRoot">Revenir au début</a>
-  </footer>
-
-  <noscript>
-    <div class="noscript">
-      Active JavaScript pour afficher la navigation, les quiz et les fiches dynamiques du cours.
+<body data-page="home">
+  <main class="home-stage" id="homeMain">
+    <div class="home-scene" aria-hidden="true">
+      <span class="home-scene__trace home-scene__trace--one"></span>
+      <span class="home-scene__trace home-scene__trace--two"></span>
+      <span class="home-scene__trace home-scene__trace--three"></span>
+      <span class="home-scene__chip home-scene__chip--cpp">std::vector&lt;T&gt;</span>
+      <span class="home-scene__chip home-scene__chip--ia">Conv → ReLU → Pool</span>
+      <span class="home-scene__chip home-scene__chip--train">loss.backward()</span>
+      <span class="home-scene__chip home-scene__chip--raii">RAII</span>
     </div>
-  </noscript>
+
+    <section class="home-hero" aria-labelledby="homeTitle">
+      <div class="home-hero__copy">
+        <p class="eyebrow">Supports de cours</p>
+        <h1 id="homeTitle">Choisis le terrain d'entraînement.</h1>
+        <p>
+          Deux espaces pour reprendre les bases, tester les acquis et avancer sans perdre le fil.
+        </p>
+      </div>
+
+      <nav class="home-course-actions" aria-label="Choix du cours">
+        <a class="home-course-button home-course-button--ia" href="ia.html">
+          <span class="home-course-button__code" aria-hidden="true">IA</span>
+          <span>
+            <strong>Cours IA ING5</strong>
+            <small>Apprentissage profond</small>
+          </span>
+          <span class="home-course-button__arrow" aria-hidden="true">→</span>
+        </a>
+
+        <a class="home-course-button home-course-button--cpp" href="cpp.html">
+          <span class="home-course-button__code" aria-hidden="true">C++</span>
+          <span>
+            <strong>Cours C++ ING2</strong>
+            <small>Programmation moderne</small>
+          </span>
+          <span class="home-course-button__arrow" aria-hidden="true">→</span>
+        </a>
+      </nav>
+
+      <div class="home-syllabus-rail" aria-hidden="true">
+        <div class="home-syllabus-rail__track">
+          <span>Convolution</span>
+          <span>RAII</span>
+          <span>Gradient</span>
+          <span>STL</span>
+          <span>Pooling</span>
+          <span>Templates</span>
+          <span>Dropout</span>
+          <span>Smart pointers</span>
+          <span>Convolution</span>
+          <span>RAII</span>
+          <span>Gradient</span>
+          <span>STL</span>
+          <span>Pooling</span>
+          <span>Templates</span>
+          <span>Dropout</span>
+          <span>Smart pointers</span>
+        </div>
+      </div>
+    </section>
+  </main>
 </body>
 
 </html>

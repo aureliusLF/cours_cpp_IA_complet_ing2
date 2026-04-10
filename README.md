@@ -1,8 +1,8 @@
-# Cours C++ complet ING2
+# Supports de cours interactifs
 
-Support interactif de C++ pensé pour un parcours d'ING2 : progressif, autonome, dense sur le fond, mais plus lisible qu'un polycopié classique.
+Accueil et supports interactifs pour les cours C++ ING2 et IA ING5 : parcours progressifs, navigation autonome, quiz, glossaire et exercices.
 
-L'objectif n'est pas seulement de couvrir la syntaxe. Le support cherche à faire comprendre le raisonnement attendu en C++ moderne : types, fonctions, mémoire, objets, STL, robustesse, architecture, tests et mini-projet final.
+Le support C++ cherche à faire comprendre le raisonnement attendu en C++ moderne : types, fonctions, mémoire, objets, STL, robustesse, architecture, tests et mini-projet final. Le support IA introduit l'apprentissage profond, les convolutions, l'entraînement et les briques de réseaux de neurones.
 
 ## Ce que propose le support
 
@@ -40,7 +40,13 @@ On peut :
 
 ## Utilisation
 
-Ouvrir simplement `index.html` dans un navigateur moderne.
+Ouvrir simplement `index.html` dans un navigateur moderne, puis choisir le cours souhaité.
+
+Les pages principales sont :
+
+- `index.html` : accueil
+- `cpp.html` : cours C++ ING2
+- `ia.html` : cours IA ING5
 
 Le mode d'usage nominal est volontairement simple :
 
