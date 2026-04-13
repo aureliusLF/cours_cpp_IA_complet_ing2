@@ -3193,6 +3193,33 @@ body[data-page="home"] {
   padding-right: 0.1em;
 }
 
+.formula .fraction {
+  display: inline-grid;
+  grid-template-rows: auto auto;
+  align-items: center;
+  justify-items: center;
+  vertical-align: middle;
+  margin: 0 0.18em;
+  line-height: 1.05;
+}
+
+.formula .fraction .num,
+.formula .fraction .den {
+  display: block;
+  padding: 0 0.28em;
+  white-space: nowrap;
+}
+
+.formula .fraction .num {
+  border-bottom: 1.5px solid currentColor;
+  padding-bottom: 0.12em;
+}
+
+.formula .fraction .den {
+  padding-top: 0.12em;
+  font-size: 0.9em;
+}
+
 .formula .pipeline {
   font-family: "DM Sans", system-ui, sans-serif;
   font-style: normal;

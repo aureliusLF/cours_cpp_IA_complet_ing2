@@ -18,6 +18,170 @@
 
   // Overrides par terme : pour les concepts qui ont un schéma dédié.
   const termOverrides = {
+    "Machine Learning": {
+      example: "On donne au modèle des exemples passés avec leurs variables et parfois leurs réponses, puis on vérifie s'il prédit correctement sur de nouveaux cas.",
+      visual: visual("mlTrainValidationTestSplit", "Le machine learning se juge sur des données gardées hors entraînement.")
+    },
+    "Dataset": {
+      example: "Un tableau de maisons peut contenir surface, ville et nombre de pièces comme features, puis le prix comme label.",
+      visual: visual("mlTrainValidationTestSplit", "Un dataset se découpe avant d'entraîner et de comparer les modèles.")
+    },
+    "Feature": {
+      example: "Pour prédire un prix immobilier, la surface et le nombre de pièces sont des features ; le prix à prédire est le label.",
+      visual: visual("mlTrainValidationTestSplit", "Les features alimentent le modèle pendant l'entraînement.")
+    },
+    "Label": {
+      example: "Dans un dataset de spam, le texte du mail est l'entrée et le label indique spam ou non-spam.",
+      visual: visual("mlTrainValidationTestSplit", "Le label sert de réponse cible dans l'apprentissage supervisé.")
+    },
+    "Classification": {
+      example: "Reconnaître si un email est spam/non-spam ou si une image contient un chat/chien est une classification.",
+      visual: visual("mlConfusionMetrics", "La classification se diagnostique souvent avec une matrice de confusion.")
+    },
+    "Régression": {
+      example: "Prédire un prix, une température ou une consommation électrique est une régression : la sortie est une valeur continue.",
+      visual: visual("mlTrainValidationTestSplit", "La régression suit le même découpage train/validation/test.")
+    },
+    "Jeu d'entraînement": {
+      example: "Le modèle voit le jeu d'entraînement pendant <code>fit</code> : c'est là que ses poids sont ajustés.",
+      visual: visual("mlTrainValidationTestSplit", "Train : apprendre les paramètres.")
+    },
+    "Jeu de validation": {
+      example: "On utilise la validation pour choisir le taux d'apprentissage, la profondeur, le seuil ou le moment d'arrêt, sans toucher au test.",
+      visual: visual("mlTrainValidationTestSplit", "Validation : choisir les réglages sans tricher sur le test.")
+    },
+    "Jeu de test": {
+      example: "Le test sert une seule fois à la fin pour estimer la performance finale, comme un examen blanc que le modèle n'a jamais vu.",
+      visual: visual("mlTrainValidationTestSplit", "Test : estimation finale après les choix de modèle.")
+    },
+    "Généralisation": {
+      example: "Un modèle utile n'est pas celui qui récite le train, mais celui qui garde un bon score sur validation et test.",
+      visual: visual("mlOverfittingBiasVariance", "La généralisation se lit dans l'écart entre train et validation/test.")
+    },
+    "Sous-apprentissage": {
+      example: "Si l'erreur train et l'erreur validation restent toutes les deux hautes, le modèle est probablement trop simple ou mal entraîné.",
+      visual: visual("mlOverfittingBiasVariance", "Sous-apprentissage : train mauvais, validation mauvaise.")
+    },
+    "Compromis biais-variance": {
+      example: "Un modèle trop rigide a beaucoup de biais ; un modèle trop flexible peut avoir trop de variance et coller au bruit.",
+      visual: visual("mlOverfittingBiasVariance", "Le bon modèle cherche la zone où la validation est minimale.")
+    },
+    "Data leakage": {
+      example: "Normaliser tout le dataset avant le split laisse le test influencer le scaler : le score devient trop optimiste.",
+      visual: visual("mlTrainValidationTestSplit", "Le test ne doit jamais aider à entraîner ou choisir le modèle.")
+    },
+    "Baseline": {
+      example: "Avant un gros modèle, on compare à une règle simple : prédire la classe majoritaire ou la moyenne de la cible.",
+      visual: visual("mlTrainValidationTestSplit", "La baseline sert de plancher à battre honnêtement.")
+    },
+    "Hold-out": {
+      example: "On sépare une fois les données, par exemple 70 % train, 15 % validation, 15 % test.",
+      visual: visual("mlTrainValidationTestSplit", "Hold-out : un découpage fixe des données.")
+    },
+    "Validation croisée": {
+      example: "Avec 5-fold CV, chaque cinquième des données sert une fois de validation, puis on moyenne les cinq scores.",
+      visual: visual("mlCrossValidationFolds", "La validation croisée réduit la dépendance à un seul split.")
+    },
+    "K-fold": {
+      example: "Si k=5, on entraîne cinq fois : quatre folds pour apprendre, un fold pour valider, puis on tourne.",
+      visual: visual("mlCrossValidationFolds", "Chaque fold devient validation une fois.")
+    },
+    "Stratification": {
+      example: "Si la classe positive vaut 5 % du dataset, un split stratifié essaie de garder environ 5 % de positifs dans chaque fold.",
+      visual: visual("mlCrossValidationFolds", "La stratification garde des proportions de classes comparables.")
+    },
+    "Classes déséquilibrées": {
+      example: "Si 99 % des emails sont non-spam, prédire toujours non-spam donne 99 % d'accuracy mais rate tous les spams.",
+      visual: visual("mlConfusionMetrics", "La matrice de confusion révèle ce que l'accuracy cache.")
+    },
+    "Precision": {
+      example: "Si le modèle signale 10 fraudes et que 8 sont vraiment des fraudes, sa precision vaut 8/10.",
+      visual: visual("mlConfusionMetrics", "Precision = parmi les positifs prédits, lesquels sont vrais ?")
+    },
+    "Recall": {
+      example: "Si 20 fraudes existent et que le modèle en retrouve 15, son recall vaut 15/20.",
+      visual: visual("mlConfusionMetrics", "Recall = parmi les vrais positifs, combien sont retrouvés ?")
+    },
+    "F1-score": {
+      example: "Le F1-score devient faible si la precision ou le recall s'effondre : il force à équilibrer les deux.",
+      visual: visual("mlConfusionMetrics", "F1 = moyenne harmonique entre precision et recall.")
+    },
+    "Seuil de décision": {
+      example: "Passer le seuil de 0.5 à 0.2 détecte plus de positifs, mais augmente souvent les faux positifs.",
+      visual: visual("mlConfusionMetrics", "Le seuil déplace le compromis precision/recall.")
+    },
+    "ROC-AUC": {
+      example: "Une ROC-AUC élevée signifie que le modèle classe souvent un positif au-dessus d'un négatif, quel que soit le seuil choisi.",
+      visual: visual("mlConfusionMetrics", "Les métriques de seuil complètent la matrice de confusion.")
+    },
+    "PR-AUC": {
+      example: "Quand les positifs sont rares, la PR-AUC raconte mieux la qualité du détecteur que l'accuracy ou parfois ROC-AUC.",
+      visual: visual("mlConfusionMetrics", "Precision et recall deviennent centraux en cas de classe rare.")
+    },
+    "MAE": {
+      example: "Si les erreurs absolues valent 2, 4 et 6 euros, la MAE vaut 4 euros.",
+      visual: visual("mlTrainValidationTestSplit", "En régression aussi, on compare les métriques sur validation puis test.")
+    },
+    "MSE": {
+      example: "Une erreur de 10 pèse cent fois plus qu'une erreur de 1 dans la MSE, car les erreurs sont mises au carré.",
+      visual: visual("mlTrainValidationTestSplit", "La MSE pénalise fortement les grosses erreurs.")
+    },
+    "RMSE": {
+      example: "La RMSE est la racine de la MSE : elle reste sensible aux grosses erreurs, mais revient dans l'unité de la cible.",
+      visual: visual("mlTrainValidationTestSplit", "La RMSE se lit dans la même unité que la variable prédite.")
+    },
+    "R²": {
+      example: "Un R² proche de 1 indique que le modèle explique beaucoup mieux la cible qu'une prédiction constante par la moyenne.",
+      visual: visual("mlTrainValidationTestSplit", "R² compare le modèle à une baseline qui prédit la moyenne.")
+    },
+    "Sélection d'hyperparamètres": {
+      example: "On essaie plusieurs profondeurs ou taux d'apprentissage sur validation, puis on ne garde le test que pour la mesure finale.",
+      visual: visual("mlTrainValidationTestSplit", "Les hyperparamètres se choisissent avec validation, pas avec test.")
+    },
+    "Pipeline ML": {
+      example: "Un pipeline évite de normaliser, encoder ou sélectionner les features avec des informations venues du test.",
+      visual: visual("mlTrainValidationTestSplit", "Le pipeline transporte le même prétraitement du train vers validation/test.")
+    },
+    "Paramètre appris": {
+      example: "Les coefficients d'un filtre CNN, les matrices U/V/W d'un RNN ou la table Q(s,a) en Q-Learning sont appris pendant l'entraînement ou l'interaction.",
+      visual: visual("mlParamHyperparamMap", "Les paramètres appris changent grâce au train ou aux rewards.")
+    },
+    "NLP": {
+      example: "La prédiction du mot suivant, l'analyse de sentiments et la traduction automatique sont des tâches NLP.",
+      visual: visual("languageModelSoftmax", "En NLP, le modèle produit souvent une distribution sur un vocabulaire.")
+    },
+    "Tokenisation": {
+      example: "La phrase « je mange » peut être découpée en mots, sous-mots ou caractères selon le tokenizer choisi.",
+      visual: visual("tokenEncodingCompare", "Le texte devient une suite de tokens avant d'entrer dans le modèle.")
+    },
+    "Vocabulaire": {
+      example: "Si le vocabulaire contient 10 000 tokens, la softmax finale produit typiquement 10 000 scores.",
+      visual: visual("languageModelSoftmax", "La taille du vocabulaire fixe la taille de sortie du modèle de langage.")
+    },
+    "Longueur de contexte": {
+      example: "Un contexte de 128 tokens signifie que le modèle ne regarde au maximum que les 128 positions fournies à l'entrée.",
+      visual: visual("rnnUnrolledTime", "La longueur de contexte limite combien de positions peuvent influencer la sortie.")
+    },
+    "F1 macro": {
+      example: "Si une classe rare a un F1 très faible, le F1 macro le fait apparaître, même si la classe majoritaire domine le dataset.",
+      visual: visual("mlConfusionMetrics", "Le F1 macro moyenne les scores classe par classe.")
+    },
+    "Balanced accuracy": {
+      example: "Si un modèle ignore la classe rare, la balanced accuracy chute parce qu'elle moyenne les recalls par classe.",
+      visual: visual("mlConfusionMetrics", "La balanced accuracy corrige une partie du biais de l'accuracy brute.")
+    },
+    "GroupKFold": {
+      example: "Si un patient a plusieurs images, GroupKFold garde toutes ses images dans le même fold pour éviter une fuite patient.",
+      visual: visual("mlCrossValidationFolds", "Les folds doivent parfois être construits par groupe, pas ligne par ligne.")
+    },
+    "Nested cross-validation": {
+      example: "La boucle interne choisit les hyperparamètres ; la boucle externe mesure la performance de ce choix.",
+      visual: visual("mlCrossValidationFolds", "Deux niveaux de validation évitent d'annoncer un score trop optimiste.")
+    },
+    "Calibration": {
+      example: "Si le modèle annonce 0.8 sur 100 cas, on espère environ 80 cas positifs si les probabilités sont calibrées.",
+      visual: visual("mlConfusionMetrics", "La calibration concerne la fiabilité des probabilités, pas seulement le classement.")
+    },
     "Apprentissage profond": {
       example: "Plusieurs couches successives transforment les pixels bruts en concepts reconnaissables (« voiture », « chat »).",
       visual: visual("featureHierarchy", "Pixels → motifs → parties → concept.")
@@ -64,7 +228,7 @@
     },
     "Hyperparamètre": {
       example: "Le taux d'apprentissage, la taille du filtre, ou le nombre de couches sont des hyperparamètres : on les choisit à la main avant l'entraînement.",
-      visual: ""
+      visual: visual("mlParamHyperparamMap", "Un hyperparamètre est choisi avant ou avec la validation.")
     },
     "Max-pooling": {
       example: "Sur une carte 4 × 4, on prend le maximum de chaque bloc 2 × 2 pour obtenir une carte 2 × 2 plus robuste aux petits décalages.",
@@ -96,7 +260,7 @@
     },
     "Sur-apprentissage": {
       example: "Un modèle qui atteint 99 % sur le train mais 70 % sur le test : il a mémorisé les exemples au lieu d'apprendre à généraliser.",
-      visual: ""
+      visual: visual("mlOverfittingBiasVariance", "Sur-apprentissage : l'entraînement s'améliore, mais la validation se dégrade.")
     },
     "Vanishing gradient": {
       example: "Dans un réseau profond mal conçu, le gradient passe de 1 à 0,01 à 0,0001 en remontant les couches — les premières couches n'apprennent plus rien.",
@@ -132,15 +296,15 @@
     },
     "Accuracy": {
       example: "Proportion d'exemples correctement classés. Simple à lire, mais trompeuse si les classes sont déséquilibrées.",
-      visual: ""
+      visual: visual("mlConfusionMetrics", "L'accuracy peut masquer les faux positifs et les faux négatifs.")
     },
     "Matrice de confusion": {
       example: "Un tableau qui montre, pour chaque vraie classe, combien d'exemples ont été prédits dans chaque classe — on y repère les confusions systématiques.",
-      visual: ""
+      visual: visual("mlConfusionMetrics", "Les cases TP, FP, FN et TN expliquent precision, recall, F1 et accuracy.")
     },
     "Early stopping": {
       example: "On arrête l'entraînement quand la perte sur l'ensemble de validation cesse de diminuer — pour éviter le sur-apprentissage.",
-      visual: ""
+      visual: visual("mlOverfittingBiasVariance", "On surveille la validation pour arrêter avant le sur-apprentissage.")
     },
     "Réseau feedforward": {
       example: "Une entrée fixe arrive, une sortie fixe repart, et rien ne boucle du futur vers le passé : c'est le cas standard des réseaux acycliques.",
@@ -442,6 +606,11 @@
 
   // Fallbacks par tag, quand un terme n'a pas d'override dédié.
   const tagFallbacks = [
+    {
+      test: (tags) => tags.includes("ml") || tags.includes("dataset") || tags.includes("donnees") || tags.includes("feature") || tags.includes("label") || tags.includes("validation") || tags.includes("cross-validation") || tags.includes("classification") || tags.includes("regression") || tags.includes("auc") || tags.includes("seuil") || tags.includes("leakage") || tags.includes("baseline") || tags.includes("biais-variance") || tags.includes("underfitting") || tags.includes("overfitting"),
+      example: "Cette notion sert à entraîner, valider ou évaluer un modèle sans confondre performance sur données vues et performance sur nouveaux exemples.",
+      visual: visual("mlTrainValidationTestSplit", "Réflexe ML : séparer apprendre, choisir et évaluer.")
+    },
     {
       test: (tags) => tags.includes("renforcement") || tags.includes("rl") || tags.includes("ar") || tags.includes("mdp") || tags.includes("markov") || tags.includes("bellman") || tags.includes("qlearning") || tags.includes("dyna") || tags.includes("policy") || tags.includes("reward") || tags.includes("exploration") || tags.includes("exploitation"),
       example: "Cette notion sert à relier état, action, récompense et décision à long terme dans une boucle agent-environnement.",

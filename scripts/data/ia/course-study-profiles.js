@@ -1,5 +1,109 @@
 (function registerCourseStudyProfiles(globalScope) {
 globalScope.COURSE_STUDY_PROFILES = {
+  "ml-fondations-generalisation": {
+    review: {
+      expectations: [
+        "Distinguer clairement dataset, features, labels, modèle, paramètres et hyperparamètres.",
+        "Distinguer apprentissage supervisé, non supervisé, auto-supervisé et renforcement.",
+        "Identifier les problèmes de qualité de données : doublons, labels bruités, classes déséquilibrées, non-représentativité.",
+        "Expliquer pourquoi on sépare train, validation et test, et ce que chaque split autorise ou interdit.",
+        "Reconnaître un sous-apprentissage et un sur-apprentissage à partir des courbes train/validation.",
+        "Expliquer le compromis biais-variance sans formule lourde : modèle trop simple, bon compromis, modèle trop flexible.",
+        "Citer plusieurs sources de data leakage et proposer une correction simple, notamment avec les prétraitements."
+      ],
+      commonMistakes: [
+        "Évaluer plusieurs modèles sur le test puis choisir le meilleur : le test devient alors une validation déguisée.",
+        "Normaliser ou sélectionner les features avant le split, ce qui fait fuiter de l'information dans l'entraînement.",
+        "Confondre hyperparamètres et paramètres appris par le modèle.",
+        "Dire qu'un très bon score train suffit à prouver qu'un modèle est bon.",
+        "Oublier la baseline avant de justifier un modèle complexe."
+      ],
+      oralCheck: "Explique en deux minutes le pipeline ML correct : dataset, split train/validation/test, entraînement, choix des hyperparamètres, test final. Ajoute un exemple de data leakage."
+    },
+    assistant: {
+      focus: "Installer les réflexes de base avant le deep learning : découpage propre des données, généralisation, overfitting/underfitting, fuite de données et baseline.",
+      mustInclude: [
+        "Au moins un exercice de diagnostic sur courbes train/validation.",
+        "Au moins un exercice où l'étudiant doit repérer une fuite de données.",
+        "Au moins un exercice de protocole complet : cible, split, baseline, métrique et test final.",
+        "Un mini-exemple qui distingue paramètre appris et hyperparamètre choisi."
+      ],
+      avoid: [
+        "Ne pas partir tout de suite vers des architectures de réseaux : ce chapitre sert de socle ML.",
+        "Ne pas présenter le test comme un outil de tuning."
+      ]
+    }
+  },
+
+  "ml-evaluation-validation": {
+    review: {
+      expectations: [
+        "Comparer hold-out, k-fold cross-validation et stratified k-fold, avec leurs cas d'usage.",
+        "Choisir un split groupé ou temporel lorsque les données ne sont pas indépendantes.",
+        "Lire une matrice de confusion binaire et calculer accuracy, precision, recall et F1-score.",
+        "Distinguer F1 macro, micro et weighted pour les problèmes multi-classes.",
+        "Expliquer pourquoi l'accuracy devient trompeuse avec des classes déséquilibrées.",
+        "Décrire le rôle du seuil de décision dans le compromis precision/recall.",
+        "Choisir une métrique adaptée selon le problème : F1, recall, precision, ROC-AUC, PR-AUC, MAE, RMSE ou R².",
+        "Savoir qu'une série temporelle ne se valide pas par mélange aléatoire classique."
+      ],
+      commonMistakes: [
+        "Confondre precision et recall : la precision regarde les positifs prédits, le recall regarde les vrais positifs retrouvés.",
+        "Utiliser F1-score sans réfléchir au coût réel des faux positifs et faux négatifs.",
+        "Faire une cross-validation aléatoire sur des données temporelles où le futur fuite vers le passé.",
+        "Comparer des modèles sur des métriques différentes ou sur des splits différents.",
+        "Interpréter R² comme une accuracy de régression, alors que ce n'est pas une proportion d'exemples corrects."
+      ],
+      oralCheck: "On te donne TP=40, FP=10, FN=20, TN=930. Calcule accuracy, precision, recall et F1, puis explique pourquoi l'accuracy seule peut être trompeuse."
+    },
+    assistant: {
+      focus: "Faire manipuler les métriques à la main, puis relier chaque métrique à une décision métier ou scientifique.",
+      mustInclude: [
+        "Au moins un calcul de precision, recall et F1 depuis une matrice de confusion.",
+        "Au moins un exercice où l'étudiant choisit la métrique selon le coût des erreurs.",
+        "Au moins un exercice où il choisit entre split stratifié, groupé et temporel.",
+        "Une comparaison claire entre hold-out et cross-validation."
+      ],
+      avoid: [
+        "Ne pas réduire l'évaluation à l'accuracy.",
+        "Ne pas faire de code scikit-learn sans expliquer d'abord ce que les scores mesurent."
+      ]
+    }
+  },
+
+  "fiche-parametres-hyperparametres": {
+    review: {
+      expectations: [
+        "Définir paramètres appris et hyperparamètres sans les confondre.",
+        "Lister les paramètres et hyperparamètres principaux d'un CNN : filtres, biais, kernel size, stride, padding, dropout, learning rate.",
+        "Lister ceux d'un RNN/LSTM : matrices U/V/W, portes LSTM, hidden size, longueur de séquence, BPTT, gradient clipping.",
+        "Lister ceux du NLP : tokenizer, vocabulaire, embeddings, dimension d'embedding, longueur de contexte, température de génération.",
+        "Lister ceux du RL : V(s), Q(s,a), T̂/R̂, gamma, alpha, epsilon, épisodes, planning steps de Dyna.",
+        "Expliquer que les hyperparamètres se règlent sur validation et que le test mesure seulement à la fin."
+      ],
+      commonMistakes: [
+        "Appeler hyperparamètre une matrice de poids apprise par gradient.",
+        "Appeler paramètre le facteur gamma ou epsilon en Q-Learning.",
+        "Oublier que certains objets sont des états appris de prétraitement, comme le vocabulaire ou les statistiques d'un scaler.",
+        "Utiliser le test pour choisir une taille de réseau, un seuil ou un learning rate.",
+        "Confondre sortie softmax apprise et hyperparamètre de génération comme température/top-p."
+      ],
+      oralCheck: "Compare CNN, RNN, NLP et Q-Learning du point de vue paramètres/hyperparamètres. Donne deux exemples appris et deux exemples choisis pour chaque famille."
+    },
+    assistant: {
+      focus: "Construire une fiche mentale transversale : ce qui est appris, ce qui est choisi, ce qui est évalué. L'objectif est de préparer l'oral et d'éviter les confusions de vocabulaire.",
+      mustInclude: [
+        "Au moins un exercice de classement paramètres vs hyperparamètres.",
+        "Au moins un exercice oral comparant CNN, RNN, NLP et RL.",
+        "Une mention explicite du rôle de la validation et du test."
+      ],
+      avoid: [
+        "Ne pas introduire trop de modèles non étudiés en détail.",
+        "Ne pas noyer la fiche dans des dérivations : elle doit rester récapitulative."
+      ]
+    }
+  },
+
   "profondeur-motivation": {
     review: {
       expectations: [

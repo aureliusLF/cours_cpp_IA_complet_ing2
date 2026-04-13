@@ -7,8 +7,8 @@ if (!registry) {
 }
 
 registry.setCourseMeta({
-  title: "Cours IA ING5 — Apprentissage profond",
-  subtitle: "Un support interactif pour comprendre les idées du deep learning sans se perdre dans la littérature : intuitions, math utiles, visualisations et code concret.",
+  title: "Cours IA ING5 — Machine learning, deep learning & RL",
+  subtitle: "Un support interactif pour comprendre les bases du machine learning, les idées du deep learning et les méthodes de renforcement sans se perdre dans la littérature : intuitions, math utiles, visualisations et code concret.",
   description:
     "Animation d'un réseau de neurones : les activations progressent de l'entrée vers la sortie.",
   introVisual: `
@@ -69,12 +69,13 @@ registry.setCourseMeta({
     </div>
   `,
   stats: [
-    { value: "14", label: "chapitres progressifs" },
+    { value: "17", label: "chapitres progressifs" },
     { value: "Python", label: "langage de référence" },
-    { value: "ConvNet + RNN + RL", label: "familles étudiées" },
+    { value: "ML + DL + RL", label: "familles étudiées" },
     { value: "ING5", label: "niveau" }
   ],
   glossaryCategories: [
+    { id: "ml", label: "Fondations ML & évaluation" },
     { id: "foundations", label: "Fondations du deep learning" },
     { id: "operations", label: "Opérations de base" },
     { id: "layers", label: "Couches & architectures" },
@@ -86,6 +87,27 @@ registry.setCourseMeta({
   ],
   glossaryTagToCategory: {
     fondations: "foundations",
+    ml: "ml",
+    dataset: "ml",
+    donnees: "ml",
+    feature: "ml",
+    label: "ml",
+    validation: "ml",
+    "cross-validation": "ml",
+    overfitting: "ml",
+    underfitting: "ml",
+    "biais-variance": "ml",
+    leakage: "ml",
+    baseline: "ml",
+    classification: "ml",
+    regression: "ml",
+    nlp: "sequences",
+    tokenisation: "sequences",
+    vocabulaire: "sequences",
+    embedding: "sequences",
+    "longueur-contexte": "sequences",
+    seuil: "ml",
+    auc: "ml",
     "deep learning": "foundations",
     neurone: "foundations",
     activation: "operations",

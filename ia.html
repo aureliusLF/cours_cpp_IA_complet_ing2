@@ -4,9 +4,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Cours IA ING5 — Apprentissage profond</title>
+  <title>Cours IA ING5 — Machine learning, deep learning & RL</title>
   <meta name="description"
-    content="Support interactif pour le cours d'IA ING5 : deep learning, ConvNet, RNN, LSTM, apprentissage par renforcement, TD corrigés, quiz, glossaire et exercices.">
+    content="Support interactif pour le cours d'IA ING5 : bases du machine learning, deep learning, ConvNet, RNN, LSTM, apprentissage par renforcement, TD corrigés, quiz, glossaire et exercices.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -24,6 +24,9 @@
   <script defer src="scripts/data/ia/figures.js"></script>
   <script defer src="scripts/data/ia/glossary-study.js"></script>
   <script defer src="scripts/data/ia/course-study-profiles.js"></script>
+  <script defer src="scripts/data/ia/chapters/00-ml-fondations-generalisation.js"></script>
+  <script defer src="scripts/data/ia/chapters/00b-ml-evaluation-validation.js"></script>
+  <script defer src="scripts/data/ia/chapters/00c-ml-fiche-parametres-hyperparametres.js"></script>
   <script defer src="scripts/data/ia/chapters/01-profondeur-motivation.js"></script>
   <script defer src="scripts/data/ia/chapters/02-convolution-filtres.js"></script>
   <script defer src="scripts/data/ia/chapters/03-pooling-activations-regularisation.js"></script>
@@ -52,9 +55,9 @@
       <div class="sidebar-shell">
         <section class="brand-block brand-block--compact" aria-label="Identité du cours">
           <p class="eyebrow">IA ING5</p>
-          <h1>Cours IA — Apprentissage profond</h1>
+          <h1>Cours IA — ML, deep learning & RL</h1>
           <p class="brand-copy">
-            Support interactif pour comprendre le deep learning en partant des intuitions, avec quiz et exercices pour chaque brique.
+            Support interactif pour comprendre les bases du machine learning, le deep learning et l'apprentissage par renforcement avec quiz et exercices.
           </p>
         </section>
 
@@ -82,7 +85,7 @@
             id="searchInput"
             class="search-input sleek-input"
             type="search"
-            placeholder="Recherche rapide (ex. convolution, RNN, Q-Learning)..."
+            placeholder="Recherche rapide (ex. overfitting, F1-score, hyperparamètres, Q-Learning)..."
             autocomplete="off"
           >
           <button class="dashboard-clear-btn" id="resetFiltersButton" type="button">Effacer</button>

@@ -625,64 +625,65 @@ const paddingExample = `
 // ---------- 14. Feedforward vs récurrent ----------
 
 const rnnFeedforwardVsRecurrent = `
-  <svg viewBox="0 0 620 220" role="img" aria-label="Comparaison entre un réseau feedforward et un réseau récurrent">
+  <svg viewBox="0 0 760 300" role="img" aria-label="Comparaison entre un réseau feedforward et un réseau récurrent">
     ${arrowHeadDefs}
 
-    <g transform="translate(20, 24)">
-      <rect class="svg-cell" x="0" y="0" width="260" height="160" rx="12" fill="rgba(20,184,166,0.04)"/>
-      <text class="svg-label" x="130" y="24">Feedforward</text>
+    <g transform="translate(24, 34)">
+      <rect class="svg-cell" x="0" y="0" width="322" height="210" rx="12" fill="rgba(20,184,166,0.04)"/>
+      <text class="svg-label" x="161" y="28">Feedforward</text>
 
-      <rect class="svg-pipeline-block" x="18" y="62" width="56" height="36" rx="8"/>
-      <text class="svg-pipeline-block-text" x="46" y="84">X</text>
+      <rect class="svg-pipeline-block" x="28" y="86" width="64" height="42" rx="8"/>
+      <text class="svg-pipeline-block-text" x="60" y="111">X</text>
 
-      <rect class="svg-pipeline-block" x="104" y="50" width="74" height="60" rx="8"/>
-      <text class="svg-pipeline-block-text" x="141" y="80">réseau</text>
+      <rect class="svg-pipeline-block" x="126" y="76" width="88" height="62" rx="8"/>
+      <text class="svg-pipeline-block-text" x="170" y="102">réseau</text>
+      <text class="svg-label-small" x="170" y="122">sans boucle</text>
 
-      <rect class="svg-pipeline-block" x="208" y="62" width="36" height="36" rx="8"/>
-      <text class="svg-pipeline-block-text" x="226" y="84">Y</text>
+      <rect class="svg-pipeline-block" x="252" y="86" width="42" height="42" rx="8"/>
+      <text class="svg-pipeline-block-text" x="273" y="111">Y</text>
 
-      <line class="svg-arrow anim-pipeline-arrow" x1="74" y1="80" x2="104" y2="80"/>
-      <line class="svg-arrow anim-pipeline-arrow" x1="178" y1="80" x2="208" y2="80"/>
+      <line class="svg-arrow anim-pipeline-arrow" x1="92" y1="107" x2="126" y2="107"/>
+      <line class="svg-arrow anim-pipeline-arrow" x1="214" y1="107" x2="252" y2="107"/>
 
-      <circle cx="88" cy="80" r="4" fill="var(--accent)">
-        <animate attributeName="cx" values="78;100;78" dur="2.6s" repeatCount="indefinite"/>
+      <circle cx="108" cy="107" r="5" fill="var(--accent)">
+        <animate attributeName="cx" values="96;122;96" dur="2.6s" repeatCount="indefinite"/>
       </circle>
 
-      <text class="svg-label-small" x="130" y="132">Entrée fixe</text>
-      <text class="svg-label-small" x="130" y="148">sortie fixe</text>
+      <text class="svg-label-small" x="161" y="170">L'information circule dans un seul sens.</text>
+      <text class="svg-label-small" x="161" y="188">Pas d'état réinjecté au pas suivant.</text>
     </g>
 
-    <g transform="translate(330, 24)">
-      <rect class="svg-cell" x="0" y="0" width="270" height="160" rx="12" fill="rgba(20,184,166,0.04)"/>
-      <text class="svg-label" x="135" y="24">Récurrent</text>
+    <g transform="translate(386, 34)">
+      <rect class="svg-cell" x="0" y="0" width="350" height="210" rx="12" fill="rgba(20,184,166,0.04)"/>
+      <text class="svg-label" x="175" y="28">Récurrent</text>
 
-      <rect class="svg-pipeline-block" x="18" y="62" width="56" height="36" rx="8"/>
-      <text class="svg-pipeline-block-text" x="46" y="84">X<tspan baseline-shift="sub">t</tspan></text>
+      <rect class="svg-pipeline-block" x="26" y="86" width="64" height="42" rx="8"/>
+      <text class="svg-pipeline-block-text" x="58" y="111">X<tspan baseline-shift="sub">t</tspan></text>
 
-      <circle class="svg-neuron anim-pulse" cx="118" cy="80" r="20"/>
-      <text class="svg-label-small" x="118" y="80">RNN</text>
+      <circle class="svg-neuron anim-pulse" cx="162" cy="107" r="31"/>
+      <text class="svg-label" x="162" y="111">RNN</text>
 
-      <rect class="svg-pipeline-block" x="192" y="62" width="46" height="36" rx="8"/>
-      <text class="svg-pipeline-block-text" x="215" y="84">Y<tspan baseline-shift="sub">t</tspan></text>
+      <rect class="svg-pipeline-block" x="264" y="86" width="58" height="42" rx="8"/>
+      <text class="svg-pipeline-block-text" x="293" y="111">Y<tspan baseline-shift="sub">t</tspan></text>
 
-      <rect class="svg-pipeline-block" x="86" y="118" width="64" height="28" rx="8"/>
-      <text class="svg-pipeline-block-text" x="118" y="136">h<tspan baseline-shift="sub">t</tspan></text>
+      <rect class="svg-pipeline-block" x="22" y="158" width="78" height="34" rx="8"/>
+      <text class="svg-pipeline-block-text" x="61" y="178">h<tspan baseline-shift="sub">t−1</tspan></text>
 
-      <rect class="svg-pipeline-block" x="18" y="118" width="52" height="28" rx="8"/>
-      <text class="svg-pipeline-block-text" x="44" y="136">h<tspan baseline-shift="sub">t−1</tspan></text>
+      <rect class="svg-pipeline-block" x="126" y="158" width="72" height="34" rx="8"/>
+      <text class="svg-pipeline-block-text" x="162" y="178">h<tspan baseline-shift="sub">t</tspan></text>
 
-      <line class="svg-arrow" x1="74" y1="80" x2="98" y2="80"/>
-      <line class="svg-arrow" x1="138" y1="80" x2="192" y2="80"/>
-      <line class="svg-arrow" x1="44" y1="118" x2="44" y2="96"/>
-      <line class="svg-arrow" x1="44" y1="96" x2="98" y2="96"/>
-      <line class="svg-arrow" x1="118" y1="100" x2="118" y2="118"/>
-      <path class="svg-arrow" d="M 118 146 C 156 156 174 150 196 126" stroke-dasharray="4 3"/>
+      <line class="svg-arrow" x1="90" y1="107" x2="131" y2="107"/>
+      <line class="svg-arrow" x1="193" y1="107" x2="264" y2="107"/>
+      <line class="svg-arrow" x1="61" y1="158" x2="134" y2="128"/>
+      <line class="svg-arrow" x1="162" y1="138" x2="162" y2="158"/>
+      <path class="svg-arrow" d="M 198 175 C 246 182 284 166 310 140" stroke-dasharray="5 4"/>
 
-      <circle cx="88" cy="80" r="4" fill="var(--accent)">
-        <animate attributeName="cx" values="78;96;78" dur="2.6s" repeatCount="indefinite"/>
+      <circle cx="110" cy="107" r="5" fill="var(--accent)">
+        <animate attributeName="cx" values="94;128;94" dur="2.6s" repeatCount="indefinite"/>
       </circle>
 
-      <text class="svg-label-small" x="135" y="148">Mémoire via h<tspan baseline-shift="sub">t</tspan></text>
+      <text class="svg-label-small" x="249" y="185">mémoire transmise au pas t+1</text>
+      <text class="svg-label-small" x="175" y="54">H<tspan baseline-shift="sub">t</tspan> dépend de X<tspan baseline-shift="sub">t</tspan> et de H<tspan baseline-shift="sub">t−1</tspan></text>
     </g>
   </svg>
 `;
@@ -690,58 +691,57 @@ const rnnFeedforwardVsRecurrent = `
 // ---------- 15. Jordan vs Elman ----------
 
 const jordanElmanComparison = `
-  <svg viewBox="0 0 640 250" role="img" aria-label="Comparaison entre le réseau de Jordan et le réseau d'Elman">
+  <svg viewBox="0 0 760 280" role="img" aria-label="Comparaison entre le réseau de Jordan et le réseau d'Elman">
     ${arrowHeadDefs}
 
-    <g transform="translate(20, 24)">
-      <rect class="svg-cell" x="0" y="0" width="280" height="190" rx="12" fill="rgba(20,184,166,0.04)"/>
-      <text class="svg-label" x="140" y="24">Jordan</text>
+    <g transform="translate(24, 34)">
+      <rect class="svg-cell" x="0" y="0" width="340" height="206" rx="12" fill="rgba(20,184,166,0.04)"/>
+      <text class="svg-label" x="170" y="28">Jordan : la sortie revient</text>
 
-      <rect class="svg-pipeline-block" x="18" y="62" width="56" height="36" rx="8"/>
-      <text class="svg-pipeline-block-text" x="46" y="84">X<tspan baseline-shift="sub">t</tspan></text>
+      <rect class="svg-pipeline-block" x="26" y="74" width="58" height="38" rx="8"/>
+      <text class="svg-pipeline-block-text" x="55" y="97">X<tspan baseline-shift="sub">t</tspan></text>
 
-      <rect class="svg-pipeline-block" x="108" y="50" width="64" height="60" rx="8"/>
-      <text class="svg-pipeline-block-text" x="140" y="80">H<tspan baseline-shift="sub">t</tspan></text>
+      <rect class="svg-pipeline-block" x="126" y="64" width="76" height="58" rx="8"/>
+      <text class="svg-pipeline-block-text" x="164" y="92">H<tspan baseline-shift="sub">t</tspan></text>
+      <text class="svg-label-small" x="164" y="110">caché</text>
 
-      <rect class="svg-pipeline-block" x="206" y="62" width="48" height="36" rx="8"/>
-      <text class="svg-pipeline-block-text" x="230" y="84">Y<tspan baseline-shift="sub">t</tspan></text>
+      <rect class="svg-pipeline-block" x="258" y="74" width="58" height="38" rx="8"/>
+      <text class="svg-pipeline-block-text" x="287" y="97">Y<tspan baseline-shift="sub">t</tspan></text>
 
-      <rect class="svg-pipeline-block" x="96" y="132" width="88" height="28" rx="8"/>
-      <text class="svg-pipeline-block-text" x="140" y="150">Y<tspan baseline-shift="sub">t−1</tspan></text>
+      <rect class="svg-pipeline-block" x="88" y="146" width="152" height="34" rx="8"/>
+      <text class="svg-pipeline-block-text" x="164" y="166">unités d'état : Y<tspan baseline-shift="sub">t−1</tspan></text>
 
-      <line class="svg-arrow" x1="74" y1="80" x2="108" y2="80"/>
-      <line class="svg-arrow" x1="172" y1="80" x2="206" y2="80"/>
-      <line class="svg-arrow" x1="140" y1="132" x2="140" y2="110"/>
-      <path class="svg-arrow" d="M 230 98 C 230 122 212 132 184 146" stroke-dasharray="4 3"/>
+      <line class="svg-arrow" x1="84" y1="93" x2="126" y2="93"/>
+      <line class="svg-arrow" x1="202" y1="93" x2="258" y2="93"/>
+      <line class="svg-arrow" x1="164" y1="146" x2="164" y2="122"/>
+      <path class="svg-arrow" d="M 287 112 C 288 142 270 160 240 164" stroke-dasharray="5 4"/>
 
-      <text class="svg-label-small" x="140" y="182">Unites d'état</text>
-      <text class="svg-label-small" x="230" y="116">copie fixe 1.0</text>
+      <text class="svg-label-small" x="170" y="198">La boucle recopie la sortie précédente vers l'entrée.</text>
     </g>
 
-    <g transform="translate(340, 24)">
-      <rect class="svg-cell" x="0" y="0" width="280" height="190" rx="12" fill="rgba(20,184,166,0.04)"/>
-      <text class="svg-label" x="140" y="24">Elman</text>
+    <g transform="translate(396, 34)">
+      <rect class="svg-cell" x="0" y="0" width="340" height="206" rx="12" fill="rgba(20,184,166,0.04)"/>
+      <text class="svg-label" x="170" y="28">Elman : le caché revient</text>
 
-      <rect class="svg-pipeline-block" x="18" y="62" width="56" height="36" rx="8"/>
-      <text class="svg-pipeline-block-text" x="46" y="84">X<tspan baseline-shift="sub">t</tspan></text>
+      <rect class="svg-pipeline-block" x="26" y="74" width="58" height="38" rx="8"/>
+      <text class="svg-pipeline-block-text" x="55" y="97">X<tspan baseline-shift="sub">t</tspan></text>
 
-      <rect class="svg-pipeline-block" x="108" y="50" width="64" height="60" rx="8"/>
-      <text class="svg-pipeline-block-text" x="140" y="80">H<tspan baseline-shift="sub">t</tspan></text>
+      <rect class="svg-pipeline-block" x="126" y="64" width="76" height="58" rx="8"/>
+      <text class="svg-pipeline-block-text" x="164" y="92">H<tspan baseline-shift="sub">t</tspan></text>
+      <text class="svg-label-small" x="164" y="110">caché</text>
 
-      <rect class="svg-pipeline-block" x="206" y="62" width="48" height="36" rx="8"/>
-      <text class="svg-pipeline-block-text" x="230" y="84">Y<tspan baseline-shift="sub">t</tspan></text>
+      <rect class="svg-pipeline-block" x="258" y="74" width="58" height="38" rx="8"/>
+      <text class="svg-pipeline-block-text" x="287" y="97">Y<tspan baseline-shift="sub">t</tspan></text>
 
-      <rect class="svg-pipeline-block" x="96" y="132" width="88" height="28" rx="8"/>
-      <text class="svg-pipeline-block-text" x="140" y="150">H<tspan baseline-shift="sub">t−1</tspan></text>
+      <rect class="svg-pipeline-block" x="74" y="146" width="180" height="34" rx="8"/>
+      <text class="svg-pipeline-block-text" x="164" y="166">unités contexte : H<tspan baseline-shift="sub">t−1</tspan></text>
 
-      <line class="svg-arrow" x1="74" y1="80" x2="108" y2="80"/>
-      <line class="svg-arrow" x1="172" y1="80" x2="206" y2="80"/>
-      <line class="svg-arrow" x1="140" y1="132" x2="140" y2="110"/>
-      <path class="svg-arrow" d="M 140 110 C 196 124 210 132 230 146" stroke-dasharray="4 3"/>
-      <path class="svg-arrow" d="M 140 98 C 140 118 140 126 140 132" stroke-dasharray="4 3"/>
+      <line class="svg-arrow" x1="84" y1="93" x2="126" y2="93"/>
+      <line class="svg-arrow" x1="202" y1="93" x2="258" y2="93"/>
+      <line class="svg-arrow" x1="164" y1="146" x2="164" y2="122"/>
+      <path class="svg-arrow" d="M 164 122 C 202 140 226 154 254 164" stroke-dasharray="5 4"/>
 
-      <text class="svg-label-small" x="140" y="182">Unites contexte</text>
-      <text class="svg-label-small" x="230" y="116">copie fixe 1.0</text>
+      <text class="svg-label-small" x="170" y="198">La boucle recopie l'état caché précédent.</text>
     </g>
   </svg>
 `;
@@ -794,47 +794,51 @@ const rnnMatrixMap = `
 // ---------- 17. RNN déroulé dans le temps ----------
 
 const rnnUnrolledTime = `
-  <svg viewBox="0 0 700 230" role="img" aria-label="Un RNN replié puis déroulé dans le temps">
+  <svg viewBox="0 0 760 280" role="img" aria-label="Un RNN replié puis déroulé dans le temps">
     ${arrowHeadDefs}
 
-    <g transform="translate(16, 28)">
-      <rect class="svg-cell" x="0" y="20" width="120" height="112" rx="12" fill="rgba(20,184,166,0.04)"/>
-      <text class="svg-label" x="60" y="10">Forme repliée</text>
-      <rect class="svg-pipeline-block" x="28" y="54" width="64" height="44" rx="8"/>
-      <text class="svg-pipeline-block-text" x="60" y="78">RNN</text>
-      <line class="svg-arrow" x1="12" y1="76" x2="28" y2="76"/>
-      <line class="svg-arrow" x1="92" y1="76" x2="108" y2="76"/>
-      <path class="svg-arrow" d="M 60 98 C 94 118 94 34 60 54" stroke-dasharray="4 3"/>
-      <text class="svg-label-small" x="60" y="150">une boucle</text>
+    <g transform="translate(22, 36)">
+      <rect class="svg-cell" x="0" y="0" width="150" height="178" rx="12" fill="rgba(20,184,166,0.04)"/>
+      <text class="svg-label" x="75" y="26">Forme repliée</text>
+      <rect class="svg-pipeline-block" x="38" y="76" width="74" height="48" rx="8"/>
+      <text class="svg-pipeline-block-text" x="75" y="101">RNN</text>
+      <text class="svg-label-small" x="22" y="70">X<tspan baseline-shift="sub">t</tspan></text>
+      <text class="svg-label-small" x="130" y="70">Y<tspan baseline-shift="sub">t</tspan></text>
+      <line class="svg-arrow" x1="20" y1="100" x2="38" y2="100"/>
+      <line class="svg-arrow" x1="112" y1="100" x2="132" y2="100"/>
+      <path class="svg-arrow" d="M 75 124 C 128 154 136 54 82 76" stroke-dasharray="5 4"/>
+      <text class="svg-label-small" x="75" y="154">boucle sur l'état</text>
     </g>
 
-    <g transform="translate(176, 28)">
-      <text class="svg-label" x="244" y="10">Forme déroulée</text>
+    <g transform="translate(214, 36)">
+      <text class="svg-label" x="262" y="26">Forme déroulée dans le temps</text>
 
       ${[
         { x: 0, label: "t−1" },
-        { x: 172, label: "t" },
-        { x: 344, label: "t+1" }
+        { x: 188, label: "t" },
+        { x: 376, label: "t+1" }
       ].map((step) => `
         <g transform="translate(${step.x}, 0)">
-          <rect class="svg-cell" x="0" y="20" width="132" height="112" rx="12" fill="rgba(20,184,166,0.04)"/>
-          <text class="svg-label-small" x="66" y="40">temps ${step.label}</text>
-          <rect class="svg-pipeline-block" x="12" y="54" width="34" height="26" rx="8"/>
-          <text class="svg-pipeline-block-text" x="29" y="70">X</text>
-          <circle class="svg-neuron" cx="66" cy="67" r="16"/>
-          <text class="svg-label-small" x="66" y="67">H</text>
-          <rect class="svg-pipeline-block" x="92" y="54" width="28" height="26" rx="8"/>
-          <text class="svg-pipeline-block-text" x="106" y="70">Y</text>
-          <line class="svg-arrow" x1="46" y1="67" x2="50" y2="67"/>
-          <line class="svg-arrow" x1="82" y1="67" x2="92" y2="67"/>
+          <rect class="svg-cell" x="0" y="48" width="148" height="126" rx="12" fill="rgba(20,184,166,0.04)"/>
+          <text class="svg-label-small" x="74" y="70">temps ${step.label}</text>
+          <rect class="svg-pipeline-block" x="12" y="98" width="42" height="30" rx="8"/>
+          <text class="svg-pipeline-block-text" x="33" y="116">X</text>
+          <circle class="svg-neuron" cx="78" cy="113" r="20"/>
+          <text class="svg-label-small" x="78" y="113">H</text>
+          <rect class="svg-pipeline-block" x="106" y="98" width="32" height="30" rx="8"/>
+          <text class="svg-pipeline-block-text" x="122" y="116">Y</text>
+          <line class="svg-arrow" x1="54" y1="113" x2="58" y2="113"/>
+          <line class="svg-arrow" x1="98" y1="113" x2="106" y2="113"/>
         </g>
       `).join("")}
 
-      <line class="svg-arrow" x1="66" y1="150" x2="238" y2="150"/>
-      <line class="svg-arrow" x1="238" y1="150" x2="410" y2="150"/>
-      <text class="svg-label-small" x="152" y="170">H<tspan baseline-shift="sub">t−1</tspan> → H<tspan baseline-shift="sub">t</tspan></text>
-      <text class="svg-label-small" x="324" y="170">H<tspan baseline-shift="sub">t</tspan> → H<tspan baseline-shift="sub">t+1</tspan></text>
-      <text class="svg-label-small" x="244" y="198">Les mêmes U, V, W sont partagés à chaque pas.</text>
+      <path class="svg-arrow" d="M 78 134 C 126 186 218 186 266 134"/>
+      <path class="svg-arrow" d="M 266 134 C 314 186 406 186 454 134"/>
+      <text class="svg-label-small" x="172" y="182">H<tspan baseline-shift="sub">t−1</tspan></text>
+      <text class="svg-label-small" x="360" y="182">H<tspan baseline-shift="sub">t</tspan></text>
+
+      <rect class="svg-cell" x="126" y="208" width="270" height="34" rx="8" fill="rgba(20,184,166,0.08)"/>
+      <text class="svg-label-small" x="261" y="228">mêmes poids U, V, W à chaque copie</text>
     </g>
   </svg>
 `;
@@ -1400,6 +1404,171 @@ const rlQLearningUpdate = `
   </svg>
 `;
 
+// ---------- 32. Workflow ML : split train/validation/test ----------
+
+const mlTrainValidationTestSplit = `
+  <svg viewBox="0 0 760 230" role="img" aria-label="Découpage d'un dataset en train, validation et test">
+    ${arrowHeadDefs}
+
+    <g transform="translate(24, 34)">
+      <text class="svg-label" x="356" y="18">Workflow ML propre</text>
+
+      <rect class="svg-pipeline-block" x="0" y="68" width="110" height="46" rx="8"/>
+      <text class="svg-pipeline-block-text" x="55" y="94">Dataset</text>
+
+      <line class="svg-arrow" x1="110" y1="91" x2="174" y2="91"/>
+
+      <g transform="translate(190, 42)">
+        <rect class="svg-highlight" x="0" y="18" width="130" height="34" rx="8"/>
+        <text class="svg-pipeline-block-text" x="65" y="39">Train</text>
+        <rect class="svg-cell" x="0" y="60" width="130" height="34" rx="8" fill="rgba(20,184,166,0.08)"/>
+        <text class="svg-pipeline-block-text" x="65" y="81">Validation</text>
+        <rect class="svg-cell" x="0" y="102" width="130" height="34" rx="8" fill="rgba(20,184,166,0.08)"/>
+        <text class="svg-pipeline-block-text" x="65" y="123">Test</text>
+      </g>
+
+      <line class="svg-arrow" x1="330" y1="77" x2="430" y2="77"/>
+      <line class="svg-arrow" x1="330" y1="119" x2="430" y2="119"/>
+      <line class="svg-arrow" x1="330" y1="161" x2="430" y2="161"/>
+
+      <rect class="svg-pipeline-block" x="450" y="54" width="128" height="46" rx="8"/>
+      <text class="svg-pipeline-block-text" x="514" y="80">entraîner</text>
+
+      <rect class="svg-pipeline-block" x="450" y="104" width="128" height="46" rx="8"/>
+      <text class="svg-pipeline-block-text" x="514" y="130">choisir modèle</text>
+
+      <rect class="svg-pipeline-block" x="450" y="154" width="128" height="46" rx="8"/>
+      <text class="svg-pipeline-block-text" x="514" y="180">évaluer final</text>
+
+      <text class="svg-label-small" x="356" y="212">Le test reste intouchable jusqu'à l'évaluation finale.</text>
+    </g>
+  </svg>
+`;
+
+// ---------- 33. Sous-apprentissage / bon fit / sur-apprentissage ----------
+
+const mlOverfittingBiasVariance = `
+  <svg viewBox="0 0 760 260" role="img" aria-label="Comparaison entre sous-apprentissage, bon ajustement et sur-apprentissage">
+    ${arrowHeadDefs}
+
+    ${[
+      { x: 24, title: "Sous-apprentissage", path: "M 24 132 Q 88 88 176 72", note: "modèle trop simple" },
+      { x: 270, title: "Bon compromis", path: "M 24 132 C 62 74 108 144 176 72", note: "généralise bien" },
+      { x: 516, title: "Sur-apprentissage", path: "M 24 132 C 42 40 66 164 88 74 C 112 10 132 176 176 72", note: "apprend le bruit" }
+    ].map((panel) => `
+      <g transform="translate(${panel.x}, 28)">
+        <rect class="svg-cell" x="0" y="0" width="220" height="178" rx="12" fill="rgba(20,184,166,0.04)"/>
+        <text class="svg-label" x="110" y="24">${panel.title}</text>
+        <line class="svg-arrow" x1="24" y1="150" x2="190" y2="150"/>
+        <line class="svg-arrow" x1="32" y1="160" x2="32" y2="42"/>
+        ${[38, 70, 102, 134, 166].map((cx, index) => `
+          <circle class="svg-highlight" cx="${cx}" cy="${[124, 72, 132, 84, 72][index]}" r="4"/>
+        `).join("")}
+        <path d="${panel.path}" stroke="var(--accent)" stroke-width="3" fill="none"/>
+        <text class="svg-label-small" x="110" y="170">${panel.note}</text>
+      </g>
+    `).join("")}
+
+    <text class="svg-label-small" x="380" y="238">L'objectif n'est pas d'être parfait sur train : c'est de bien généraliser sur des données nouvelles.</text>
+  </svg>
+`;
+
+// ---------- 34. Cross-validation k-fold ----------
+
+const mlCrossValidationFolds = `
+  <svg viewBox="0 0 760 250" role="img" aria-label="Validation croisée k-fold">
+    ${arrowHeadDefs}
+
+    <g transform="translate(40, 34)">
+      <text class="svg-label" x="340" y="18">Validation croisée k-fold</text>
+      ${[0, 1, 2, 3, 4].map((fold) => `
+        <g transform="translate(0, ${44 + fold * 32})">
+          <text class="svg-label-small" x="0" y="18">tour ${fold + 1}</text>
+          ${[0, 1, 2, 3, 4].map((cell) => `
+            <rect class="${cell === fold ? "svg-highlight" : "svg-cell"}" x="${80 + cell * 104}" y="0" width="88" height="24" rx="6" fill="${cell === fold ? "" : "rgba(20,184,166,0.08)"}"/>
+            <text class="svg-label-small" x="${124 + cell * 104}" y="16">${cell === fold ? "val" : "train"}</text>
+          `).join("")}
+        </g>
+      `).join("")}
+      <text class="svg-label-small" x="340" y="220">Chaque bloc sert une fois de validation ; les scores sont ensuite moyennés.</text>
+    </g>
+  </svg>
+`;
+
+// ---------- 35. Matrice de confusion et métriques ----------
+
+const mlConfusionMetrics = `
+  <svg viewBox="0 0 760 270" role="img" aria-label="Matrice de confusion et métriques classification">
+    ${arrowHeadDefs}
+
+    <g transform="translate(34, 28)">
+      <text class="svg-label" x="160" y="18">Matrice de confusion binaire</text>
+      <text class="svg-label-small" x="176" y="54">Prédit +</text>
+      <text class="svg-label-small" x="286" y="54">Prédit −</text>
+      <text class="svg-label-small" x="48" y="104">Réel +</text>
+      <text class="svg-label-small" x="48" y="172">Réel −</text>
+
+      <rect class="svg-highlight" x="130" y="74" width="92" height="58" rx="8"/>
+      <text class="svg-label" x="176" y="106">TP</text>
+      <rect class="svg-cell" x="240" y="74" width="92" height="58" rx="8" fill="rgba(20,184,166,0.08)"/>
+      <text class="svg-label" x="286" y="106">FN</text>
+      <rect class="svg-cell" x="130" y="146" width="92" height="58" rx="8" fill="rgba(20,184,166,0.08)"/>
+      <text class="svg-label" x="176" y="178">FP</text>
+      <rect class="svg-highlight" x="240" y="146" width="92" height="58" rx="8"/>
+      <text class="svg-label" x="286" y="178">TN</text>
+    </g>
+
+    <g transform="translate(430, 48)">
+      <text class="svg-label" x="132" y="0">Métriques</text>
+      <rect class="svg-pipeline-block" x="0" y="30" width="264" height="38" rx="8"/>
+      <text class="svg-pipeline-block-text" x="132" y="54">Precision = TP / (TP + FP)</text>
+
+      <rect class="svg-pipeline-block" x="0" y="82" width="264" height="38" rx="8"/>
+      <text class="svg-pipeline-block-text" x="132" y="106">Recall = TP / (TP + FN)</text>
+
+      <rect class="svg-pipeline-block" x="0" y="134" width="264" height="38" rx="8"/>
+      <text class="svg-pipeline-block-text" x="132" y="158">F1 = 2PR / (P + R)</text>
+
+      <rect class="svg-pipeline-block" x="0" y="186" width="264" height="38" rx="8"/>
+      <text class="svg-pipeline-block-text" x="132" y="210">Accuracy = (TP+TN)/total</text>
+    </g>
+  </svg>
+`;
+
+// ---------- 36. Fiche paramètres / hyperparamètres ----------
+
+const mlParamHyperparamMap = `
+  <svg viewBox="0 0 760 280" role="img" aria-label="Carte paramètres appris et hyperparamètres choisis">
+    ${arrowHeadDefs}
+
+    <g transform="translate(32, 28)">
+      <text class="svg-label" x="348" y="18">Paramètres vs hyperparamètres</text>
+
+      <g transform="translate(0, 56)">
+        <rect class="svg-highlight" x="0" y="0" width="310" height="170" rx="12"/>
+        <text class="svg-label" x="155" y="28">Appris pendant l'entraînement</text>
+        <text class="svg-label-small" x="155" y="62">poids, biais, filtres, matrices</text>
+        <text class="svg-label-small" x="155" y="88">embeddings, table Q, valeur V</text>
+        <text class="svg-label-small" x="155" y="114">modèle appris T̂/R̂ en Dyna</text>
+        <line class="svg-arrow" x1="155" y1="136" x2="155" y2="156"/>
+        <text class="svg-label-small" x="155" y="168">source : train / interactions</text>
+      </g>
+
+      <g transform="translate(386, 56)">
+        <rect class="svg-cell" x="0" y="0" width="310" height="170" rx="12" fill="rgba(20,184,166,0.08)"/>
+        <text class="svg-label" x="155" y="28">Choisis avant ou par validation</text>
+        <text class="svg-label-small" x="155" y="62">taille filtre, couches, hidden size</text>
+        <text class="svg-label-small" x="155" y="88">γ, α, ε, nombre d'épisodes</text>
+        <text class="svg-label-small" x="155" y="114">vocabulaire, contexte, dropout</text>
+        <line class="svg-arrow" x1="155" y1="136" x2="155" y2="156"/>
+        <text class="svg-label-small" x="155" y="168">source : validation / design</text>
+      </g>
+
+      <text class="svg-label-small" x="348" y="254">Le test ne choisit rien : il mesure seulement la performance finale.</text>
+    </g>
+  </svg>
+`;
+
 // ---------- Export global ----------
 
 globalScope.IA_FIGURES = {
@@ -1434,6 +1603,11 @@ globalScope.IA_FIGURES = {
   rlMdpBellman,
   rlPlanningIterations,
   rlModelBasedFreeDyna,
-  rlQLearningUpdate
+  rlQLearningUpdate,
+  mlTrainValidationTestSplit,
+  mlOverfittingBiasVariance,
+  mlCrossValidationFolds,
+  mlConfusionMetrics,
+  mlParamHyperparamMap
 };
 })(window);

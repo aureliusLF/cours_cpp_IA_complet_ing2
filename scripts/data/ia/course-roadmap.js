@@ -8,6 +8,36 @@ if (!registry) {
 
 registry.setRoadmap([
   {
+    index: "00A",
+    title: "Bases ML et généralisation",
+    text: "Installer les réflexes indispensables avant le deep learning : données, splits, généralisation, overfitting, biais/variance et fuites de données.",
+    bullets: [
+      "features, labels, classification, régression",
+      "train / validation / test",
+      "overfitting, underfitting, data leakage"
+    ]
+  },
+  {
+    index: "00B",
+    title: "Évaluation et métriques",
+    text: "Choisir une méthode d'évaluation et une métrique adaptée au problème avant de comparer les modèles.",
+    bullets: [
+      "cross-validation et stratification",
+      "matrice de confusion, precision, recall, F1",
+      "ROC-AUC, PR-AUC, MAE, RMSE, R²"
+    ]
+  },
+  {
+    index: "00C",
+    title: "Fiche paramètres",
+    text: "Récapituler ce qui est appris et ce qui est choisi pour les modèles étudiés : CNN, RNN, NLP et apprentissage par renforcement.",
+    bullets: [
+      "paramètres appris vs hyperparamètres",
+      "CNN, RNN, LSTM, NLP",
+      "MDP, Dyna, Q-Learning"
+    ]
+  },
+  {
     index: "01",
     title: "Fondations du deep learning",
     text: "Comprendre ce qu'apporte la profondeur, d'ou viennent les niveaux d'abstraction, et pourquoi le deep learning a decolle.",

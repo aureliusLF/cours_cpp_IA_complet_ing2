@@ -85,6 +85,12 @@ registry.setGlossary([
     tags: ["apprentissage", "optimisation"]
   },
   {
+    term: "Paramètre appris",
+    text: "Valeur ajustée automatiquement pendant l'entraînement ou l'interaction, comme un poids, un biais, un filtre, une matrice récurrente, une embedding matrix ou une table Q.",
+    aliases: ["paramètre du modèle", "poids appris", "paramètres appris"],
+    tags: ["ml", "apprentissage", "parametre"]
+  },
+  {
     term: "Max-pooling",
     text: "Type de pooling qui conserve, pour chaque bloc p × p, la valeur maximale. C'est la variante la plus courante car elle préserve les activations fortes tout en réduisant la taille.",
     aliases: ["max pooling"],
@@ -308,6 +314,30 @@ registry.setGlossary([
     text: "Représentation dense d'un mot par un vecteur réel de petite dimension, apprise ou fournie par un modèle. Elle remplace avantageusement l'encodage one-hot en NLP.",
     aliases: ["embedding", "word embeddings"],
     tags: ["sequence", "langage"]
+  },
+  {
+    term: "NLP",
+    text: "Traitement automatique du langage naturel : famille de tâches portant sur du texte ou de la parole transcrite, comme classification de texte, traduction, résumé ou modélisation du langage.",
+    aliases: ["traitement automatique du langage naturel", "natural language processing", "TALN"],
+    tags: ["sequence", "langage", "nlp"]
+  },
+  {
+    term: "Tokenisation",
+    text: "Découpage d'un texte en unités manipulables par le modèle, appelées tokens : mots, morceaux de mots, caractères ou symboles.",
+    aliases: ["tokenizer", "tokens"],
+    tags: ["sequence", "langage", "nlp", "tokenisation"]
+  },
+  {
+    term: "Vocabulaire",
+    text: "Ensemble des tokens connus par un modèle de langage ou un tokenizer. Sa taille influence la matrice d'embedding et la taille de la sortie softmax.",
+    aliases: ["vocabulary", "vocab"],
+    tags: ["sequence", "langage", "nlp", "vocabulaire"]
+  },
+  {
+    term: "Longueur de contexte",
+    text: "Nombre maximal de tokens ou de pas de temps qu'un modèle peut prendre en compte pour produire sa sortie.",
+    aliases: ["context length", "fenêtre de contexte"],
+    tags: ["sequence", "langage", "nlp", "longueur-contexte"]
   },
   {
     term: "Modélisation du langage",
@@ -628,6 +658,221 @@ registry.setGlossary([
     text: "Différence entre la cible TD et l'estimation actuelle. Elle indique dans quel sens corriger la valeur apprise.",
     aliases: ["TD error", "temporal-difference error"],
     tags: ["renforcement", "qlearning", "bellman"]
+  },
+  {
+    term: "Machine Learning",
+    text: "Famille de méthodes où un modèle apprend à partir de données pour améliorer ses prédictions ou décisions sur de nouveaux exemples.",
+    aliases: ["ML", "apprentissage automatique"],
+    tags: ["ml", "donnees"]
+  },
+  {
+    term: "Dataset",
+    text: "Ensemble d'exemples utilisés pour entraîner, valider ou tester un modèle. Il contient souvent des features <code>X</code> et parfois des labels <code>y</code>.",
+    aliases: ["jeu de données", "données"],
+    tags: ["ml", "dataset", "donnees"]
+  },
+  {
+    term: "Feature",
+    text: "Variable d'entrée utilisée par un modèle pour faire une prédiction : pixel, âge, prix d'hier, mot, mesure capteur, etc.",
+    aliases: ["variable explicative", "caractéristique"],
+    tags: ["ml", "feature", "donnees"]
+  },
+  {
+    term: "Label",
+    text: "Valeur cible à prédire dans un problème supervisé, par exemple une classe ou une valeur continue.",
+    aliases: ["cible", "target", "étiquette"],
+    tags: ["ml", "label", "donnees"]
+  },
+  {
+    term: "Classification",
+    text: "Tâche supervisée où le modèle prédit une catégorie discrète, comme spam/non-spam ou chat/chien.",
+    tags: ["ml", "classification", "metrique"]
+  },
+  {
+    term: "Régression",
+    text: "Tâche supervisée où le modèle prédit une valeur continue, comme un prix, une température ou une durée.",
+    aliases: ["regression"],
+    tags: ["ml", "regression", "metrique"]
+  },
+  {
+    term: "Jeu d'entraînement",
+    text: "Partie des données utilisée pour ajuster les paramètres du modèle.",
+    aliases: ["train set", "training set"],
+    tags: ["ml", "validation", "dataset"]
+  },
+  {
+    term: "Jeu de validation",
+    text: "Partie des données utilisée pour choisir les hyperparamètres, comparer les modèles et décider quand arrêter l'entraînement.",
+    aliases: ["validation set"],
+    tags: ["ml", "validation", "dataset"]
+  },
+  {
+    term: "Jeu de test",
+    text: "Partie des données gardée de côté jusqu'à la fin pour estimer honnêtement la performance finale du modèle.",
+    aliases: ["test set"],
+    tags: ["ml", "validation", "dataset"]
+  },
+  {
+    term: "Généralisation",
+    text: "Capacité d'un modèle à produire de bonnes prédictions sur des exemples nouveaux, non vus pendant l'entraînement.",
+    aliases: ["generalization"],
+    tags: ["ml", "generalisation", "overfitting"]
+  },
+  {
+    term: "Sous-apprentissage",
+    text: "Situation où le modèle est trop simple ou mal entraîné pour capturer la structure des données. Il est mauvais sur train et sur validation.",
+    aliases: ["underfitting"],
+    tags: ["ml", "underfitting", "generalisation"]
+  },
+  {
+    term: "Compromis biais-variance",
+    text: "Lecture de l'erreur de généralisation : trop de biais mène au sous-apprentissage, trop de variance mène au sur-apprentissage.",
+    aliases: ["bias-variance tradeoff"],
+    tags: ["ml", "biais-variance", "generalisation"]
+  },
+  {
+    term: "Data leakage",
+    text: "Fuite de données : information du test, de la validation ou du futur qui se retrouve dans l'entraînement ou le choix du modèle, faussant le score.",
+    aliases: ["fuite de données", "leakage"],
+    tags: ["ml", "leakage", "validation"]
+  },
+  {
+    term: "Baseline",
+    text: "Modèle ou règle simple servant de point de comparaison minimal avant de justifier un modèle plus complexe.",
+    aliases: ["modèle de référence"],
+    tags: ["ml", "baseline", "evaluation"]
+  },
+  {
+    term: "Hold-out",
+    text: "Méthode d'évaluation qui consiste à séparer une fois les données en train, validation et/ou test.",
+    aliases: ["train-test split"],
+    tags: ["ml", "validation"]
+  },
+  {
+    term: "Validation croisée",
+    text: "Méthode d'évaluation qui répète l'entraînement et la validation sur plusieurs découpages afin d'obtenir une estimation plus robuste du score.",
+    aliases: ["cross-validation", "validation croisee"],
+    tags: ["ml", "cross-validation", "validation"]
+  },
+  {
+    term: "K-fold",
+    text: "Forme de validation croisée où les données sont divisées en k blocs ; chaque bloc sert une fois de validation pendant que les autres servent d'entraînement.",
+    aliases: ["k-fold cross-validation"],
+    tags: ["ml", "cross-validation", "validation"]
+  },
+  {
+    term: "Stratification",
+    text: "Technique de découpage qui conserve approximativement les proportions des classes dans chaque split ou fold.",
+    aliases: ["stratified split", "stratified k-fold"],
+    tags: ["ml", "validation", "classification"]
+  },
+  {
+    term: "Classes déséquilibrées",
+    text: "Situation où certaines classes sont beaucoup plus fréquentes que d'autres, rendant l'accuracy souvent trompeuse.",
+    aliases: ["class imbalance", "déséquilibre de classes"],
+    tags: ["ml", "classification", "metrique"]
+  },
+  {
+    term: "Precision",
+    text: "Métrique de classification : parmi les exemples prédits positifs, proportion qui est réellement positive. Formule : <code>TP / (TP + FP)</code>.",
+    aliases: ["précision"],
+    tags: ["ml", "classification", "metrique"]
+  },
+  {
+    term: "Recall",
+    text: "Métrique de classification : parmi les vrais positifs, proportion retrouvée par le modèle. Formule : <code>TP / (TP + FN)</code>.",
+    aliases: ["rappel", "sensibilité", "sensitivity"],
+    tags: ["ml", "classification", "metrique"]
+  },
+  {
+    term: "F1-score",
+    text: "Moyenne harmonique de la precision et du recall. Utile quand on veut équilibrer faux positifs et faux négatifs.",
+    aliases: ["F1", "score F1"],
+    tags: ["ml", "classification", "metrique"]
+  },
+  {
+    term: "F1 macro",
+    text: "Moyenne non pondérée des F1-scores calculés classe par classe. Elle donne le même poids aux classes rares et fréquentes.",
+    aliases: ["macro F1", "F1-score macro"],
+    tags: ["ml", "classification", "metrique"]
+  },
+  {
+    term: "Balanced accuracy",
+    text: "Moyenne des recalls par classe. Elle est plus informative que l'accuracy brute quand les classes sont déséquilibrées.",
+    aliases: ["accuracy équilibrée", "balanced acc"],
+    tags: ["ml", "classification", "metrique"]
+  },
+  {
+    term: "GroupKFold",
+    text: "Validation croisée où tous les exemples d'un même groupe restent dans le même fold. Utile lorsqu'il existe plusieurs lignes par patient, client ou document.",
+    aliases: ["split par groupe", "validation groupée"],
+    tags: ["ml", "cross-validation", "validation"]
+  },
+  {
+    term: "Nested cross-validation",
+    text: "Validation croisée imbriquée : une boucle interne règle les hyperparamètres, une boucle externe estime la performance de cette procédure de sélection.",
+    aliases: ["nested CV", "validation croisée imbriquée"],
+    tags: ["ml", "cross-validation", "validation"]
+  },
+  {
+    term: "Calibration",
+    text: "Qualité d'un modèle dont les probabilités annoncées correspondent aux fréquences observées. Par exemple, les prédictions à 0.8 devraient être correctes environ 80 % du temps.",
+    aliases: ["calibration des probabilités"],
+    tags: ["ml", "classification", "evaluation"]
+  },
+  {
+    term: "Seuil de décision",
+    text: "Valeur à partir de laquelle une probabilité prédite est convertie en classe positive. Modifier le seuil change le compromis precision/recall.",
+    aliases: ["decision threshold", "threshold"],
+    tags: ["ml", "classification", "seuil"]
+  },
+  {
+    term: "ROC-AUC",
+    text: "Aire sous la courbe ROC, qui évalue la capacité du modèle à classer les positifs au-dessus des négatifs sur différents seuils.",
+    aliases: ["AUC", "aire sous la courbe ROC"],
+    tags: ["ml", "auc", "classification"]
+  },
+  {
+    term: "PR-AUC",
+    text: "Aire sous la courbe précision-rappel, souvent plus informative que ROC-AUC lorsque la classe positive est rare.",
+    aliases: ["precision-recall AUC"],
+    tags: ["ml", "auc", "classification"]
+  },
+  {
+    term: "MAE",
+    text: "Mean Absolute Error : moyenne des erreurs absolues en régression. Elle se lit dans la même unité que la cible.",
+    aliases: ["mean absolute error", "erreur absolue moyenne"],
+    tags: ["ml", "regression", "metrique"]
+  },
+  {
+    term: "MSE",
+    text: "Mean Squared Error : moyenne des erreurs au carré. Elle pénalise fortement les grosses erreurs.",
+    aliases: ["mean squared error", "erreur quadratique moyenne"],
+    tags: ["ml", "regression", "metrique"]
+  },
+  {
+    term: "RMSE",
+    text: "Racine carrée de la MSE. Elle pénalise les grosses erreurs tout en revenant dans l'unité de la cible.",
+    aliases: ["root mean squared error"],
+    tags: ["ml", "regression", "metrique"]
+  },
+  {
+    term: "R²",
+    text: "Métrique de régression qui mesure la part de variance expliquée par le modèle par rapport à une prédiction de moyenne.",
+    aliases: ["R2", "coefficient de détermination"],
+    tags: ["ml", "regression", "metrique"]
+  },
+  {
+    term: "Sélection d'hyperparamètres",
+    text: "Processus de choix des réglages non appris directement par le modèle, comme la profondeur, le taux d'apprentissage ou la régularisation, à partir de la validation.",
+    aliases: ["hyperparameter tuning"],
+    tags: ["ml", "validation", "optimisation"]
+  },
+  {
+    term: "Pipeline ML",
+    text: "Chaîne complète qui enchaîne prétraitement, entraînement et évaluation de manière reproductible, en évitant les fuites de données.",
+    aliases: ["pipeline machine learning"],
+    tags: ["ml", "validation", "dataset"]
   }
 ]);
 })(window);
