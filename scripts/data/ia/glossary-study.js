@@ -154,6 +154,50 @@
       example: "La phrase « je mange » peut être découpée en mots, sous-mots ou caractères selon le tokenizer choisi.",
       visual: visual("tokenEncodingCompare", "Le texte devient une suite de tokens avant d'entrer dans le modèle.")
     },
+    "Expression régulière": {
+      example: "Une regex peut extraire les mentions @user et les hashtags avant même d'entraîner un modèle.",
+      visual: visual("nlpAnalysisPipeline", "Les regex interviennent dans les traitements lexicaux simples.")
+    },
+    "POS tagging": {
+      example: "Dans « He caught a fish », fish est un nom ; dans « He likes to fish », fish est un verbe.",
+      visual: visual("nlpLexicalPipeline", "Le POS tag dépend souvent du contexte.")
+    },
+    "Stemming": {
+      example: "Le stemming peut transformer studies en studi : c'est utile pour normaliser, mais pas toujours lisible.",
+      visual: visual("nlpLexicalPipeline", "Le stemming réduit vite les formes fléchies.")
+    },
+    "Lemmatisation": {
+      example: "La lemmatisation peut transformer better en good ou meeting en meet selon le POS.",
+      visual: visual("nlpLexicalPipeline", "Le lemme vise une forme de dictionnaire.")
+    },
+    "Grammaire hors contexte": {
+      example: "Une règle comme S → NP VP est hors contexte parce que son côté gauche contient un seul non-terminal.",
+      visual: visual("nlpCfgParseTree", "Une CFG sert à générer ou analyser des arbres de phrase.")
+    },
+    "Parsing": {
+      example: "Parser une phrase consiste à produire un arbre compatible avec les règles de la grammaire.",
+      visual: visual("nlpCfgParseTree", "Le parser transforme règles + tokens en arbre d'analyse.")
+    },
+    "Ambiguïté linguistique": {
+      example: "Une phrase peut être ambiguë parce qu'un mot a plusieurs sens, parce qu'elle a plusieurs arbres, ou parce qu'un pronom a plusieurs référents.",
+      visual: visual("nlpAmbiguityMap", "L'ambiguïté peut venir du lexique, de la syntaxe ou des référents.")
+    },
+    "WordNet": {
+      example: "WordNet relie dog à des concepts plus généraux comme canine ou animal via des relations lexicales.",
+      visual: visual("nlpAmbiguityMap", "WordNet aide à organiser les sens des mots.")
+    },
+    "Synset": {
+      example: "Un synset regroupe des lemmes qui expriment le même concept dans WordNet.",
+      visual: visual("nlpAmbiguityMap", "Les synsets structurent la sémantique lexicale.")
+    },
+    "Analyse de sentiments": {
+      example: "Classer un tweet comme positif ou négatif est une tâche de sentiment analysis.",
+      visual: visual("nlpSentimentPipeline", "La classification de sentiments combine nettoyage NLP et modèle supervisé.")
+    },
+    "Classifieur bayésien naïf": {
+      example: "Un Naive Bayes peut classer un tweet avec des features comme contains(great) ou contains(bad).",
+      visual: visual("nlpSentimentPipeline", "Le classifieur reçoit des features extraites des tokens.")
+    },
     "Vocabulaire": {
       example: "Si le vocabulaire contient 10 000 tokens, la softmax finale produit typiquement 10 000 scores.",
       visual: visual("languageModelSoftmax", "La taille du vocabulaire fixe la taille de sortie du modèle de langage.")

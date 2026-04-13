@@ -176,6 +176,46 @@ registry.setRoadmap([
       "mise à jour Q et erreur TD",
       "conditions de convergence"
     ]
+  },
+  {
+    index: "15",
+    title: "Introduction au NLP",
+    text: "Situer le traitement automatique du langage naturel dans l'IA : tâches, documents, méthodes, approches et niveaux d'analyse.",
+    bullets: [
+      "langage naturel vs langage formel",
+      "symbolique, statistique, connexionniste",
+      "lexical, syntaxique, sémantique"
+    ]
+  },
+  {
+    index: "16",
+    title: "Analyse lexicale",
+    text: "Transformer un texte brut en unités exploitables : tokens, POS tags, stems, lemmes et motifs regex.",
+    bullets: [
+      "tokenisation et POS tagging",
+      "stemming vs lemmatisation",
+      "regex Twitter et URL"
+    ]
+  },
+  {
+    index: "17",
+    title: "Analyse syntaxique",
+    text: "Formaliser la structure des phrases avec des grammaires hors contexte, des parsers et des arbres d'analyse.",
+    bullets: [
+      "terminaux et non-terminaux",
+      "règles de production CFG",
+      "parse trees avec NLTK"
+    ]
+  },
+  {
+    index: "18",
+    title: "Sémantique et sentiments",
+    text: "Comprendre le sens : ambiguïtés, relations lexicales, WordNet, compositionnalité et classification de sentiments.",
+    bullets: [
+      "ambiguïtés lexicale, syntaxique, référentielle",
+      "WordNet et synsets",
+      "classifieur bayésien de tweets"
+    ]
   }
 ]);
 })(window);

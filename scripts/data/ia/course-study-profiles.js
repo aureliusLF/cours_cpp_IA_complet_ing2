@@ -530,6 +530,130 @@ globalScope.COURSE_STUDY_PROFILES = {
         "Ne pas réduire la convergence à une phrase magique sans les conditions de visite et d'alpha."
       ]
     }
+  },
+
+  "nlp-introduction-approches": {
+    review: {
+      expectations: [
+        "Définir le NLP comme traitement automatique du langage naturel et le situer dans l'IA.",
+        "Citer des applications : traduction, question-réponse, résumé, extraction, analyse de sentiments.",
+        "Comparer approches symbolique, statistique et connexionniste sans les confondre.",
+        "Lister les niveaux de traitement : phonologie, morphologie, lexical, syntaxique, sémantique, discours, pragmatique.",
+        "Expliquer pourquoi le cours se concentre surtout sur lexical, syntaxique et sémantique."
+      ],
+      commonMistakes: [
+        "Présenter le langage naturel comme un langage formel sans ambiguïté.",
+        "Confondre approche statistique et connexionniste : les réseaux neuronaux apprennent aussi statistiquement, mais l'architecture et la représentation changent.",
+        "Oublier que la parole doit souvent être transcrite avant les traitements textuels étudiés ici."
+      ],
+      oralCheck: "Explique en deux minutes ce qu'est le NLP, donne trois applications et compare les trois approches du cours."
+    },
+    assistant: {
+      focus: "Installer la carte générale du NLP avant les détails : tâches, approches et niveaux d'analyse.",
+      mustInclude: [
+        "Au moins un exercice de classement tâche / entrée / sortie.",
+        "Une comparaison symbolique / statistique / connexionniste.",
+        "Une liste claire des niveaux lexical, syntaxique et sémantique."
+      ],
+      avoid: [
+        "Ne pas partir directement vers les transformeurs.",
+        "Ne pas supposer que les termes linguistiques sont déjà acquis."
+      ]
+    }
+  },
+
+  "nlp-analyse-lexicale": {
+    review: {
+      expectations: [
+        "Expliquer la tokenisation et donner un exemple avec ponctuation.",
+        "Citer les POS tags fréquents et expliquer pourquoi le contexte compte.",
+        "Distinguer stemming et lemmatisation avec au moins deux exemples.",
+        "Écrire des regex simples pour mentions, hashtags et URL simplifiées.",
+        "Décrire une pipeline NLTK : tokenisation, nettoyage, POS tagging, lemmatisation."
+      ],
+      commonMistakes: [
+        "Supprimer la ponctuation sans réfléchir à la tâche.",
+        "Croire qu'un stem est toujours un mot valide.",
+        "Oublier que la lemmatisation peut dépendre du POS.",
+        "Utiliser une regex d'URL simplifiée comme si elle couvrait tous les cas réels."
+      ],
+      oralCheck: "Prends une phrase courte, tokenise-la, donne deux POS tags, puis compare stemming et lemmatisation sur un mot fléchi."
+    },
+    assistant: {
+      focus: "Faire passer du texte brut à des unités annotées, avec des gestes pratiques réutilisables dans le TD.",
+      mustInclude: [
+        "Au moins un exercice de regex Twitter.",
+        "Au moins un exemple POS ambigu comme fish nom/verbe.",
+        "Une comparaison stem / lemme dans un tableau."
+      ],
+      avoid: [
+        "Ne pas faire croire qu'une regex remplace toute compréhension du langage.",
+        "Ne pas mélanger tokenisation, stemming et POS tagging en une seule opération magique."
+      ]
+    }
+  },
+
+  "nlp-analyse-syntaxique": {
+    review: {
+      expectations: [
+        "Définir terminaux, non-terminaux, symbole de départ et règles de production.",
+        "Reconnaître une règle de grammaire hors contexte.",
+        "Lister les symboles de la grammaire du TD.",
+        "Expliquer ce qu'un parser produit et lire une représentation parenthésée.",
+        "Repérer qu'une grammaire doit être cohérente avec les phrases qu'elle prétend reconnaître."
+      ],
+      commonMistakes: [
+        "Confondre terminal et non-terminal.",
+        "Dire qu'une règle est CFG sans regarder le côté gauche.",
+        "Oublier que les phrases du TD avec a faim nécessitent une grammaire enrichie si ces mots ne sont pas listés.",
+        "Confondre ambiguïté syntaxique et mot inconnu."
+      ],
+      oralCheck: "Explique pourquoi S → NP VP est une règle CFG, puis dessine un arbre simple avec NP et VP."
+    },
+    assistant: {
+      focus: "Rendre les CFG manipulables : symboles, règles, parsing et arbres, sans perdre l'étudiant dans la hiérarchie de Chomsky.",
+      mustInclude: [
+        "Au moins un exercice de preuve CFG.",
+        "Au moins un arbre parenthésé.",
+        "Une mention claire du piège a faim dans le TD."
+      ],
+      avoid: [
+        "Ne pas ignorer les incohérences entre grammaire et phrases.",
+        "Ne pas faire de théorie formelle lourde au-delà du besoin du TD."
+      ]
+    }
+  },
+
+  "nlp-semantique-sentiment": {
+    review: {
+      expectations: [
+        "Distinguer sémantique lexicale et supralexicale.",
+        "Identifier ambiguïtés lexicales, syntaxiques et référentielles.",
+        "Expliquer synonymie, antonymie, homonymie, polysémie, hyponymie et méronymie.",
+        "Décrire WordNet, synsets et relations lexicales.",
+        "Expliquer le principe de compositionnalité avec une formule logique simple.",
+        "Décrire la pipeline d'un classifieur bayésien de sentiments."
+      ],
+      commonMistakes: [
+        "Confondre homonymie et polysémie.",
+        "Appeler toute ambiguïté syntaxique alors que certaines viennent d'un mot ou d'un référent.",
+        "Présenter WordNet comme un modèle de deep learning.",
+        "Oublier le split train/test dans l'exercice de sentiments."
+      ],
+      oralCheck: "Donne un exemple pour chaque type d'ambiguïté, puis résume la pipeline sentiment analysis : tweets, nettoyage, features, entraînement, test."
+    },
+    assistant: {
+      focus: "Relier les notions de sens à des tâches concrètes : ambiguïtés, WordNet, logique et classification de tweets.",
+      mustInclude: [
+        "Au moins un exercice de classement d'ambiguïtés.",
+        "Un exemple de relation WordNet ou de relation lexicale.",
+        "Une pipeline d'analyse de sentiments avec Naive Bayes."
+      ],
+      avoid: [
+        "Ne pas réduire la sémantique à un dictionnaire de synonymes.",
+        "Ne pas présenter le classifieur de sentiments sans prétraitement linguistique."
+      ]
+    }
   }
 };
 })(window);

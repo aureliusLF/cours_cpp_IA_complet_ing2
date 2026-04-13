@@ -328,6 +328,72 @@ registry.setGlossary([
     tags: ["sequence", "langage", "nlp", "tokenisation"]
   },
   {
+    term: "Expression régulière",
+    text: "Motif formel utilisé pour reconnaître ou extraire des chaînes de caractères, par exemple une mention Twitter, un hashtag ou une URL simplifiée.",
+    aliases: ["regex", "regular expression", "expressions régulières"],
+    tags: ["nlp", "regex", "tokenisation"]
+  },
+  {
+    term: "POS tagging",
+    text: "Association d'une catégorie grammaticale à chaque mot d'un texte : nom, verbe, adjectif, déterminant, préposition, etc. Le contexte aide à choisir le bon tag quand un mot est ambigu.",
+    aliases: ["part-of-speech tagging", "part-of-speech", "étiquetage morpho-syntaxique", "POS tag"],
+    tags: ["nlp", "pos", "langage"]
+  },
+  {
+    term: "Stemming",
+    text: "Réduction mécanique d'un mot fléchi à une racine approximative en retirant des affixes. C'est rapide, mais la racine obtenue n'est pas toujours un mot valide.",
+    aliases: ["racinisation", "stem"],
+    tags: ["nlp", "stemming", "tokenisation"]
+  },
+  {
+    term: "Lemmatisation",
+    text: "Réduction d'un mot à sa forme de dictionnaire, appelée lemme. Elle utilise souvent le POS tag pour distinguer par exemple un nom d'un verbe.",
+    aliases: ["lemmatization", "lemme"],
+    tags: ["nlp", "lemmatisation", "pos"]
+  },
+  {
+    term: "Grammaire hors contexte",
+    text: "Grammaire dont chaque règle réécrit un seul symbole non-terminal. Elle sert à modéliser des structures de phrases avec des règles comme S → NP VP.",
+    aliases: ["CFG", "context-free grammar", "grammaire context-free"],
+    tags: ["nlp", "cfg", "syntaxe"]
+  },
+  {
+    term: "Parsing",
+    text: "Analyse syntaxique qui applique une grammaire à une phrase pour vérifier si elle est reconnue et produire une ou plusieurs structures possibles.",
+    aliases: ["parser", "parse tree", "arbre syntaxique", "arbre d'analyse"],
+    tags: ["nlp", "parsing", "syntaxe"]
+  },
+  {
+    term: "Ambiguïté linguistique",
+    text: "Situation où une phrase ou expression accepte plusieurs interprétations. L'ambiguïté peut venir du sens d'un mot, de la structure syntaxique ou du référent d'un pronom.",
+    aliases: ["ambiguïté", "ambiguity", "ambiguïté lexicale", "ambiguïté syntaxique", "ambiguïté référentielle"],
+    tags: ["nlp", "ambiguite", "semantique"]
+  },
+  {
+    term: "WordNet",
+    text: "Base lexicale électronique de l'anglais qui regroupe les mots en ensembles de synonymes cognitifs, puis relie ces ensembles par des relations comme hyperonymie ou hyponymie.",
+    aliases: ["wordnet"],
+    tags: ["nlp", "wordnet", "semantique"]
+  },
+  {
+    term: "Synset",
+    text: "Ensemble de synonymes cognitifs dans WordNet, associé à un concept distinct et souvent accompagné d'une définition et de relations avec d'autres synsets.",
+    aliases: ["synsets"],
+    tags: ["nlp", "wordnet", "synset"]
+  },
+  {
+    term: "Analyse de sentiments",
+    text: "Tâche de classification qui attribue une polarité à un texte, par exemple positif, négatif ou neutre. Elle combine prétraitement NLP et apprentissage supervisé.",
+    aliases: ["sentiment analysis", "classification de sentiments"],
+    tags: ["nlp", "sentiment", "classification"]
+  },
+  {
+    term: "Classifieur bayésien naïf",
+    text: "Modèle probabiliste simple qui classe un exemple à partir des probabilités estimées de ses features, avec une hypothèse d'indépendance conditionnelle entre elles.",
+    aliases: ["Naive Bayes", "naïve Bayes", "classifieur bayésien"],
+    tags: ["ml", "classification", "naive-bayes"]
+  },
+  {
     term: "Vocabulaire",
     text: "Ensemble des tokens connus par un modèle de langage ou un tokenizer. Sa taille influence la matrice d'embedding et la taille de la sortie softmax.",
     aliases: ["vocabulary", "vocab"],

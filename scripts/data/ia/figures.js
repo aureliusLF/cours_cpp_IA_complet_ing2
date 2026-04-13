@@ -1569,6 +1569,210 @@ const mlParamHyperparamMap = `
   </svg>
 `;
 
+// ---------- 37. Pipeline NLP : texte brut → analyses ----------
+
+const nlpAnalysisPipeline = `
+  <svg viewBox="0 0 760 240" role="img" aria-label="Pipeline NLP du texte brut vers les analyses lexicales, syntaxiques et sémantiques">
+    ${arrowHeadDefs}
+
+    <g transform="translate(34, 46)">
+      <rect class="svg-pipeline-block" x="0" y="42" width="132" height="70" rx="8"/>
+      <text class="svg-pipeline-block-text" x="66" y="72">Texte brut</text>
+      <text class="svg-label-small" x="66" y="94">mots, ponctuation</text>
+    </g>
+
+    <line class="svg-arrow" x1="176" y1="123" x2="238" y2="123"/>
+
+    <g transform="translate(254, 30)">
+      <rect class="svg-highlight" x="0" y="0" width="142" height="64" rx="8"/>
+      <text class="svg-label" x="71" y="25">Lexical</text>
+      <text class="svg-label-small" x="71" y="46">tokens, POS, lemmes</text>
+
+      <rect class="svg-cell" x="0" y="88" width="142" height="64" rx="8" fill="rgba(20,184,166,0.08)"/>
+      <text class="svg-label" x="71" y="113">Syntaxique</text>
+      <text class="svg-label-small" x="71" y="134">grammaire, arbre</text>
+    </g>
+
+    <line class="svg-arrow" x1="416" y1="94" x2="484" y2="94"/>
+    <line class="svg-arrow" x1="416" y1="152" x2="484" y2="152"/>
+
+    <g transform="translate(504, 58)">
+      <rect class="svg-pipeline-block" x="0" y="0" width="168" height="128" rx="8"/>
+      <text class="svg-pipeline-block-text" x="84" y="32">Sémantique</text>
+      <text class="svg-label-small" x="84" y="62">sens, ambiguïté</text>
+      <text class="svg-label-small" x="84" y="88">relations lexicales</text>
+      <text class="svg-label-small" x="84" y="112">analyse de sentiments</text>
+    </g>
+  </svg>
+`;
+
+// ---------- 38. Tokenisation, POS tagging et lemmatisation ----------
+
+const nlpLexicalPipeline = `
+  <svg viewBox="0 0 760 250" role="img" aria-label="Analyse lexicale avec tokenisation, POS tagging et lemmatisation">
+    ${arrowHeadDefs}
+
+    <g transform="translate(30, 50)">
+      <rect class="svg-pipeline-block" x="0" y="0" width="176" height="74" rx="8"/>
+      <text class="svg-pipeline-block-text" x="88" y="30">The dogs are running</text>
+      <text class="svg-label-small" x="88" y="54">texte</text>
+    </g>
+
+    <line class="svg-arrow" x1="226" y1="87" x2="282" y2="87"/>
+
+    <g transform="translate(302, 28)">
+      <text class="svg-label" x="72" y="18">Tokens</text>
+      <rect class="svg-highlight" x="0" y="40" width="64" height="42" rx="8"/>
+      <rect class="svg-highlight" x="78" y="40" width="64" height="42" rx="8"/>
+      <rect class="svg-highlight" x="156" y="40" width="64" height="42" rx="8"/>
+      <rect class="svg-highlight" x="234" y="40" width="86" height="42" rx="8"/>
+      <text class="svg-label-small" x="32" y="66">The</text>
+      <text class="svg-label-small" x="110" y="66">dogs</text>
+      <text class="svg-label-small" x="188" y="66">are</text>
+      <text class="svg-label-small" x="277" y="66">running</text>
+
+      <text class="svg-label" x="72" y="128">POS</text>
+      <rect class="svg-cell" x="0" y="148" width="64" height="42" rx="8" fill="rgba(20,184,166,0.08)"/>
+      <rect class="svg-cell" x="78" y="148" width="64" height="42" rx="8" fill="rgba(20,184,166,0.08)"/>
+      <rect class="svg-cell" x="156" y="148" width="64" height="42" rx="8" fill="rgba(20,184,166,0.08)"/>
+      <rect class="svg-cell" x="234" y="148" width="86" height="42" rx="8" fill="rgba(20,184,166,0.08)"/>
+      <text class="svg-label-small" x="32" y="174">DET</text>
+      <text class="svg-label-small" x="110" y="174">NOUN</text>
+      <text class="svg-label-small" x="188" y="174">VERB</text>
+      <text class="svg-label-small" x="277" y="174">VERB</text>
+    </g>
+
+    <line class="svg-arrow" x1="636" y1="87" x2="680" y2="87"/>
+
+    <g transform="translate(690, 58)">
+      <rect class="svg-pipeline-block" x="0" y="0" width="56" height="58" rx="8"/>
+      <text class="svg-pipeline-block-text" x="28" y="24">run</text>
+      <text class="svg-label-small" x="28" y="44">lemme</text>
+    </g>
+  </svg>
+`;
+
+// ---------- 39. CFG et arbre d'analyse ----------
+
+const nlpCfgParseTree = `
+  <svg viewBox="0 0 760 280" role="img" aria-label="Arbre syntaxique simplifié pour une grammaire hors contexte">
+    ${arrowHeadDefs}
+
+    <g transform="translate(60, 28)">
+      <text class="svg-label" x="140" y="18">Règles</text>
+      <rect class="svg-pipeline-block" x="0" y="42" width="280" height="156" rx="8"/>
+      <text class="svg-label-small" x="140" y="74">S → NP VP</text>
+      <text class="svg-label-small" x="140" y="104">NP → Det N</text>
+      <text class="svg-label-small" x="140" y="134">VP → V PP</text>
+      <text class="svg-label-small" x="140" y="164">PP → Prep NP</text>
+    </g>
+
+    <line class="svg-arrow" x1="370" y1="132" x2="430" y2="132"/>
+
+    <g transform="translate(448, 24)">
+      <text class="svg-label" x="126" y="18">Arbre</text>
+      <circle class="svg-neuron" cx="126" cy="50" r="18"/>
+      <text class="svg-cell-text" x="126" y="55">S</text>
+
+      <circle class="svg-neuron" cx="72" cy="112" r="18"/>
+      <text class="svg-cell-text" x="72" y="117">NP</text>
+      <circle class="svg-neuron" cx="180" cy="112" r="18"/>
+      <text class="svg-cell-text" x="180" y="117">VP</text>
+
+      <circle class="svg-neuron" cx="36" cy="178" r="18"/>
+      <text class="svg-cell-text" x="36" y="183">Det</text>
+      <circle class="svg-neuron" cx="108" cy="178" r="18"/>
+      <text class="svg-cell-text" x="108" y="183">N</text>
+      <circle class="svg-neuron" cx="162" cy="178" r="18"/>
+      <text class="svg-cell-text" x="162" y="183">V</text>
+      <circle class="svg-neuron" cx="228" cy="178" r="18"/>
+      <text class="svg-cell-text" x="228" y="183">PP</text>
+
+      <line class="svg-connection" x1="114" y1="64" x2="84" y2="96"/>
+      <line class="svg-connection" x1="138" y1="64" x2="168" y2="96"/>
+      <line class="svg-connection" x1="62" y1="128" x2="44" y2="162"/>
+      <line class="svg-connection" x1="82" y1="128" x2="100" y2="162"/>
+      <line class="svg-connection" x1="174" y1="128" x2="164" y2="162"/>
+      <line class="svg-connection" x1="188" y1="128" x2="220" y2="162"/>
+
+      <text class="svg-label-small" x="36" y="232">la</text>
+      <text class="svg-label-small" x="108" y="232">fille</text>
+      <text class="svg-label-small" x="162" y="232">va</text>
+      <text class="svg-label-small" x="228" y="232">au restaurant</text>
+    </g>
+  </svg>
+`;
+
+// ---------- 40. Ambiguïtés et sens ----------
+
+const nlpAmbiguityMap = `
+  <svg viewBox="0 0 760 260" role="img" aria-label="Carte des ambiguïtés en langage naturel">
+    ${arrowHeadDefs}
+
+    <g transform="translate(48, 38)">
+      <rect class="svg-pipeline-block" x="0" y="0" width="252" height="70" rx="8"/>
+      <text class="svg-pipeline-block-text" x="126" y="31">Time flies like an arrow</text>
+      <text class="svg-label-small" x="126" y="54">une phrase, plusieurs lectures</text>
+    </g>
+
+    <line class="svg-arrow" x1="322" y1="73" x2="386" y2="73"/>
+    <line class="svg-arrow" x1="322" y1="73" x2="386" y2="130"/>
+    <line class="svg-arrow" x1="322" y1="73" x2="386" y2="187"/>
+
+    <g transform="translate(410, 32)">
+      <rect class="svg-highlight" x="0" y="0" width="260" height="44" rx="8"/>
+      <text class="svg-label" x="130" y="28">Lexicale : mot à plusieurs sens</text>
+
+      <rect class="svg-cell" x="0" y="70" width="260" height="44" rx="8" fill="rgba(20,184,166,0.08)"/>
+      <text class="svg-label" x="130" y="98">Syntaxique : plusieurs arbres</text>
+
+      <rect class="svg-cell" x="0" y="140" width="260" height="44" rx="8" fill="rgba(20,184,166,0.08)"/>
+      <text class="svg-label" x="130" y="168">Référentielle : qui désigne quoi ?</text>
+    </g>
+  </svg>
+`;
+
+// ---------- 41. Pipeline d'analyse de sentiments ----------
+
+const nlpSentimentPipeline = `
+  <svg viewBox="0 0 760 240" role="img" aria-label="Pipeline analyse de sentiments avec classifieur bayésien">
+    ${arrowHeadDefs}
+
+    <g transform="translate(30, 70)">
+      <rect class="svg-pipeline-block" x="0" y="0" width="120" height="70" rx="8"/>
+      <text class="svg-pipeline-block-text" x="60" y="30">Tweets</text>
+      <text class="svg-label-small" x="60" y="52">positifs / négatifs</text>
+    </g>
+
+    <line class="svg-arrow" x1="170" y1="105" x2="228" y2="105"/>
+
+    <g transform="translate(248, 54)">
+      <rect class="svg-highlight" x="0" y="0" width="138" height="102" rx="8"/>
+      <text class="svg-label" x="69" y="28">Nettoyer</text>
+      <text class="svg-label-small" x="69" y="56">tokeniser</text>
+      <text class="svg-label-small" x="69" y="80">lemmatiser</text>
+    </g>
+
+    <line class="svg-arrow" x1="410" y1="105" x2="468" y2="105"/>
+
+    <g transform="translate(488, 54)">
+      <rect class="svg-cell" x="0" y="0" width="134" height="102" rx="8" fill="rgba(20,184,166,0.08)"/>
+      <text class="svg-label" x="67" y="28">Features</text>
+      <text class="svg-label-small" x="67" y="56">mots présents</text>
+      <text class="svg-label-small" x="67" y="80">fréquences</text>
+    </g>
+
+    <line class="svg-arrow" x1="640" y1="105" x2="688" y2="105"/>
+
+    <g transform="translate(694, 58)">
+      <rect class="svg-pipeline-block" x="0" y="0" width="56" height="94" rx="8"/>
+      <text class="svg-pipeline-block-text" x="28" y="30">NB</text>
+      <text class="svg-label-small" x="28" y="58">pos</text>
+      <text class="svg-label-small" x="28" y="78">neg</text>
+    </g>
+  </svg>
+`;
+
 // ---------- Export global ----------
 
 globalScope.IA_FIGURES = {
@@ -1608,6 +1812,11 @@ globalScope.IA_FIGURES = {
   mlOverfittingBiasVariance,
   mlCrossValidationFolds,
   mlConfusionMetrics,
-  mlParamHyperparamMap
+  mlParamHyperparamMap,
+  nlpAnalysisPipeline,
+  nlpLexicalPipeline,
+  nlpCfgParseTree,
+  nlpAmbiguityMap,
+  nlpSentimentPipeline
 };
 })(window);

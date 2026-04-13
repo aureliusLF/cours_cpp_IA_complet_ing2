@@ -7,8 +7,8 @@ if (!registry) {
 }
 
 registry.setCourseMeta({
-  title: "Cours IA ING5 — Machine learning, deep learning & RL",
-  subtitle: "Un support interactif pour comprendre les bases du machine learning, les idées du deep learning et les méthodes de renforcement sans se perdre dans la littérature : intuitions, math utiles, visualisations et code concret.",
+  title: "Cours IA ING5 — Machine learning, deep learning, NLP & RL",
+  subtitle: "Un support interactif pour comprendre les bases du machine learning, les idées du deep learning, le traitement automatique du langage naturel et les méthodes de renforcement sans se perdre dans la littérature : intuitions, math utiles, visualisations et code concret.",
   description:
     "Animation d'un réseau de neurones : les activations progressent de l'entrée vers la sortie.",
   introVisual: `
@@ -69,9 +69,9 @@ registry.setCourseMeta({
     </div>
   `,
   stats: [
-    { value: "17", label: "chapitres progressifs" },
+    { value: "21", label: "chapitres progressifs" },
     { value: "Python", label: "langage de référence" },
-    { value: "ML + DL + RL", label: "familles étudiées" },
+    { value: "ML + DL + NLP + RL", label: "familles étudiées" },
     { value: "ING5", label: "niveau" }
   ],
   glossaryCategories: [
@@ -106,6 +106,19 @@ registry.setCourseMeta({
     vocabulaire: "sequences",
     embedding: "sequences",
     "longueur-contexte": "sequences",
+    regex: "sequences",
+    pos: "sequences",
+    stemming: "sequences",
+    lemmatisation: "sequences",
+    syntaxe: "sequences",
+    cfg: "sequences",
+    parsing: "sequences",
+    semantique: "sequences",
+    ambiguite: "sequences",
+    wordnet: "sequences",
+    synset: "sequences",
+    sentiment: "ml",
+    "naive-bayes": "ml",
     seuil: "ml",
     auc: "ml",
     "deep learning": "foundations",
